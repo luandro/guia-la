@@ -68,7 +68,9 @@ CATEGORIES = {"beach", "restaurant", "stay", "waterfall", "trail"}
 errors = []
 
 dest_dirs = sorted(
-    d for d in os.listdir(fixtures) if os.path.isdir(os.path.join(fixtures, d))
+    d for d in os.listdir(fixtures)
+    if os.path.isdir(os.path.join(fixtures, d))
+    and d not in ("node_modules", "src") and not d.startswith(".")
 )
 if not dest_dirs:
     errors.append(f"{fixtures}: no destination directories found")
