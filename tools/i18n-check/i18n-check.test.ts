@@ -79,6 +79,99 @@ describe("compareCatalogs", () => {
       "fr: extra key common.oops",
     ]);
   });
+
+  it("fails an empty value (a blank string is a missing string, D-14)", () => {
+    const problems = compareCatalogs(reference, {
+      "pt-BR": {
+        common: { appName: "x", go: "" },
+        places: { empty: "z", count_one: "a", count_other: "b" },
+      },
+    });
+    expect(problems).toEqual(["pt-BR: empty value for key common.go"]);
+  });
+
+  it("fails a non-string value (number, boolean, null)", () => {
+    const problems = compareCatalogs(reference, {
+      de: {
+        common: { appName: 42, go: "y" },
+        places: {
+          empty: "z",
+          count_one: "a",
+          count_other: true,
+        },
+      },
+    });
+    expect(problems).toContain("de: non-string value for key common.appName");
+    expect(problems).toContain(
+      "de: non-string value for key places.count_other",
+    );
+  });
+
+  it("fails a value that drops an interpolation placeholder", () => {
+    const withPlaceholders = {
+      common: { appName: "x", go: "y" },
+      places: {
+        empty: "z",
+        count_one: "{{count}} place",
+        count_other: "{{count}} places",
+      },
+    };
+    const problems = compareCatalogs(withPlaceholders, {
+      fr: {
+        common: { appName: "x", go: "y" },
+        places: {
+          empty: "z",
+          count_one: "un lieu",
+          count_other: "{{count}} lieux",
+        },
+      },
+    });
+    expect(problems).toEqual([
+      "fr: placeholders for key places.count_one differ from reference (reference: {count}, value: {})",
+    ]);
+  });
+
+  it("fails a value that adds or renames a placeholder", () => {
+    const withPlaceholders = {
+      common: { appName: "x", go: "y" },
+      places: { empty: "{{count}} z", count_one: "a", count_other: "b" },
+    };
+    const problems = compareCatalogs(withPlaceholders, {
+      nl: {
+        common: { appName: "x", go: "y" },
+        places: { empty: "{{n}}", count_one: "a", count_other: "b" },
+      },
+    });
+    expect(problems).toEqual([
+      "nl: placeholders for key places.empty differ from reference (reference: {count}, value: {n})",
+    ]);
+  });
+
+  it("accepts matching placeholders regardless of spacing around the name", () => {
+    const withPlaceholders = {
+      common: { appName: "x", go: "y" },
+      places: { empty: "z", count_one: "{{count}} a", count_other: "b" },
+    };
+    const problems = compareCatalogs(withPlaceholders, {
+      es: {
+        common: { appName: "x", go: "y" },
+        places: { empty: "z", count_one: "{{ count }} a", count_other: "b" },
+      },
+    });
+    expect(problems).toEqual([]);
+  });
+
+  it("flags empty and non-string values in the reference catalog too", () => {
+    const badReference = {
+      common: { appName: "", go: "y" },
+      places: { empty: "z", count_one: "a", count_other: 3 },
+    };
+    const problems = compareCatalogs(badReference, { fr: badReference });
+    expect(problems).toContain("en: empty value for key common.appName");
+    expect(problems).toContain(
+      "en: non-string value for key places.count_other",
+    );
+  });
 });
 
 describe("CLI entry (main-module detection)", () => {

@@ -118,6 +118,31 @@ describe("parseDestinationDataset (malformed data never throws)", () => {
     expect(result.error.message).toMatch(/praia-da-ponta-norte/);
   });
 
+  it("rejects duplicate place ids within one destination (React keys collide)", () => {
+    const result = parseDestinationDataset({
+      ...cotijubaDataset,
+      places: [
+        cotijubaPlace,
+        {
+          ...cotijubaPlace,
+          slug: "segunda-praia",
+          content: {
+            "pt-BR": {
+              name: "Segunda Praia",
+              summary: "Outra praia.",
+              machineTranslated: false,
+            },
+          },
+        },
+      ],
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.message).toMatch(
+      /duplicate place id "fx-cotijuba-001"/,
+    );
+  });
+
   it("rejects an out-of-range coordinate", () => {
     const result = parseDestinationDataset({
       ...cotijubaDataset,

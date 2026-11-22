@@ -12,9 +12,24 @@ import { LOCALES } from "@/i18n";
  * origin is fixed.
  */
 
-/** `pt-BR` → `pt_BR` (OpenGraph locale format). */
+/**
+ * Explicit UI-locale → OpenGraph locale mapping. og:locale is defined as
+ * `language_TERRITORY`, and the territory is not derivable from the language
+ * code (en → en_US, not "en"), so every locale maps explicitly. s1-cluster
+ * mirrors this map and fails the export on any other og:locale form.
+ */
+const OG_LOCALES: Record<Locale, string> = {
+  en: "en_US",
+  "pt-BR": "pt_BR",
+  es: "es_ES",
+  fr: "fr_FR",
+  nl: "nl_NL",
+  de: "de_DE",
+};
+
+/** `pt-BR` → `pt_BR`, `en` → `en_US` (OpenGraph language_TERRITORY format). */
 export function ogLocale(locale: Locale): string {
-  return locale.replace("-", "_");
+  return OG_LOCALES[locale];
 }
 
 /** The other five locales, in OG format, for og:locale:alternate. */

@@ -39,12 +39,12 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
+    "start": "APP_ENV=development APP_VARIANT=cotijuba-web expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "web": "expo start --web",
-    "lint": "expo lint",
+    "android": "APP_ENV=development APP_VARIANT=cotijuba-web expo run:android",
+    "ios": "APP_ENV=development APP_VARIANT=cotijuba-web expo run:ios",
+    "web": "APP_ENV=development APP_VARIANT=cotijuba-web expo start --web",
+    "lint": "APP_ENV=development APP_VARIANT=cotijuba-web expo lint",
     "typecheck": "tsc --noEmit"
   },
   "private": true
