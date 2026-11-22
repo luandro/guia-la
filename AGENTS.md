@@ -119,8 +119,10 @@ Local pre-PR reviews depend on scope:
    security. Because `issue_comment` runs restore the Buildx cache read-only,
    and `workflow_dispatch` requires `pr-number` and runs a full Claude review
    on that PR (there is no build-only mode), warm the cache by running
-   `workflow_dispatch` on a real PR after bumping `REV_ENGINE_SHA` or
-   `CLAUDE_CODE_VERSION` (otherwise cold builds still succeed).
+   `workflow_dispatch` on `--ref main` for a real PR after bumping
+   `REV_ENGINE_SHA` or `CLAUDE_CODE_VERSION` (GitHub Actions caches are
+   branch-scoped, so branch dispatches do not populate `main`'s cache;
+   otherwise cold builds still succeed).
 
 Use the `.claude/skills/pr-cycle/SKILL.md` (`pr-cycle` skill) to drive the PR
 review loop: triage findings, push fixes, reply using RevEngine's decision

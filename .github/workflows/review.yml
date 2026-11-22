@@ -97,7 +97,7 @@ jobs:
             case "$word" in agent|human) MODE="$word" ;; esac
           fi
           case "$MODE" in agent|human) ;; *) echo "::error::mode must be agent or human"; exit 1 ;; esac
-          case "$number" in ''|*[!0-9]*) echo "::error::No pull request number. Set pr-number."; exit 1 ;; esac
+          case "$number" in ''|0*|*[!0-9]*) echo "::error::Pull request number must be a positive integer without leading zeros. Set pr-number."; exit 1 ;; esac
 
           perm_err=$(mktemp)
           if perm_json=$(gh api "repos/$REPO/collaborators/$ACTOR/permission" 2>"$perm_err"); then
@@ -110,6 +110,7 @@ jobs:
               permission="none"
             else
               echo "::error::Failed to check collaborator permissions for $ACTOR: $err_msg"
+              # Defense in depth alongside jobs.review.if in case the job filter changes later.
               if [ "$EVENT_NAME" = workflow_dispatch ] || [[ "${AUTHOR_ASSOCIATION:-}" =~ ^(OWNER|MEMBER|COLLABORATOR)$ ]]; then
                 {
                   echo "can_notify=true"

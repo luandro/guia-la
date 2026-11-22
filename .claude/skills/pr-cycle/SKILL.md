@@ -55,27 +55,28 @@ These rules **override `auto-merge`** and unconditionally require `needs-human-r
    for _ in $(seq 1 10); do
      RUN_ID=$(gh run list --workflow review.yml --limit 20 \
        --json databaseId,displayTitle,createdAt,event,conclusion \
-       --jq "[.[] | select(.event == \"issue_comment\" and .displayTitle == \"Review PR #$PR (comment-$COMMENT_ID)\" and .createdAt >= \"$TRIGGERED_AT\" and .conclusion != \"skipped\" and .conclusion != \"cancelled\")] | sort_by(.createdAt) | last | .databaseId // \"\"")
+       --jq "[.[] | select(.event == \"issue_comment\" and .displayTitle == \"Review PR #$PR (comment-$COMMENT_ID)\" and .conclusion != \"skipped\" and .conclusion != \"cancelled\")] | sort_by(.createdAt) | last | .databaseId // \"\"")
      [ -n "$RUN_ID" ] && break
      sleep 3
    done
-   [ -n "$RUN_ID" ] || { echo "No review.yml run found for PR #$PR after $TRIGGERED_AT"; exit 1; }
+   [ -n "$RUN_ID" ] || { echo "No review.yml run found for PR #$PR (comment-$COMMENT_ID)"; exit 1; }
    gh run watch "$RUN_ID" --exit-status
    ```
-   *(If `review.yml` on `main` does not yet set `Review PR #<n> (comment-<id>)` in `displayTitle`, omit the `displayTitle` filter for that bootstrap run and verify in Step 2 that the posted review cites `HEAD_SHA`. If the watched run was cancelled while pending (e.g., superseded by a newer `/review` comment), do not re-lookup the old `$COMMENT_ID`; inspect Step 2 or trigger a fresh `/review` round.)*
-3. If `gh run watch` fails (e.g., missing/expired `CLAUDE_CODE_OAUTH_TOKEN`, quota exhaustion, workflow error) or the job skips without posting a RevEngine review for `HEAD_SHA` with `submitted_at >= $TRIGGERED_AT`, **stop the loop immediately**, apply the **`needs-human-review`** disposition (label + PR handoff comment citing the run URL and failure/skip reason), and report the failure URL and reason to the user.
+   *(If `review.yml` on `main` does not yet set `Review PR #<n> (comment-<id>)` in `displayTitle`, omit the `displayTitle` filter and add `and .createdAt >= "$TRIGGERED_AT"` for that bootstrap run, then verify in Step 2 that the posted review cites `HEAD_SHA`. If the watched run was cancelled while pending (e.g., superseded by a newer `/review` comment), do not re-lookup the old `$COMMENT_ID`; inspect Step 2 or trigger a fresh `/review` round.)*
+3. If `gh run watch` fails or the job skips without posting a RevEngine review for `HEAD_SHA` with `submitted_at >= $TRIGGERED_AT`:
+   - When the failure is specific to the `issue_comment` trigger (e.g., GitHub `issue_comment` outage, read-only cache-write error on an older `main` workflow, or a PR repairing `review.yml`), try the **`Fallback: Manual workflow_dispatch`** procedure below first.
+   - Otherwise (e.g., missing/expired `CLAUDE_CODE_OAUTH_TOKEN`, Claude quota exhaustion, or if `workflow_dispatch` also fails/skips), **stop the loop immediately**, apply the **`needs-human-review`** disposition (label + PR handoff comment citing the failed/skipped run URL and reason), record the URL and reason in `.state/goal.md`, and report to the user.
 
 #### Fallback: Manual `workflow_dispatch` (outage or `review.yml` repair)
 
-When `issue_comment` triggers are broken or a PR is repairing `.github/workflows/review.yml` on `main` (provided `review.yml` with `workflow_dispatch` already exists on `main`), dispatch manually: use `--ref "$PR_BRANCH"` when testing a repair PR's updated `review.yml`, or `--ref main` when `review.yml` on `main` is healthy. If `review.yml` does not exist on `main` or `workflow_dispatch` itself fails, escalate via the explicit maintainer outage/repair override on `needs-human-review`.
+For an ordinary `issue_comment` outage, always dispatch `--ref main` so the trusted workflow on `main` performs an independent review. Only pass `--ref "$PR_BRANCH"` to **self-test** a PR repairing `.github/workflows/review.yml` (provided `review.yml` with `workflow_dispatch` already exists on `main`); treat a `--ref "$PR_BRANCH"` run as a self-test rather than an independent review gate, and still require `--ref main` (if functional) or explicit maintainer review on `needs-human-review` (Gate #2). If `review.yml` does not exist on `main` or `workflow_dispatch` itself fails, escalate via the explicit maintainer outage/repair override on `needs-human-review`.
 
 ```bash
-PR_BRANCH=$(gh pr view "$PR" --json headRefName --jq .headRefName)
 HEAD_SHA=$(gh pr view "$PR" --json headRefOid --jq .headRefOid)
 TRIGGERED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 MODE="human"   # or "agent"
-# Use --ref "$PR_BRANCH" when repairing review.yml; otherwise --ref main
-DISPATCH_OUT=$(gh workflow run review.yml --ref "$PR_BRANCH" -f pr-number="$PR" -f mode="$MODE")
+REF="main"     # Default for outages. Only set REF=$(gh pr view "$PR" --json headRefName --jq .headRefName) to self-test a repair PR's review.yml (never as an independent review gate).
+DISPATCH_OUT=$(gh workflow run review.yml --ref "$REF" -f pr-number="$PR" -f mode="$MODE")
 RUN_ID=$(printf '%s\n' "$DISPATCH_OUT" | sed -n 's|.*/actions/runs/\([0-9][0-9]*\).*|\1|p' | head -n 1)
 if [ -z "$RUN_ID" ]; then
   for _ in $(seq 1 10); do
@@ -234,18 +235,20 @@ For every open finding:
 
 Only allowed when **explicitly authorized** for the PR/task, converged at the exact `headRefOid`, all configured checks are completed/passing (Step 3), and **no hard human-review gate** applies (including Gate #5: either a pure docs/skills diff that `pre-pr-gate.sh` (`diff-id.sh`) exempts automatically, or a hard PR whose current diff already has a recorded OhMyBug hunt):
 
-1. Resolve the main repository worktree path and branch name, and re-verify current PR state right before merging:
+1. Resolve the main repository worktree path and branch name, and verify `HEAD_SHA` (captured in Step 1 / verified in Step 2) is still current right before merging:
    ```bash
    MAIN_ROOT=$(cd "$(git rev-parse --path-format=absolute --git-common-dir)/.." && pwd)
    PR_BRANCH=$(gh pr view "$PR" --json headRefName --jq .headRefName)
-   gh pr view "$PR" --json headRefOid,isDraft,mergeable,mergeStateStatus,statusCheckRollup
+   CURRENT_SHA=$(gh pr view "$PR" --json headRefOid --jq .headRefOid)
+   [ "$CURRENT_SHA" = "$HEAD_SHA" ] || { echo "PR #$PR head moved from $HEAD_SHA to $CURRENT_SHA; re-run Step 2"; exit 1; }
+   gh pr view "$PR" --json isDraft,mergeable,mergeStateStatus,statusCheckRollup
    ```
    If `headRefOid` changed, return to Step 2; if any check is currently pending, wait with `gh pr checks "$PR" --watch` and re-verify (`allow_auto_merge` is disabled on `luandro/guia-la`, so do not pass `--auto`).
-2. Keep your Bash session's `cwd` in `.worktrees/<task-slug>` and run `gh pr merge` inside the `$MAIN_ROOT` subshell without `--delete-branch` or `SKIP_BUGHUNT=1`:
+2. Keep your Bash session's `cwd` in `.worktrees/<task-slug>` and run `gh pr merge` inside the `$MAIN_ROOT` subshell bound to the reviewed `$HEAD_SHA` without `--delete-branch` or `SKIP_BUGHUNT=1`:
    ```bash
-   (cd "$MAIN_ROOT" && gh pr merge "$PR" --squash)
+   (cd "$MAIN_ROOT" && gh pr merge "$PR" --squash --match-head-commit "$HEAD_SHA")
    ```
-   *(The subshell avoids git worktree checkout conflicts while keeping the session `cwd` in `.worktrees/<task-slug>` so `pre-pr-gate.sh` hashes the PR branch's actual diff; never `cd` into clean `main` before merging to bypass OhMyBug. Agents must never attach `SKIP_BUGHUNT=1` — if `pre-pr-gate.sh` blocks an unhunted non-doc PR, stop and escalate via Option B so the owner merges as operator.)*
+   *(The subshell avoids git worktree checkout conflicts while keeping the session `cwd` in `.worktrees/<task-slug>` so `pre-pr-gate.sh` hashes the PR branch's actual diff; never `cd` into clean `main` before merging to bypass OhMyBug. Passing `--match-head-commit "$HEAD_SHA"` rejects the merge if a commit landed after inspection — if that happens, keep the worktree and start a new review round. Agents must never attach `SKIP_BUGHUNT=1` — if `pre-pr-gate.sh` blocks an unhunted non-doc PR, stop and escalate via Option B so the owner merges as operator.)*
 3. **Verify merge completed before any cleanup** (never delete the worktree or update `.state/goal.md` while the PR is still `OPEN`):
    ```bash
    PR_STATE=""
