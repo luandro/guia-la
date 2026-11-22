@@ -1,0 +1,47 @@
+{
+  "common": {
+    "appName": "guia.la",
+    "retry": "Réessayer",
+    "offlineHint": "Vous semblez être hors ligne. Affichage des informations enregistrées.",
+    "showingOriginal": "Affichage de l'original ($t(locales.{{locale}}))",
+    "machineTranslated": "Traduit automatiquement",
+    "backToList": "Retour à tous les lieux"
+  },
+  "index": {
+    "title": "Choisissez votre langue",
+    "subtitle": "guia.la — des guides locaux, dans votre langue"
+  },
+  "places": {
+    "listTitle": "Lieux à {{destination}}",
+    "count_one": "{{count}} lieu",
+    "count_other": "{{count}} lieux",
+    "loading": "Chargement des lieux…",
+    "verifiedAt": "Vérifié le {{date}}",
+    "timeout": "Cela prend plus de temps que prévu.",
+    "errorTitle": "Une erreur est survenue",
+    "errorDetail": "Impossible de charger les lieux.",
+    "empty": "Aucun lieu pour le moment.",
+    "emptyDetail": "Cette destination n'a pas encore de lieux publiés."
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "description": "La page que vous cherchez n'existe pas.",
+    "back": "Recommencer"
+  },
+  "meta": {
+    "homeTitle": "guia.la — guides de voyage locaux",
+    "homeDescription": "Guides de lieux, sentiers et plages, directement depuis la destination.",
+    "placesTitle": "Lieux — {{destination}}",
+    "placesDescription": "Tous les lieux à {{destination}} sur guia.la.",
+    "placeTitle": "{{name}} — {{destination}}",
+    "placeDescription": "{{summary}}"
+  },
+  "locales": {
+    "en": "English",
+    "pt-BR": "Português",
+    "es": "Español",
+    "fr": "Français",
+    "nl": "Nederlands",
+    "de": "Deutsch"
+  }
+}

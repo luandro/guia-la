@@ -1,0 +1,64 @@
+import { describe, expect, it } from "vitest";
+
+import type { Locale } from "@guia-la/core";
+
+import { LOCALES, catalogs, createT, getI18n } from "./index.js";
+
+describe("i18n catalogs (D-14)", () => {
+  it("ships all six locales", () => {
+    expect([...LOCALES]).toEqual(["en", "pt-BR", "es", "fr", "nl", "de"]);
+  });
+
+  it("translates a shared key in every locale", () => {
+    for (const locale of LOCALES) {
+      const t = createT(locale);
+      expect(t("common.retry", { defaultValue: "" })).not.toBe("");
+      expect(t("places.listTitle", { destination: "Cotijuba" })).toContain(
+        "Cotijuba",
+      );
+    }
+  });
+
+  it("pluralizes counts per locale (one vs other)", () => {
+    expect(createT("en")("places.count", { count: 1 })).toBe("1 place");
+    expect(createT("en")("places.count", { count: 7 })).toBe("7 places");
+    expect(createT("pt-BR")("places.count", { count: 1 })).toBe("1 lugar");
+    expect(createT("de")("places.count", { count: 7 })).toBe("7 Orte");
+  });
+
+  // PR #14 review round C: the fallback marker used to interpolate the raw
+  // BCP-47 code ("Original wird angezeigt (pt-BR)"). It must show the
+  // localized language name from the locales.* keys instead, so every reader
+  // locale sees "(Português)" for pt-BR content.
+  it("marks fallback content with the localized language name, not the raw code", () => {
+    for (const locale of LOCALES) {
+      const marker = createT(locale)("common.showingOriginal", {
+        locale: "pt-BR",
+      });
+      expect(marker).toContain("Português");
+      expect(marker).not.toContain("pt-BR");
+    }
+    expect(createT("en")("common.showingOriginal", { locale: "de" })).toContain(
+      "Deutsch",
+    );
+  });
+
+  it("marks machine-translated content", () => {
+    expect(createT("nl")("common.machineTranslated")).not.toBe("");
+  });
+});
+
+describe("getI18n instances", () => {
+  it("returns a cached instance initialized for the locale", () => {
+    const a = getI18n("es" as Locale);
+    const b = getI18n("es" as Locale);
+    expect(a).toBe(b);
+    expect(a.language).toBe("es");
+  });
+
+  it("covers every locale with a catalog object", () => {
+    for (const locale of LOCALES) {
+      expect(typeof catalogs[locale]).toBe("object");
+    }
+  });
+});

@@ -1,0 +1,47 @@
+{
+  "common": {
+    "appName": "guia.la",
+    "retry": "Erneut versuchen",
+    "offlineHint": "Du scheinst offline zu sein. Gespeicherte Informationen werden angezeigt.",
+    "showingOriginal": "Original wird angezeigt ($t(locales.{{locale}}))",
+    "machineTranslated": "Maschinell übersetzt",
+    "backToList": "Zurück zu allen Orten"
+  },
+  "index": {
+    "title": "Wähle deine Sprache",
+    "subtitle": "guia.la — lokale Reiseführer, in deiner Sprache"
+  },
+  "places": {
+    "listTitle": "Orte in {{destination}}",
+    "count_one": "{{count}} Ort",
+    "count_other": "{{count}} Orte",
+    "loading": "Orte werden geladen…",
+    "verifiedAt": "Geprüft am {{date}}",
+    "timeout": "Das dauert länger als erwartet.",
+    "errorTitle": "Etwas ist schiefgelaufen",
+    "errorDetail": "Die Orte konnten nicht geladen werden.",
+    "empty": "Noch keine Orte hier.",
+    "emptyDetail": "Für dieses Reiseziel gibt es noch keine veröffentlichten Orte."
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "description": "Die gesuchte Seite existiert nicht.",
+    "back": "Neu starten"
+  },
+  "meta": {
+    "homeTitle": "guia.la — lokale Reiseführer",
+    "homeDescription": "Führer zu Orten, Wegen und Stränden, direkt vom Reiseziel.",
+    "placesTitle": "Orte — {{destination}}",
+    "placesDescription": "Alle Orte in {{destination}} auf guia.la.",
+    "placeTitle": "{{name}} — {{destination}}",
+    "placeDescription": "{{summary}}"
+  },
+  "locales": {
+    "en": "English",
+    "pt-BR": "Português",
+    "es": "Español",
+    "fr": "Français",
+    "nl": "Nederlands",
+    "de": "Deutsch"
+  }
+}

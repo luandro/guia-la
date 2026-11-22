@@ -1,0 +1,47 @@
+{
+  "common": {
+    "appName": "guia.la",
+    "retry": "Volver a intentar",
+    "offlineHint": "Parece que no tienes conexión. Se muestra información guardada.",
+    "showingOriginal": "Mostrando original ($t(locales.{{locale}}))",
+    "machineTranslated": "Traducido automáticamente",
+    "backToList": "Volver a todos los lugares"
+  },
+  "index": {
+    "title": "Elige tu idioma",
+    "subtitle": "guia.la — guías locales, en tu idioma"
+  },
+  "places": {
+    "listTitle": "Lugares en {{destination}}",
+    "count_one": "{{count}} lugar",
+    "count_other": "{{count}} lugares",
+    "loading": "Cargando lugares…",
+    "verifiedAt": "Verificado el {{date}}",
+    "timeout": "Esto está tardando más de lo esperado.",
+    "errorTitle": "Algo salió mal",
+    "errorDetail": "No se pudieron cargar los lugares.",
+    "empty": "Todavía no hay lugares aquí.",
+    "emptyDetail": "Este destino aún no tiene lugares publicados."
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "La página que buscas no existe.",
+    "back": "Empezar de nuevo"
+  },
+  "meta": {
+    "homeTitle": "guia.la — guías de viaje locales",
+    "homeDescription": "Guías de lugares, senderos y playas, directos del destino.",
+    "placesTitle": "Lugares — {{destination}}",
+    "placesDescription": "Todos los lugares en {{destination}} en guia.la.",
+    "placeTitle": "{{name}} — {{destination}}",
+    "placeDescription": "{{summary}}"
+  },
+  "locales": {
+    "en": "English",
+    "pt-BR": "Português",
+    "es": "Español",
+    "fr": "Français",
+    "nl": "Nederlands",
+    "de": "Deutsch"
+  }
+}

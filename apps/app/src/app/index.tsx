@@ -1,98 +1,71 @@
-import * as Device from "expo-device";
-import { Platform, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Link } from "expo-router";
+import type { Metadata } from "expo-router/server";
+import { StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
-import { AnimatedIcon } from "@/components/animated-icon";
-import { HintRow } from "@/components/hint-row";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { WebBadge } from "@/components/web-badge";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { createT, LOCALES } from "@/i18n";
+import { LocaleProvider } from "@/i18n/provider";
+import {
+  destinationOgImage,
+  languageAlternates,
+  ogAlternateLocales,
+  ogLocale,
+} from "@/lib/metadata";
 
-function getDevMenuHint() {
-  if (Platform.OS === "web") {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === "android" ? "cmd+m (or ctrl+m)" : "cmd+d";
+/**
+ * Root (task 02-9): the locale entry page. Every published journey starts
+ * at /<locale>/places; this page links each locale's list and carries the
+ * reciprocal hreflang alternates for them (it is the cluster's x-default —
+ * the language picker the list pages point at — so it declares none itself).
+ */
+
+export function generateMetadata(): Metadata {
+  const t = createT("en");
+  return {
+    title: t("meta.homeTitle"),
+    description: t("meta.homeDescription"),
+    alternates: {
+      languages: languageAlternates((locale) => `/${locale}/places`, null),
+    },
+    openGraph: {
+      title: t("meta.homeTitle"),
+      description: t("meta.homeDescription"),
+      locale: ogLocale("en"),
+      alternateLocale: ogAlternateLocales("en"),
+      type: "website",
+      images: [destinationOgImage],
+    },
+  };
+}
+
+export default function LocaleIndex() {
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <LocaleProvider locale="en">
+      <Content />
+    </LocaleProvider>
   );
 }
 
-export default function HomeScreen() {
+function Content() {
+  const { t } = useTranslation();
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === "web" && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+    <View style={styles.container}>
+      <Text style={styles.title}>{t("index.title")}</Text>
+      <Text>{t("index.subtitle")}</Text>
+      <View style={styles.locales}>
+        {LOCALES.map((locale) => (
+          <Link key={locale} href={`/${locale}/places`} style={styles.link}>
+            {t(`locales.${locale}`)}
+          </Link>
+        ))}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    flexDirection: "row",
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: "center",
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: "center",
-  },
-  code: {
-    textTransform: "uppercase",
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: "stretch",
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
+  container: { gap: 8, padding: 24 },
+  title: { fontSize: 24, fontWeight: "700" },
+  locales: { gap: 8, paddingTop: 16 },
+  link: { color: "#208AEF", fontSize: 18, fontWeight: "600" },
 });
