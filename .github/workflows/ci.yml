@@ -54,6 +54,8 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Hook regression tests (pnpm present, so the format-hook case runs)
+        run: bash scripts/hooks/test-hooks.sh
       - name: Workspace checks (format, lint, typecheck, test)
         run: pnpm check
       - name: Expo dependency pin check

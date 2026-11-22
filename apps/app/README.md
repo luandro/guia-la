@@ -4,16 +4,20 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 ## Get started
 
-1. Install dependencies
+This app is a package in a pnpm workspace (`@guia-la/core` is a
+`workspace:*` dependency), so dependencies are installed from the repository
+root with pnpm.
+
+1. Install dependencies — from the repository root
 
    ```bash
-   npm install
+   pnpm install
    ```
 
-2. Start the app
+2. Start the app — from `apps/app`
 
    ```bash
-   npx expo start
+   pnpm start
    ```
 
 In the output, you'll find options to open the app in a
@@ -27,10 +31,10 @@ You can start developing by editing the files inside the **src/app** directory. 
 
 ## Get a fresh project
 
-When you're ready, run:
+When you're ready, run (from `apps/app`):
 
 ```bash
-npm run reset-project
+pnpm run reset-project
 ```
 
 This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.

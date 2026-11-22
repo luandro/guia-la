@@ -73,6 +73,15 @@ expect_secret 2 "bash env var referencing .env" "$(c "set -a; . ./.env; set +a")
 expect_secret 0 "bash cat .env.example" "$(c "cat .env.example")"
 expect_secret 0 "bash harmless command" "$(c "ls -la packages")"
 expect_secret 2 "secrets unparsable input" "not json"
+# complete dotted/dashed secret names cannot pose as the .env.example
+# template, and the guard must also see Grep/Glob inputs (path/glob/pattern),
+# which carry no file_path or command (PR #12 review round 3)
+expect_secret 2 "read .env.example.local" "$(j "$root/.env.example.local")"
+expect_secret 2 "read .dev.vars-production" "$(j "$root/apps/app/.dev.vars-production")"
+expect_secret 2 "grep with path .env" '{"tool_input":{"pattern":".","path":".env"}}'
+expect_secret 2 "grep with glob *.env*" '{"tool_input":{"pattern":".","glob":"*.env*"}}'
+expect_secret 0 "grep over normal sources" '{"tool_input":{"pattern":"isSlug","path":"packages/core/src"}}'
+expect_secret 0 "word .environment is not .env" '{"tool_input":{"pattern":".environment","path":"packages/core/src"}}'
 # secrets guard fails closed without jq (empty PATH, bash by absolute path)
 empty_path=$(mktemp -d)
 bash_bin=$(command -v bash)
@@ -83,6 +92,27 @@ if [ "$got" != 2 ]; then
   fail=1
 fi
 rmdir "$empty_path"
+# guard-paths must fail closed (exit 2) when a required tool is missing
+empty_path_p=$(mktemp -d)
+got=0
+printf '{"tool_input":{"file_path":"/tmp/no/such/file.ts"}}' | env PATH="$empty_path_p" "$bash_bin" scripts/hooks/guard-paths.sh >/dev/null 2>&1 || got=$?
+if [ "$got" != 2 ]; then
+  echo "test-hooks: FAIL - guard-paths must fail closed without required tools (exit $got, want 2)"
+  fail=1
+fi
+rmdir "$empty_path_p"
+# symlinked checkout root: the hook's root and the checked file path must be
+# canonicalized the same way, or the prefix strip fails open and every guarded
+# path is editable (PR #12 review round 3; macOS /tmp -> /private/tmp case)
+symroot=$(mktemp -d)
+ln -s "$root" "$symroot/link"
+got=0
+printf '%s' "$(j "$root/planning/index.html")" | bash "$symroot/link/scripts/hooks/guard-paths.sh" >/dev/null 2>&1 || got=$?
+if [ "$got" != 2 ]; then
+  echo "test-hooks: FAIL - symlinked checkout root failed open (exit $got, want 2)"
+  fail=1
+fi
+rm -rf "$symroot"
 # format hook never fails the tool call
 for json in "$(j "$root/does/not/exist.ts")" "not json" '{}'; do
   printf '%s' "$json" | bash scripts/hooks/format-file.sh >/dev/null 2>&1 || { echo "test-hooks: FAIL - format-file exited non-zero"; fail=1; }
@@ -133,6 +163,34 @@ rm -f "$th/bin/args"
 ( cd "$th" && PATH="$th/bin:$PATH" PRE_COMMIT_FROM_REF= PRE_COMMIT_TO_REF=feature bash "$root/scripts/hooks/trufflehog-push.sh" >/dev/null 2>&1 )
 if ! grep -q '^--since-commit$' "$th/bin/args"; then
   echo "test-hooks: FAIL - trufflehog-push ignored the origin/main base (full scan on every push)"
+  fail=1
+fi
+# pushed branch that is not the checked-out one: the scan target must come
+# from the pushed ref (PRE_COMMIT_LOCAL_BRANCH), never from a HEAD fallback
+# (PR #12 review round 3)
+git -C "$th" switch -q main
+rm -f "$th/bin/args"
+( cd "$th" && PATH="$th/bin:$PATH" PRE_COMMIT_FROM_REF= PRE_COMMIT_TO_REF= PRE_COMMIT_LOCAL_BRANCH=feature bash "$root/scripts/hooks/trufflehog-push.sh" >/dev/null 2>&1 )
+if ! grep -qx 'feature' "$th/bin/args" 2>/dev/null; then
+  echo "test-hooks: FAIL - trufflehog-push scanned HEAD instead of the pushed branch"
+  fail=1
+fi
+# no usable target ref at all: the hook must fail the push, not scan some
+# other ref
+rm -f "$th/bin/args"
+push_rc=0
+( cd "$th" && PATH="$th/bin:$PATH" PRE_COMMIT_FROM_REF= PRE_COMMIT_TO_REF= PRE_COMMIT_LOCAL_BRANCH= bash "$root/scripts/hooks/trufflehog-push.sh" >/dev/null 2>&1 ) || push_rc=$?
+if [ "$push_rc" = 0 ] || [ -f "$th/bin/args" ]; then
+  echo "test-hooks: FAIL - trufflehog-push must fail (not scan) without a target ref"
+  fail=1
+fi
+# branch deletion (all-zero to-ref): nothing new is pushed, the hook must
+# succeed without scanning
+rm -f "$th/bin/args"
+del_rc=0
+( cd "$th" && PATH="$th/bin:$PATH" PRE_COMMIT_FROM_REF= PRE_COMMIT_TO_REF=0000000000000000000000000000000000000000 PRE_COMMIT_LOCAL_BRANCH= bash "$root/scripts/hooks/trufflehog-push.sh" >/dev/null 2>&1 ) || del_rc=$?
+if [ "$del_rc" != 0 ] || [ -f "$th/bin/args" ]; then
+  echo "test-hooks: FAIL - trufflehog-push must no-op on a branch deletion push"
   fail=1
 fi
 rm -rf "$th" "$origin"

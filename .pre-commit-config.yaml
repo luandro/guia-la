@@ -11,6 +11,7 @@ repos:
         entry: scripts/hooks/trufflehog-push.sh
         language: system
         pass_filenames: false
+        always_run: true
         stages: [pre-push]
       - id: trufflehog-staged
         name: trufflehog filesystem (secret in a staged file, unverified included)

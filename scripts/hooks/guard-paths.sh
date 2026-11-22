@@ -7,16 +7,20 @@
 #     absent file = no lock) — the "never edit the failing test during a bug
 #     fix" rule. Lock path: BUGFIX_TESTS_FILE, default .state/bugfix-tests
 #     (tests point the env var at a temp file so they never touch live state).
-# Paths are normalized (realpath -m) and a leading .worktrees/<slug>/ is
-# stripped, so the rules also hold for worktree paths (AGENTS.md runs every
-# task in .worktrees/<slug>) and for ..-bearing paths like
-# apps/../planning/index.html (PR #12 review).
+# Paths are normalized and a leading .worktrees/<slug>/ is stripped, so the
+# rules also hold for worktree paths (AGENTS.md runs every task in
+# .worktrees/<slug>) and for ..-bearing paths like
+# apps/../planning/index.html (PR #12 review). The repo root and every
+# checked path are canonicalized by the same normalizer, so symlinked
+# checkout paths (e.g. macOS /tmp -> /private/tmp) cannot make the prefix
+# strip fail open (PR #12 review round 3).
 # Anything else exits 0.
 set -euo pipefail
 
 # Fail closed: Claude Code blocks only on exit 2, so any other error would let
-# the edit through silently.
-for tool in jq realpath; do
+# the edit through silently. python3 (not GNU realpath -m, which macOS's
+# /bin/realpath rejects) provides the normalization on both platforms.
+for tool in jq python3; do
   if ! command -v "$tool" >/dev/null 2>&1; then
     echo "blocked: $tool is required by scripts/hooks/guard-paths.sh (install $tool)." >&2
     exit 2
@@ -32,11 +36,24 @@ if [ -z "$file" ]; then
   exit 0
 fi
 
-root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# norm <path>: absolute physical path with a nonexistent tail kept (realpath
+# -m semantics) — os.path.realpath does this natively on macOS and GNU/Linux.
+# Exits 2 (fail closed) if python3 cannot normalize.
+norm() {
+  local out
+  if ! out=$(python3 -I -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1"); then
+    echo "blocked: guard-paths could not normalize a path ($1)." >&2
+    exit 2
+  fi
+  printf '%s\n' "$out"
+}
 
-repo_rel() { # repo_rel <path>: normalized (realpath -m), repo-relative, worktree prefix stripped
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+root="$(norm "$root")"
+
+repo_rel() { # repo_rel <path>: normalized, repo-relative, worktree prefix stripped
   local p rel rest
-  p=$(realpath -m -- "$1")
+  p="$(norm "$1")"
   rel="${p#"$root"/}"
   case "$rel" in
     .worktrees/*)
@@ -49,7 +66,7 @@ repo_rel() { # repo_rel <path>: normalized (realpath -m), repo-relative, worktre
   printf '%s\n' "$rel"
 }
 
-file_norm=$(realpath -m -- "$file")
+file_norm="$(norm "$file")"
 rel=$(repo_rel "$file")
 
 case "$rel" in
@@ -73,8 +90,8 @@ if [ -f "$lock_file" ]; then
     [ -z "$locked" ] && continue
     locked="${locked#./}"
     case "$locked" in
-      /*) locked_abs=$(realpath -m -- "$locked") ;;
-      *) locked_abs=$(realpath -m -- "$root/$locked") ;;
+      /*) locked_abs="$(norm "$locked")" ;;
+      *) locked_abs="$(norm "$root/$locked")" ;;
     esac
     locked_rel=$(repo_rel "$locked_abs")
     if [ "$file_norm" = "$locked_abs" ] || [ "$rel" = "$locked_rel" ]; then
