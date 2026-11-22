@@ -1,5 +1,9 @@
 name: Review
 
+run-name: >-
+  Review PR #${{ github.event.issue.number || inputs.pr-number || 'unknown' }}
+  (${{ github.event_name == 'workflow_dispatch' && (inputs.mode || 'human') || 'comment' }})
+
 on:
   issue_comment:
     types: [created]
@@ -32,10 +36,6 @@ permissions:
   contents: read
   pull-requests: write
 
-concurrency:
-  group: rev-engine-${{ github.event.issue.number || inputs.pr-number || github.run_id }}
-  cancel-in-progress: false
-
 env:
   REV_ENGINE_REPO: laude-institute/rev-engine
   REV_ENGINE_SHA: 1d03097bcff5c37d94f000cae6a735e4120657a5
@@ -44,6 +44,9 @@ env:
 jobs:
   review:
     if: github.event_name == 'workflow_dispatch' || (github.event.issue.pull_request && startsWith(github.event.comment.body, '/review'))
+    concurrency:
+      group: rev-engine-${{ github.event.issue.number || inputs.pr-number || github.run_id }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -65,6 +68,7 @@ jobs:
           INPUT_EFFORT: ${{ inputs.effort }}
           VAR_MODEL: ${{ vars.REV_ENGINE_MODEL }}
           VAR_EFFORT: ${{ vars.REV_ENGINE_EFFORT }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
           skip() { echo "::notice::No review: $1"; echo "run=false" >> "$GITHUB_OUTPUT"; exit 0; }
@@ -85,8 +89,26 @@ jobs:
           case "$MODE" in agent|human) ;; *) echo "::error::mode must be agent or human"; exit 1 ;; esac
           case "$number" in ''|*[!0-9]*) echo "::error::No pull request number. Set pr-number."; exit 1 ;; esac
 
-          permission=$(gh api "repos/$REPO/collaborators/$ACTOR/permission" --jq .permission 2>/dev/null || echo none)
+          perm_err=$(mktemp)
+          if perm_json=$(gh api "repos/$REPO/collaborators/$ACTOR/permission" 2>"$perm_err"); then
+            permission=$(printf '%s' "$perm_json" | jq -r '.permission // "none"')
+            rm -f "$perm_err"
+          else
+            err_msg=$(cat "$perm_err")
+            rm -f "$perm_err"
+            if printf '%s' "$err_msg" | grep -q '(HTTP 404)'; then
+              permission="none"
+            else
+              echo "::error::Failed to check collaborator permissions for $ACTOR: $err_msg"
+              exit 1
+            fi
+          fi
           case "$permission" in admin|write) ;; *) skip "$ACTOR does not have write access to $REPO" ;; esac
+
+          {
+            echo "authorized=true"
+            echo "number=$number"
+          } >> "$GITHUB_OUTPUT"
 
           MODEL=$(printf '%s' "${INPUT_MODEL:-${VAR_MODEL:-opus}}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
           [ -n "$MODEL" ] || MODEL="opus"
@@ -107,12 +129,15 @@ jobs:
           gh api "repos/$REPO/pulls/$number" > "$RUNNER_TEMP/rev-engine-prime/pull.json"
           jq '{title, body}' "$RUNNER_TEMP/rev-engine-prime/pull.json" > "$RUNNER_TEMP/rev-engine-prime/pr/pr.json"
           if [ "$(jq -r '.head.repo.full_name // ""' "$RUNNER_TEMP/rev-engine-prime/pull.json")" != "$REPO" ]; then
+            gh api "repos/$REPO/pulls/$number/reviews" \
+              -f event=COMMENT \
+              -f body="RevEngine skipped PR #$number: pull requests from forks are not reviewed. ([workflow run]($RUN_URL))" \
+              > /dev/null || echo "::warning::Could not post fork-skip notice to PR #$number"
             skip "pull request $number comes from a fork"
           fi
           {
             echo "run=true"
             echo "mode=$MODE"
-            echo "number=$number"
             echo "base=$(jq -r .base.sha "$RUNNER_TEMP/rev-engine-prime/pull.json")"
             echo "head=$(jq -r .head.sha "$RUNNER_TEMP/rev-engine-prime/pull.json")"
             echo "model=$MODEL"
@@ -257,3 +282,20 @@ jobs:
             -e REVIEW_MODEL -e REVIEW_MODE -e MIN_SEVERITY -e MAX_COMMENTS \
             -e FINDINGS_PATH=/work/out/details.json -e FIT_PATH=/work/out/fit.json -e DIFF_PATH=/work/pr/diff.patch \
             rev-engine-prime:action /agent/action/post.ts
+
+      # Holds GITHUB_TOKEN and no Claude token.
+      - name: Notify failure on pull request
+        if: failure() && steps.ask.outputs.authorized == 'true' && steps.ask.outputs.number != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.ask.outputs.number }}
+          HEAD_SHA: ${{ steps.ask.outputs.head }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          gh api "repos/$REPO/pulls/$PR_NUMBER/reviews" \
+            -f event=COMMENT \
+            -f body="RevEngine review failed${HEAD_SHA:+ for commit \`${HEAD_SHA:0:7}\`}. Check the [workflow run logs]($RUN_URL) for details." \
+            > /dev/null || echo "::warning::Could not post failure notice to PR #$PR_NUMBER"

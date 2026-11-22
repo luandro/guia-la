@@ -63,14 +63,22 @@ once, record it, and proceed.
 
 ## PR review cycle
 
-The full cycle below is for hard PRs only: production code paths, security,
-money, concurrency, data handling, or wide/risky diffs. Do not spend codex or
-ohmybug reviews on setup, docs, config, or scaffolding PRs — self-review
-those, note the skip in `.state/goal.md`, and merge. The OhMyBug pre-PR gate
-hook refuses `gh pr merge` until a hunt has run; for these PRs use its
-documented escape hatch: `SKIP_BUGHUNT=1 gh pr merge <n> --merge --delete-branch`.
-Never use it on a hard PR. Every hard PR goes
-through, in order:
+**No PR merges until RevEngine `/review` passes** (`**Recommendation: merge.**`,
+zero unresolved review threads, and all configured checks passing at the
+current `HEAD` commit). This applies to **every PR**, including setup, docs,
+config, and scaffolding PRs.
+
+Local pre-PR reviews depend on scope:
+- **Setup, docs, config, or scaffolding PRs:** skip local `codex` and `ohmybug`
+  reviews, self-review the diff, and note the skip in `.state/goal.md` before
+  opening the PR for RevEngine `/review`. Because the OhMyBug pre-PR gate hook
+  refuses `gh pr merge` until a local hunt has run, use its documented escape
+  hatch (`SKIP_BUGHUNT=1 gh pr merge <n> --squash` from the main worktree)
+  **only after** RevEngine `/review` has passed — never use `SKIP_BUGHUNT=1`
+  on a hard PR.
+- **Hard PRs** (production code paths, security, money, concurrency, data
+  handling, or wide/risky diffs): run steps 1–2 locally before opening or
+  updating the PR, then complete step 3 on GitHub:
 
 1. **codex review** — `codex review` (config already pins `gpt-6.2-sol`,
    effort `low`). If usage or quota is unavailable, note the skip in
@@ -83,11 +91,15 @@ through, in order:
    bughunter skill's own trigger: the hunt is never the first response to a
    review request and never runs before codex review. Address confirmed
    findings before merge.
-3. **RevEngine GitHub Action (`/review`)** — `.github/workflows/review.yml`
-   runs `laude-institute/rev-engine` on the Claude subscription
-   (`CLAUDE_CODE_OAUTH_TOKEN` repository secret) when a collaborator with write
-   access comments `/review` (or `/review agent`) on a PR, or triggers the
-   workflow manually via `workflow_dispatch`.
+3. **RevEngine GitHub Action (`/review`)** — required on **every PR** before
+   merge. `.github/workflows/review.yml` runs `laude-institute/rev-engine` on
+   the Claude subscription (`CLAUDE_CODE_OAUTH_TOKEN` repository secret) when a
+   collaborator with write or admin access comments `/review` (or
+   `/review agent`) on a PR, or triggers the workflow manually via
+   `workflow_dispatch`. Defaults to model `opus` and effort `high` (override
+   repo-wide with Actions variables `REV_ENGINE_MODEL` / `REV_ENGINE_EFFORT`,
+   or per run via `workflow_dispatch` inputs). Fork PRs are skipped for
+   security.
 
 Use the `.claude/skills/pr-cycle/SKILL.md` (`pr-cycle` skill) to drive the PR
 review loop: triage findings, push fixes, reply using RevEngine's decision
