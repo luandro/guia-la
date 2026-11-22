@@ -4,6 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ./scripts/check-docs.sh
+bash ./scripts/check-legacy.sh
 python3 -I planning/tools/build.py >/dev/null
 python3 -I planning/tools/check.py
 echo "check: OK"

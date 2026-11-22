@@ -1,0 +1,7 @@
+{
+  "id": "serra",
+  "name": "Serra Vidraça",
+  "defaultLocale": "pt-BR",
+  "locales": ["pt-BR", "en", "es", "fr", "nl", "de"],
+  "source": "synthetic"
+}
