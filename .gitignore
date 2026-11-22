@@ -8,3 +8,8 @@ dist/
 .expo/
 coverage/
 *.tsbuildinfo
+
+# Secrets never committed (matches the .claude/settings.json deny rules)
+.env*
+!.env.example
+.dev.vars*

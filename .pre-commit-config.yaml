@@ -1,11 +1,12 @@
 # Install once per clone: pre-commit install
 # Each hook names the failure class it catches (D-15).
+default_install_hook_types: [pre-commit, pre-push]
 repos:
   - repo: local
     hooks:
       - id: trufflehog
         name: trufflehog git (secret in pushed history)
-        entry: trufflehog git file://. --since-commit HEAD --results=verified,unknown --fail --no-update
+        entry: scripts/hooks/trufflehog-push.sh
         language: system
         pass_filenames: false
         stages: [pre-push]
@@ -32,8 +33,14 @@ repos:
         language: system
         pass_filenames: false
         files: \.(ts|tsx)$
-      - id: check
-        name: scripts/check.sh (ADR status drift, broken packet build)
-        entry: ./scripts/check.sh
+      - id: check-docs
+        name: docs checks (ADR status drift, broken packet build, legacy matrix/fixture privacy)
+        entry: env CHECK_DOCS_ONLY=1 ./scripts/check.sh
         language: system
         pass_filenames: false
+      - id: workspace-check
+        name: pnpm check (whole-workspace format, lint, typecheck, unit tests)
+        entry: pnpm check
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

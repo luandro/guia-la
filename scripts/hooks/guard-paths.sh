@@ -9,8 +9,17 @@
 # Anything else exits 0.
 set -euo pipefail
 
+# Fail closed: Claude Code blocks only on exit 2, so any other error would let
+# the edit through silently.
+if ! command -v jq >/dev/null 2>&1; then
+  echo "blocked: jq is required by scripts/hooks/guard-paths.sh (install jq)." >&2
+  exit 2
+fi
 input=$(cat)
-file=$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')
+if ! file=$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty' 2>/dev/null); then
+  echo "blocked: guard-paths could not parse the tool input JSON." >&2
+  exit 2
+fi
 
 if [ -z "$file" ]; then
   exit 0
@@ -24,7 +33,7 @@ case "$rel" in
     echo "blocked: ${rel} is generated output (Phase 06 composer) — edit the source instead." >&2
     exit 2
     ;;
-  dist | dist/*)
+  dist | dist/* | */dist | */dist/*)
     echo "blocked: ${rel} is build output (dist/) — edit the source instead." >&2
     exit 2
     ;;
