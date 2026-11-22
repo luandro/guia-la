@@ -40,7 +40,6 @@
   },
   "scripts": {
     "start": "APP_ENV=development APP_VARIANT=cotijuba-web expo start",
-    "reset-project": "node ./scripts/reset-project.js",
     "android": "APP_ENV=development APP_VARIANT=cotijuba-web expo run:android",
     "ios": "APP_ENV=development APP_VARIANT=cotijuba-web expo run:ios",
     "web": "APP_ENV=development APP_VARIANT=cotijuba-web expo start --web",

@@ -38,6 +38,20 @@ export function ogAlternateLocales(locale: Locale): string[] {
 }
 
 /**
+ * Destination-level og:image (PR #14 review round C): link previews need an
+ * image, and the outstanding owner check (WhatsApp card) asks for one. The
+ * asset ships in the export from apps/app/public/og/ (copied to /og/); a
+ * per-place image arrives with real photography. Root-relative like every
+ * other URL here — crawlers need absolute URLs once the origin is pinned
+ * (Phase 04 deploy / Phase 10 domain work).
+ */
+export const destinationOgImage = {
+  url: "/og/default.png",
+  width: 1200,
+  height: 630,
+} as const;
+
+/**
  * hreflang map for all six locales, plus the x-default the caller pins:
  * list pages use "/" (the language picker), detail pages the destination
  * default-locale page, and the root picker page passes null (it IS the

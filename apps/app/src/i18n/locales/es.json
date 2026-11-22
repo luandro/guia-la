@@ -3,7 +3,7 @@
     "appName": "guia.la",
     "retry": "Volver a intentar",
     "offlineHint": "Parece que no tienes conexión. Se muestra información guardada.",
-    "showingOriginal": "Mostrando original ({{locale}})",
+    "showingOriginal": "Mostrando original ($t(locales.{{locale}}))",
     "machineTranslated": "Traducido automáticamente",
     "backToList": "Volver a todos los lugares"
   },

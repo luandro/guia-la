@@ -18,6 +18,7 @@ import { useDestination } from "@/hooks/use-destination";
 import { createT, isLocale, LOCALES } from "@/i18n";
 import { LocaleProvider } from "@/i18n/provider";
 import {
+  destinationOgImage,
   languageAlternates,
   ogAlternateLocales,
   ogLocale,
@@ -79,6 +80,7 @@ export function generateMetadata(_request: unknown, params: Params): Metadata {
       locale: ogLocale(locale),
       alternateLocale: ogAlternateLocales(locale),
       type: "website",
+      images: [destinationOgImage],
     },
   };
 }

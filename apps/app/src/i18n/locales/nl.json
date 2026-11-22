@@ -3,7 +3,7 @@
     "appName": "guia.la",
     "retry": "Opnieuw proberen",
     "offlineHint": "Je lijkt offline te zijn. Opgeslagen informatie wordt getoond.",
-    "showingOriginal": "Origineel wordt getoond ({{locale}})",
+    "showingOriginal": "Origineel wordt getoond ($t(locales.{{locale}}))",
     "machineTranslated": "Automatisch vertaald",
     "backToList": "Terug naar alle plaatsen"
   },
