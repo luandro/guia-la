@@ -3,7 +3,7 @@
     "appName": "guia.la",
     "retry": "Try again",
     "offlineHint": "You appear to be offline. Showing saved information.",
-    "showingOriginal": "Showing original ({{locale}})",
+    "showingOriginal": "Showing original ($t(locales.{{locale}}))",
     "machineTranslated": "Machine translated",
     "backToList": "Back to all places"
   },

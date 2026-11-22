@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { createT, LOCALES } from "@/i18n";
 import { LocaleProvider } from "@/i18n/provider";
 import {
+  destinationOgImage,
   languageAlternates,
   ogAlternateLocales,
   ogLocale,
@@ -32,6 +33,7 @@ export function generateMetadata(): Metadata {
       locale: ogLocale("en"),
       alternateLocale: ogAlternateLocales("en"),
       type: "website",
+      images: [destinationOgImage],
     },
   };
 }

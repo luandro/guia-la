@@ -18,7 +18,8 @@ checks"). Everything machine-checkable ran and passed, including a measured
 —not extrapolated — 1k-page rebuild (next section).
 
 `generateMetadata()` (never `<Head>`) emits `<title>`, `og:title`,
-`og:description`, `og:locale` + `og:locale:alternate`, and hreflang
+`og:description`, `og:locale` + `og:locale:alternate`, an `og:image`
+(+ width/height, review round C), and hreflang
 `<link>`s for all six locales into the raw HTML of every static page —
 list, detail and root — with no JavaScript involved. The exported HTML also
 carries the rendered content itself (place names, summaries, fallback and
@@ -80,8 +81,8 @@ pnpm s1                # both, wired as one root script
 `scripts/s1-assert.sh` output (current state):
 
 ```text
-s1-cluster: OK — 49 journey pages (og form, hreflang cluster + reciprocity,
-  per-locale <html lang>, full list links)
+s1-cluster: OK — 49 journey pages (og form + og:image, hreflang cluster +
+  reciprocity, per-locale <html lang>, full list links)
 s1-assert: OK — 49 journey pages checked against
   packages/fixtures/cotijuba/places.json (title, og:title, og:description,
   og:locale, 6 hreflang each); 53 HTML files total in apps/app/dist
@@ -89,10 +90,11 @@ s1-assert: OK — 49 journey pages checked against
 
 `s1-cluster-check.mjs` (called by s1-assert) additionally proves, per page:
 og:locale values in OpenGraph `language_TERRITORY` form (`en_US`, `pt_BR`;
-a bare `en` or a hyphenated `pt-BR` fails), the hreflang cluster shape
-below, reciprocal return links for every annotation, `<html lang>` equal to
-the page's locale, and a raw-HTML link from every list page to every detail
-slug (the virtualization check).
+a bare `en` or a hyphenated `pt-BR` fails), an `og:image` pointing at the
+shipped `/og/default.png` at 1200×630 (review round C), the hreflang
+cluster shape below, reciprocal return links for every annotation,
+`<html lang>` equal to the page's locale, and a raw-HTML link from every
+list page to every detail slug (the virtualization check).
 
 Served check (raw HTML over HTTP, no JS): `python3 -m http.server 4175
 --directory apps/app/dist`, then plain HTTP GETs. curl was sandbox-blocked
@@ -149,9 +151,13 @@ Sample of the asserted raw HTML (pt-BR detail):
 
 - **Manual WhatsApp/link-preview check — OUTSTANDING, owner's.** Paste a
   production-URL detail page into WhatsApp (or any link-preview consumer)
-  and confirm the card shows title/description/image. Not runnable from
-  this sandbox; it needs a deployed origin anyway (hreflang URLs are
-  root-relative until the deploy origin is pinned).
+  and confirm the card shows title/description/image. Since review round C
+  the export emits a destination-level `og:image` (`/og/default.png`,
+  1200×630, shipped from `apps/app/public/og/`), so the card has an image
+  to show; but it is root-relative, and crawlers need an absolute URL once
+  a real origin exists (Phase 04 deploy / Phase 10 domain work). Not
+  runnable from this sandbox; it needs a deployed origin anyway (hreflang
+  URLs are root-relative until the deploy origin is pinned).
 - **curl run of the served bytes — blocked in both recording sessions.**
   The served check above used Node `fetch` against the same local static
   server over real HTTP; if ADR-0004's letter requires literal curl, the
@@ -164,6 +170,12 @@ Sample of the asserted raw HTML (pt-BR detail):
 
 ## Honest limitations
 
+- **og:image URL is root-relative** (`/og/default.png`). OpenGraph crawlers
+  (WhatsApp, Facebook) need an absolute URL to fetch the image; with no
+  deploy origin pinned yet (D-01), fabricating one would be worse. Emitting
+  the absolute form is a one-line change in `destinationOgImage`
+  (`apps/app/src/lib/metadata.ts`) once the origin exists — Phase 04 deploy
+  work / Phase 10 domain work.
 - **hreflang URLs are root-relative** (`/pt-BR/places/...`), not absolute.
   No deploy origin is pinned yet (D-01: `guia.la` unowned; pilot web deploy
   targets `cotiju.app` in a later phase), and fabricating an absolute URL we
@@ -209,3 +221,105 @@ status=200
 ```
 
 No JavaScript ran; this is the raw HTML a link-preview crawler receives. The owner's WhatsApp link-preview check is still outstanding.
+
+## PR #14 review round C (2026-11-22): og:image, dead script, bundle-id pins, localized fallback marker
+
+Four findings, each red→green under TDD (commands from the repo root;
+`pnpm exec vitest run <file>` runs one file through the workspace config).
+
+**1. og:image emitted destination-wide (the fix this file's outstanding
+WhatsApp check needs).** Red — extended `scripts/s1-cluster-check.mjs`
+first and ran it over the then-current export:
+
+```text
+$ node scripts/s1-cluster-check.mjs apps/app/dist packages/fixtures/cotijuba
+s1-cluster: FAIL (50 problem(s)):
+  - og/default.png is missing from the export (apps/app/public/og/)
+  - /: og:image is 'undefined', expected '/og/default.png'
+  - /en/places: og:image is 'undefined', expected '/og/default.png'
+  … 49 journey pages, exit 1
+```
+
+Green — added `destinationOgImage` (`apps/app/src/lib/metadata.ts`,
+root-relative `/og/default.png`, 1200×630), wired it into all three
+`generateMetadata` sites (root, list, detail), and shipped the asset:
+`apps/app/public/og/default.png`, a 1200×630 RGB PNG (3 620 bytes)
+generated locally by `tools/og-image/generate-og-default.mjs` (pure Node
+`zlib` PNG writer, no external fetch; `expo export` copies `public/` into
+`dist/`):
+
+```text
+$ pnpm s1
+…
+s1-cluster: OK — 49 journey pages (og form + og:image, hreflang cluster + reciprocity,
+  per-locale <html lang>, full list links)
+s1-assert: OK — 49 journey pages checked against
+  packages/fixtures/cotijuba/places.json (title, og:title, og:description,
+  og:locale, 6 hreflang each); 53 HTML files total in apps/app/dist
+```
+
+Raw-HTML spot check of the new export:
+
+```text
+$ grep -o '<meta property="og:image[^>]*>' apps/app/dist/de/places/praia-da-ponta-norte.html
+<meta property="og:image" content="/og/default.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+$ ls apps/app/dist/og/default.png
+apps/app/dist/og/default.png   (3620 bytes)
+```
+
+Also added a unit pin in `apps/app/src/lib/metadata.test.ts`
+(`destinationOgImage` = `/og/default.png`, 1200×630).
+
+**2. Dead `reset-project` script removed** (`apps/app/package.json` pointed
+at `scripts/reset-project.js`, deleted from this PR's tree). Red — new gate
+in `apps/app/src/config/package-scripts.test.ts` (failure class: any script
+referencing a `./path` that no longer exists on disk):
+
+```text
+$ pnpm exec vitest run apps/app/src/config/package-scripts.test.ts
+FAIL … every script referencing a ./path points at an existing file
+- []
++ [
++   "reset-project -> ./scripts/reset-project.js",
++ ]
+Tests  1 failed | 1 passed (2)        # exit 1
+```
+
+Green after removing the entry: `Tests  2 passed (2)`.
+
+**3. Bundle id/package pinned per env** (`app-config.test.ts`): the
+env × variant loop now asserts `ios.bundleIdentifier` and `android.package`
+are `la.guia.app` for production and `la.guia.app.<env>` otherwise
+(D-01: the store id is permanent; preview shipping it would be
+irreversible). Coverage-only — the config already behaved correctly, so
+this test was green on arrival (`Tests 6 passed (6)`); no red run exists
+for it.
+
+**4. Fallback marker shows the localized language name.** The catalogs'
+`common.showingOriginal` now nests `$t(locales.{{locale}})` instead of
+interpolating the raw BCP-47 code. Red (`i18n.test.ts`, expectation
+rewritten to the corrected contract first):
+
+```text
+$ pnpm exec vitest run apps/app/src/i18n/i18n.test.ts
+FAIL … marks fallback content with the localized language name, not the raw code
+AssertionError: expected 'Showing original (pt-BR)' to contain 'Português'
+Tests  1 failed | 6 passed (7)        # exit 1
+```
+
+Green after the six-catalog change: `Tests  7 passed (7)`. The exported
+raw HTML confirms the runtime path (the marker renders inside the static
+export):
+
+```text
+$ grep -o 'Showing original ([^)]*)\|Original wird angezeigt ([^)]*)' \
+    apps/app/dist/en/places/index.html apps/app/dist/de/places/index.html
+apps/app/dist/en/places/index.html:Showing original (Português)
+apps/app/dist/de/places/index.html:Original wird angezeigt (Português)
+```
+
+The one behavioral caveat stands as before: `og:image` (like hreflang) is
+root-relative and must be absolutized when a real origin exists — see
+Honest limitations above (Phase 04/10).

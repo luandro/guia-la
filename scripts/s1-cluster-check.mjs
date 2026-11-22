@@ -11,7 +11,10 @@
 //       return links (search engines ignore non-reciprocal hreflang);
 //   (3) a locale page served with the wrong document language (<html lang>);
 //   (4) a list page whose raw HTML omits links to some detail pages
-//       (virtualized rendering drops rows in a static export).
+//       (virtualized rendering drops rows in a static export);
+//   (5) a journey page without an og:image pointing at a shipped asset
+//       (PR #14 review round C: link previews need an image, and the meta
+//       must reference a file that actually exists in the export).
 //
 // Usage: s1-cluster-check.mjs <dist-dir> <fixture-dir>
 // Expected pages come from <fixture-dir>/places.json + destination.json.
@@ -104,6 +107,44 @@ function htmlLang(html) {
   return tag?.match(/\blang="([^"]*)"/)?.[1];
 }
 
+/**
+ * Destination-level og:image (PR #14 review round C). Root-relative on
+ * purpose: no deploy origin is pinned yet (D-01), so an absolute URL cannot
+ * be honest; crawlers need absolute URLs once the origin exists (Phase 04
+ * deploy / Phase 10 domain work — noted in s1-result.md).
+ */
+const OG_IMAGE = {
+  url: "/og/default.png",
+  width: "1200",
+  height: "630",
+};
+
+function ogMetaContent(html, property) {
+  for (const match of html.matchAll(
+    /<meta\b[^>]*property="og:image(?::[a-z]+)?"[^>]*>/g,
+  )) {
+    if (match[0].includes(`property="${property}"`)) {
+      return match[0].match(/\bcontent="([^"]*)"/)?.[1];
+    }
+  }
+  return undefined;
+}
+
+function checkOgImage(page, html) {
+  const url = ogMetaContent(html, "og:image");
+  if (url !== OG_IMAGE.url) {
+    fail(`${page}: og:image is '${url}', expected '${OG_IMAGE.url}'`);
+    return;
+  }
+  const width = ogMetaContent(html, "og:image:width");
+  const height = ogMetaContent(html, "og:image:height");
+  if (width !== OG_IMAGE.width || height !== OG_IMAGE.height) {
+    fail(
+      `${page}: og:image size is ${width}x${height}, expected ${OG_IMAGE.width}x${OG_IMAGE.height}`,
+    );
+  }
+}
+
 function checkOg(page, html, expectedLocale) {
   const values = ogLocaleValues(html);
   if (values.length === 0) {
@@ -191,12 +232,19 @@ function detailLangs(slug) {
   return Object.fromEntries(LOCALES.map((l) => [l, `/${l}/places/${slug}`]));
 }
 
+// The og:image asset must ship in the export (apps/app/public/ is copied
+// into dist/ by expo export).
+if (!existsSync(join(distDir, "og/default.png"))) {
+  fail("og/default.png is missing from the export (apps/app/public/og/)");
+}
+
 // Root: reciprocal links to the six list pages, no x-default.
 {
   const page = "/";
   const html = read(pageFile(page));
   checkCluster(page, html, { langs: listLangs(), xDefault: null });
   checkOg(page, html, "en");
+  checkOgImage(page, html);
   checkLang(page, html, "en");
   checkReciprocity(page, html);
 }
@@ -217,6 +265,7 @@ for (const locale of LOCALES) {
   const html = read(pageFile(page));
   checkCluster(page, html, { langs: listLangs(), xDefault: "/" });
   checkOg(page, html, locale);
+  checkOgImage(page, html);
   checkLang(page, html, locale);
   checkReciprocity(page, html);
   for (const slug of slugs) {
@@ -236,6 +285,7 @@ for (const locale of LOCALES) {
       xDefault: `/${defaultLocale}/places/${slug}`,
     });
     checkOg(page, html, locale);
+    checkOgImage(page, html);
     checkLang(page, html, locale);
     checkReciprocity(page, html);
   }
@@ -249,5 +299,5 @@ if (problems.length > 0) {
 
 const pageCount = 1 + LOCALES.length + LOCALES.length * slugs.length;
 console.log(
-  `s1-cluster: OK — ${pageCount} journey pages (og form, hreflang cluster + reciprocity, per-locale <html lang>, full list links)`,
+  `s1-cluster: OK — ${pageCount} journey pages (og form + og:image, hreflang cluster + reciprocity, per-locale <html lang>, full list links)`,
 );

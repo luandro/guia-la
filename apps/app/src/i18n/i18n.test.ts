@@ -26,10 +26,24 @@ describe("i18n catalogs (D-14)", () => {
     expect(createT("de")("places.count", { count: 7 })).toBe("7 Orte");
   });
 
-  it("marks fallback and machine-translation markers with the content locale", () => {
-    expect(
-      createT("fr")("common.showingOriginal", { locale: "pt-BR" }),
-    ).toContain("pt-BR");
+  // PR #14 review round C: the fallback marker used to interpolate the raw
+  // BCP-47 code ("Original wird angezeigt (pt-BR)"). It must show the
+  // localized language name from the locales.* keys instead, so every reader
+  // locale sees "(Português)" for pt-BR content.
+  it("marks fallback content with the localized language name, not the raw code", () => {
+    for (const locale of LOCALES) {
+      const marker = createT(locale)("common.showingOriginal", {
+        locale: "pt-BR",
+      });
+      expect(marker).toContain("Português");
+      expect(marker).not.toContain("pt-BR");
+    }
+    expect(createT("en")("common.showingOriginal", { locale: "de" })).toContain(
+      "Deutsch",
+    );
+  });
+
+  it("marks machine-translated content", () => {
     expect(createT("nl")("common.machineTranslated")).not.toBe("");
   });
 });

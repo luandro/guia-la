@@ -3,7 +3,7 @@
     "appName": "guia.la",
     "retry": "Réessayer",
     "offlineHint": "Vous semblez être hors ligne. Affichage des informations enregistrées.",
-    "showingOriginal": "Affichage de l'original ({{locale}})",
+    "showingOriginal": "Affichage de l'original ($t(locales.{{locale}}))",
     "machineTranslated": "Traduit automatiquement",
     "backToList": "Retour à tous les lieux"
   },

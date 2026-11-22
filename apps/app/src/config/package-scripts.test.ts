@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,6 +25,28 @@ describe("apps/app package scripts (config-load guard)", () => {
           !/APP_ENV=\S+/.test(command) || !/APP_VARIANT=\S+/.test(command),
       )
       .map(([name]) => name);
+
+    expect(offenders).toEqual([]);
+  });
+
+  // PR #14 review round C: `reset-project` pointed at scripts/reset-project.js
+  // after that file left the app tree — a dead entry that fails only when
+  // someone runs it. Failure class: any script referencing a ./path that no
+  // longer exists on disk (deleted, moved, or typo'd).
+  it("every script referencing a ./path points at an existing file", () => {
+    const appDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+    const pkg = JSON.parse(
+      readFileSync(join(appDir, "package.json"), "utf8"),
+    ) as { scripts?: Record<string, string> };
+
+    const offenders = Object.entries(pkg.scripts ?? {}).flatMap(
+      ([name, command]) => {
+        const paths = command.match(/(\.\/[^\s'"]+)/g) ?? [];
+        return paths
+          .filter((rel) => !existsSync(join(appDir, rel)))
+          .map((rel) => `${name} -> ${rel}`);
+      },
+    );
 
     expect(offenders).toEqual([]);
   });

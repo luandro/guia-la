@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  destinationOgImage,
   languageAlternates,
   ogAlternateLocales,
   ogLocale,
@@ -26,6 +27,19 @@ describe("ogAlternateLocales", () => {
       "nl_NL",
       "de_DE",
     ]);
+  });
+});
+
+describe("destinationOgImage", () => {
+  it("points at the shipped 1200x630 asset with a root-relative URL", () => {
+    // PR #14 review round C: root-relative on purpose (no origin pinned,
+    // D-01); s1-cluster asserts the file ships in the export and the meta
+    // tag appears on every journey page.
+    expect(destinationOgImage).toEqual({
+      url: "/og/default.png",
+      width: 1200,
+      height: 630,
+    });
   });
 });
 

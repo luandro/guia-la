@@ -37,6 +37,13 @@ describe("app.config.ts", () => {
         expect(config.web?.output).toBe("static");
         expect(config.name).toBe("guia.la");
         expect(config.slug).toBe("guia-la");
+        // D-01: la.guia.app is permanent after the first store release, so
+        // only production may ship it (PR #14 review round C); every other
+        // env gets a suffixed id that can never collide with the store id.
+        const expectedAppId =
+          appEnv === "production" ? "la.guia.app" : `la.guia.app.${appEnv}`;
+        expect(config.ios?.bundleIdentifier).toBe(expectedAppId);
+        expect(config.android?.package).toBe(expectedAppId);
       }
     }
     delete process.env.APP_ENV;
