@@ -19,7 +19,9 @@ with the repository. Another machine must not rely on it.
 
 ## Handoff checkpoint — committed
 
-When a task stops before merge, or one agent hands work to another, write
+Checkpoints live in `docs/evidence/handoffs/` and are committed with the
+branch, as append-only history (see Rules below). When a task stops before
+merge, or one agent hands work to another, write
 `docs/evidence/handoffs/YYYY-MM-DD-<slug>.md` and commit it on the branch:
 
 ```markdown
@@ -29,8 +31,9 @@ Done: what is finished, with links to evidence (same rules as
   [PR-EVIDENCE.md](../PR-EVIDENCE.md))
 Next: the lowest-numbered unfinished step, as one action
 Blocked on: what is needed and from whom; write "none" if nothing
-Not yet recorded: decisions made this session that are not yet in
-  planning/decisions.md, each with its honest status
+Not yet recorded: open proposals and owner decisions not yet recorded in
+  planning/decisions.md — never mark one approved without a recorded owner
+  yes
 Files touched: paths
 ```
 
@@ -41,5 +44,7 @@ Files touched: paths
 - Do not edit an old checkpoint. Write a newer one; the old one stays in
   history.
 - A fresh agent resumes like this: read AGENTS.md and docs/roadmap.md, list
-  merged PRs for the phase, read the newest checkpoint, then resume at the
-  lowest-numbered unfinished task. It does not re-decide recorded decisions.
+  merged PRs for the phase, read the active playbook
+  `planning/src/phases/phase-NN.md` (its task table), read the newest
+  checkpoint, then resume at the lowest-numbered unfinished task. It does
+  not re-decide recorded decisions.

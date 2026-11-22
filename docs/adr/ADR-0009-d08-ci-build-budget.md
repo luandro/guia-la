@@ -1,7 +1,7 @@
 # 09. CI and build budget
 
 - **Decision register:** D-08
-- **Status:** approved by the owner on 2026-11-21: all free tiers for now. No Workers Paid, no Expo Starter. Upgrading is a new owner decision.
+- **Status:** approved — by the owner on 2026-11-21: all free tiers for now. No Workers Paid, no Expo Starter. Upgrading is a new owner decision
 - **Date:** 2026-11-21
 - **Deciders:** owner
 - **Phase gate:** 04
@@ -28,7 +28,7 @@ From the register:
 - Fast gate on GitHub Actions on every PR.
 - Native EAS builds only by label/path filter, weekly or manual cadence, inside 15 Android + 15 iOS builds per month.
 - No Maestro on Expo Workflows; the S13 GitHub Actions emulator is the only E2E route.
-- Workers Free (about 100k requests/day, 10 ms CPU per invocation) and D1 Free daily caps apply. These limits are inferred, not verified; confirm against the Workers and D1 pricing pages in Phase 04.
+- Workers Free (about 100k requests/day, 10 ms CPU per invocation) and D1 Free limits (daily row read/write caps, shorter Time Travel window) apply. These limits are inferred, not verified; confirm against the [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/) and [D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/) pages in Phase 04.
 
 ## Evidence
 

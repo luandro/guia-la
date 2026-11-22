@@ -1,7 +1,7 @@
 # 07. Widget exclusion scope
 
 - **Decision register:** D-06
-- **Status:** approved by the owner on 2026-11-21.
+- **Status:** approved — by the owner on 2026-11-21
 - **Date:** 2026-11-21
 - **Deciders:** owner
 - **Phase gate:** 06

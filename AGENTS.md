@@ -69,7 +69,16 @@ ohmybug reviews on setup, docs, config, or scaffolding PRs — self-review
 those, note the skip in `.state/goal.md`, and merge. The OhMyBug pre-PR gate
 hook refuses `gh pr merge` until a hunt has run; for these PRs use its
 documented escape hatch: `SKIP_BUGHUNT=1 gh pr merge <n> --merge --delete-branch`.
-Never use it on a hard PR. Every hard PR goes
+Never use it on a hard PR. Two limits apply:
+
+- A setup or config PR that touches auth, tenancy, secrets, deploy, billing
+  or CI workflow files is a hard PR.
+- A PR that changes governance files (`AGENTS.md`, `SPEC.md`,
+  `docs/security/`, `planning/decisions.md`, `docs/adr/`,
+  `.github/workflows/`) needs a recorded owner approval before merge.
+
+If a hard PR does not trigger the hunt (step 2), stop: the owner merges it or
+authorizes `SKIP_BUGHUNT=1` for it on the PR. Every hard PR goes
 through, in order:
 
 1. **codex review** — `codex review` (config already pins `gpt-6.2-sol`,
@@ -77,7 +86,8 @@ through, in order:
    `.state/goal.md` and continue.
 2. **ohmybug review, mode lite** — run the `bughunter` skill's hunt with
    `submit_review` and `hunt_mode: "lite"`, and quote the price `get_balance`
-   reports. It is paid; run it only after codex review and only when either:
+   reports. It is paid; the owner pre-authorizes lite hunts on the triggers
+   below (standing exception in `docs/security/APPROVAL-LIST.md`). Run it only after codex review and only when either:
    codex reported a critical or high finding, or the diff exceeds ~300 changed
    lines touching auth, payments, or concurrency. This cycle overrides the
    bughunter skill's own trigger: the hunt is never the first response to a
@@ -108,9 +118,11 @@ repo's path). Keep `.state/goal.md` in sync with the active task.
 
 - Platform spec, non-goals and vocabulary: [SPEC.md](SPEC.md).
 - Actions that always need a human: [docs/security/APPROVAL-LIST.md](docs/security/APPROVAL-LIST.md). Stop and ask before any of them.
+- Autonomy defaults: without asking, an agent may read anything in scope, edit files in its task worktree, run local builds and tests, open PRs, and merge non-hard, non-governance PRs per the review cycle above. Everything on the approval list needs a recorded owner yes: an owner comment or approval on the GitHub PR or issue, or an entry in `planning/decisions.md`.
 - Decisions: [planning/decisions.md](planning/decisions.md) is the register; [docs/adr/](docs/adr/) mirrors it. Copy statuses verbatim; never upgrade one.
-- Evidence: every PR fills [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) per [docs/evidence/PR-EVIDENCE.md](docs/evidence/PR-EVIDENCE.md). Never write "passed" unless a run exists; quote its output.
-- Phases: [docs/roadmap.md](docs/roadmap.md). Code is MIT ([LICENSE](LICENSE)).
+- Evidence: every PR fills [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) per [docs/evidence/PR-EVIDENCE.md](docs/evidence/PR-EVIDENCE.md). Never write "passed", "works" or "verified" unless a run exists; quote its output, with secrets and personal data redacted.
+- Handoffs: [docs/evidence/HANDOFF-STATE.md](docs/evidence/HANDOFF-STATE.md). Terms: [docs/glossary.md](docs/glossary.md).
+- Phases: [docs/roadmap.md](docs/roadmap.md); tasks live in `planning/src/phases/phase-NN.md`. Code is MIT ([LICENSE](LICENSE)).
 
 ## Global config
 

@@ -1,7 +1,7 @@
 # 02. Names and identifiers
 
 - **Decision register:** D-01
-- **Status:** approved by the owner on 2026-11-21. The owner does not own `guia.la` yet but can buy it; use guia.la-based names and IDs now. The first white-label web deploy (Cotijuba) goes on `cotiju.app`.
+- **Status:** approved — by the owner on 2026-11-21. The owner does not own `guia.la` yet but can buy it; use guia.la-based names and IDs now. The first white-label web deploy (Cotijuba) goes on `cotiju.app`
 - **Date:** 2026-11-21
 - **Deciders:** owner
 - **Phase gate:** 00

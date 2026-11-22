@@ -1,6 +1,8 @@
 <!--
 Evidence rules: docs/evidence/PR-EVIDENCE.md.
-Never write "passed" unless a run exists in this PR, quoted verbatim.
+Never write "passed", "works" or "verified" unless a run exists in this PR,
+quoted verbatim. Redact secrets and personal data in excerpts, screenshots
+and artifacts.
 -->
 
 ## Summary
@@ -44,7 +46,6 @@ What could still be wrong.
 
 <!-- Pick one per AGENTS.md. -->
 
-- [ ] Docs-only — self-review; note the skip in `.state/goal.md`; merge via
-  the AGENTS.md escape hatch
-- [ ] Hard PR — full cycle per AGENTS.md: codex review, then bughunter lite
-  if triggered, then `/review`
+- [ ] Non-hard (docs/setup/config/scaffolding): self-review, `SKIP_BUGHUNT`
+  merge; governance files need owner approval
+- [ ] Hard PR: full cycle

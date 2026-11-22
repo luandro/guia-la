@@ -1,7 +1,7 @@
 # 08. Distribution
 
 - **Decision register:** D-07
-- **Status:** proposed (strongly supported by store policy).
+- **Status:** proposed — strongly supported by store policy
 - **Date:** 2026-11-21
 - **Deciders:** owner (decision pending)
 - **Phase gate:** 10
@@ -10,7 +10,7 @@
 
 ## Context
 
-Store policy pushes against one app per destination. Apple 4.2.6 allows a single "picker" app. Apple 4.3(a) calls "a separate map app for every city" spam. Google's repetitive-content policy pushes aggregation [research/backend-stores-starters.md §2].
+Store policy pushes against one app per destination. Apple 4.2.6 allows a single "picker" app. Apple 4.3(a) calls "a separate map app for every city" spam. Google's repetitive-content policy pushes aggregation [research/backend-stores-starters.md §2](../../planning/research/backend-stores-starters.md).
 
 ## Options considered
 

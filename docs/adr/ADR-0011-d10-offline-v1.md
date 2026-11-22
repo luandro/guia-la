@@ -1,7 +1,7 @@
 # 11. Offline v1
 
 - **Decision register:** D-10
-- **Status:** proposed.
+- **Status:** proposed
 - **Date:** 2026-11-21
 - **Deciders:** owner (decision pending)
 - **Phase gate:** 08

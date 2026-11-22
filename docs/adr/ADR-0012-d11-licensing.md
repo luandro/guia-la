@@ -1,7 +1,7 @@
 # 12. Licensing
 
 - **Decision register:** D-11
-- **Status:** approved by the owner on 2026-11-21 for code: MIT. Content license is still open (Phase 09 rights review).
+- **Status:** approved — by the owner on 2026-11-21 for code: MIT. Content license is still open (Phase 09 rights review)
 - **Date:** 2026-11-21
 - **Deciders:** owner
 - **Phase gate:** 00/09

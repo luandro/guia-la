@@ -175,7 +175,7 @@ next-unblocked: "PR 01-2 entity matrix"
 - [ ] `docs/roadmap.md` and `docs/glossary.md` (PR 00-8)
 - [ ] Decision responses recorded for D-01, D-03, D-06, D-08, D-09 (PR 00-9)
 - [ ] Phase 01 access confirmed + export runbook stub (PR 00-10)
-- [ ] Zero files outside `docs/`, `.github/` and the root markdown (repo stays docs-only)
+- [ ] Zero files outside `docs/`, `.github/`, the root markdown, `LICENSE` and `scripts/check-docs.sh` (repo stays docs-only)
 
 ## Visual and functional QA
 
@@ -200,8 +200,8 @@ beyond the repo browser are TBD in Phase 04.
 ## Automated verification
 
 All commands are **proposed** — none has run; expected outputs are stated so
-a failing run is recognizable. They belong in a tiny `scripts/check-docs.sh`
-added by PR 00-6.
+a failing run is recognizable. They are implemented in `scripts/check-docs.sh`
+(added by PR 00-6).
 
 ```bash
 # proposed — structure check: fails if any expected document is missing
@@ -214,26 +214,28 @@ done
 
 ```bash
 # proposed — ADR status lint. Expected: no output (pass).
+# Skips ADR-0000-template.md: its status line is a placeholder.
 # Matches the template's "- **Status:** …" line form as well as a plain
 # "Status:" line; a trailing note after an em dash is allowed because
 # statuses are copied verbatim (e.g. "proposed — blocked on S1").
 # Deliberate-failure demonstration: add a draft ADR with
 # "- **Status:** decided" and confirm this command prints it and exits non-zero.
-grep -E '^(Status: |- \*\*Status:\*\*)' docs/adr/*.md \
+grep -E '^(Status: |- \*\*Status:\*\*)' docs/adr/ADR-*.md --exclude='ADR-0000-template.md' \
   | grep -vE 'Status:\*{0,2} ?(proposed|validated|approved|rejected)( —.*)?$' && exit 1
 ```
 
 ```bash
-# proposed — decision consistency: every D-xx in the packet's decisions.md
-# has an ADR carrying that id in its filename or front matter/body.
+# proposed — decision consistency: every D-id in planning/decisions.md
+# (run from the repo root) has an ADR whose "Decision register" line names it.
 # Unanchored on both sides, so a heading-format drift in decisions.md cannot
 # silently empty the list and turn the check into a vacuous pass.
 # Expected: no output (pass).
-ids=$(grep -oE 'D-[0-9]{2}' ../planning/decisions.md 2>/dev/null | sort -u)
-test -n "$ids" || { echo "no D-xx parsed from ../planning/decisions.md"; exit 1; }
-missing=$(comm -23 <(printf '%s\n' "$ids") \
-  <({ ls docs/adr/; cat docs/adr/*.md; } | grep -oE 'D-[0-9]{2}' | sort -u))
-test -z "$missing" || { echo "ADR missing for: $(echo $missing)"; exit 1; }
+ids=$(grep -oE 'D-[0-9]{2}[ab]?' planning/decisions.md | sort -u)
+test -n "$ids" || { echo "no D-id parsed from planning/decisions.md"; exit 1; }
+registered=$(grep -h '^- \*\*Decision register:\*\*' docs/adr/ADR-*.md \
+  | grep -oE 'D-[0-9]{2}[ab]?' | sort -u)
+missing=$(comm -23 <(printf '%s\n' "$ids") <(printf '%s\n' "$registered"))
+test -z "$missing" || { echo "no ADR Decision register line names: $(echo $missing)"; exit 1; }
 ```
 
 Negative test worth keeping: the status lint above is itself the

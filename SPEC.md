@@ -36,15 +36,7 @@
 
 ## 5. Glossary
 
-- **Destination** — one deployment of the platform for one place: brand, locale, widget allowlist, app identities, runtime configuration. Cotijuba is the pilot (D-00, approved). Serra is the synthetic demo destination.
-- **Widget** — a versioned, testable feature package. A widget is not necessarily a tiny card. One widget can contribute a card, a route, a map layer, an editorial form and a backend schema. Beaches and waterfalls share one configurable Places domain.
-- **Widget ids** — `places`, `transport`, `tides`, `local-services`, `trails`, `guides`. Boats and ferries are not a widget. The id is `transport`; a boat is a mode (`modes: ["boat"]`).
-- **Build profile** — the list of destinations one build serves. The widget set of a build is the union of its destinations' allowlists. Known profiles: `flagship`, `cotijuba-web`, `serra-web`.
-- **Environment variables** — `APP_ENV` selects the environment: development, preview, staging or production. `APP_VARIANT` selects the build profile: `flagship`, `cotijuba-web`, `serra-web`. Both are zod-validated. A build fails on a missing variable. Never key config off `NODE_ENV`; Expo CLI forces it.
-- **Flagship** — the one multi-destination native store app. It contains the union of destination features (D-07, proposed).
-- **Runtime flag** — a per-destination, server-fetched flag. It can only hide or reorder widgets already compiled into the build. The registry is a closed set. Unknown ids are ignored and logged.
-- **Snapshot** — a versioned, per-destination export of public JSON for offline use. It shows users its max-age (D-10, proposed).
-- **Provenance** — the record of where a fact came from and when it was last checked: `source`, `sourceUrl`, `checkedAt`, `validFrom`, `validUntil`, `license`, `correctionContact`. The API adds derived `stale: boolean` and `ageSeconds`.
+The platform's fixed vocabulary — destination, widget, widget ids, build profile, `APP_ENV`/`APP_VARIANT`, `NODE_ENV` rule, flagship, runtime flag, snapshot, provenance — is defined once in the canonical [docs/glossary.md](docs/glossary.md).
 
 ## 6. Widget contract (illustrative)
 
@@ -95,12 +87,12 @@ export default defineDestination({
 ## 8. API principles
 
 - **Public reads need no account** (D-13a, approved): every public GET endpoint is anonymous and cacheable. Visitors never authenticate.
-- **Editors sign in through Cloudflare Access**, configured with the `cf` CLI (D-09, approved).
+- **Editors sign in through Cloudflare Access**, configured with the `cf` CLI (D-09, approved; A5 still validates the editor flow; the magic link stays the fallback).
 - **Writes are tenant-scoped and server-checked**: roles (`editor`, `admin`) scoped to `destinationId`, checked on every write. D1 has no RLS, so isolation lives in one repository layer (D-04, proposed).
 - **Freshness fields on every public entity**: `source`, `sourceUrl`, `checkedAt`, `validFrom`, `validUntil`, `license`, `correctionContact`, plus derived `stale` and `ageSeconds`. No silent stale fallbacks — a stale value is shown as stale.
 - **Explicit error semantics**: every public API response has explicit error and freshness semantics (plan §03 hard constraint).
 - **Upstream calls are server-side** (D-04, proposed): no third-party keys in client bundles; scheduled ingestion for tides and weather, never device-clock schedule math.
-- **Maps** (D-05, approved): MapLibre native and web behind one `@guia-la/map` contract. OSM-derived tiles for now. The hosted-tiles-versus-PMTiles question is revisited later; spike S6 still runs. Follow the OSM tile usage policy and attribution rules.
+- **Maps** (D-05, approved): MapLibre native and web behind one `@guia-la/map` contract. OSM-derived tiles for now — production and offline packs must not use `tile.openstreetmap.org` directly (the OSMF tile usage policy forbids heavy app use and bulk offline download); use an OSM-based tile provider under its terms or a PMTiles extract, with ODbL attribution. The hosted-tiles-versus-PMTiles question is revisited later; spike S6 still runs.
 
 ## 9. Timezone rule
 
@@ -117,10 +109,10 @@ export default defineDestination({
 
 ## 11. Quality gates summary
 
-- **Fast PR gate** (every PR, < 10 min target): `tsc --noEmit`, ESLint + boundary rules, Vitest unit/contract, zod schema checks, compose per profile + widget-exclusion assertions, `expo export -p web`, Playwright smoke incl. JS-disabled OG checks, API tests on local D1 incl. tenant A/B, secret scan.
+- **Fast PR gate** (every PR, < 10 min target): `tsc --noEmit`, ESLint + boundary rules, Vitest unit/contract, zod schema checks, compose per profile + widget-exclusion assertions, `expo export -p web` (D-02, proposed), Playwright smoke incl. JS-disabled OG checks (D-03 depends on spike S1), API tests on local D1 incl. tenant A/B (D-04, proposed), secret scan.
 - **Visual gate** (UI/widget PRs): Storybook web build + screenshot diff + axe.
 - **Native gate** (D-08, approved): label/path-filtered builds plus a weekly or manual cadence. Never one per trivial PR. Free tiers only, about 15 Android + 15 iOS EAS builds per month. Any paid upgrade is a new owner decision.
-- **Nightly/RC**: per-profile native builds (inside the free build quota), Maestro on a GitHub Actions emulator (spike S13; the free Expo plan has no Maestro), WebKit Playwright, weekly automated restore drill (latest R2 export into a scratch D1) plus a quarterly human-witnessed drill.
+- **Nightly/RC**: the nightly keeps web/API checks and WebKit Playwright. Native builds are flagship only — destination profiles are web-only (D-06, D-07) — on a weekly or RC/manual cadence inside the free build quota; no nightly and no per-profile native builds. Maestro runs on a GitHub Actions emulator (spike S13; the free Expo plan has no Maestro). Weekly automated restore drill (latest R2 export into a scratch D1) plus a quarterly human-witnessed drill.
 - **Human release gate**: real-device checks (low-end Android on 3G in Cotijuba), content validation, store metadata. Store publication itself is a stop-and-ask action — see [docs/security/APPROVAL-LIST.md](docs/security/APPROVAL-LIST.md).
 - Flaky protocol: quarantine label + linked issue + 7-day expiry. Never delete or skip a failing test without human approval.
 
@@ -128,8 +120,13 @@ export default defineDestination({
 
 As of 2026-11-21, copied verbatim from [planning/decisions.md](planning/decisions.md):
 
-- **Approved:** D-00, D-01, D-03, D-05, D-06, D-08, D-09, D-11 (code only), D-13a.
-- **Owner TODO:** D-12 (legacy key rotation, tsk #297, outside this repo).
+- **Approved:** D-00, D-06, D-08, D-13a, and — each with its condition from the register:
+  - D-01 — buy `guia.la` before the first store release.
+  - D-03 — S1 must pass, else the fallback returns to the owner.
+  - D-05 — approved for the pilot; tile source revisited later; S6 still runs.
+  - D-09 — A5 still validates the flow; magic link fallback.
+  - D-11 — code only; content license open.
+- **D-12:** proposed — owner TODO (tsk #297, outside this repo).
 - **Proposed:** D-02, D-04, D-07, D-10, D-13b.
 
 Licensing (D-11, approved for code): MIT for code. The content license is separate and still open (Phase 09 rights review).
@@ -140,5 +137,5 @@ The register holds the full status text and conditions. Copy statuses verbatim f
 
 - Decision register: [planning/decisions.md](planning/decisions.md).
 - Review: [planning/review.md](planning/review.md).
-- Phase playbooks (source): `planning/src/phases/phase-00.md` through `phase-10.md`.
-- Phase playbooks (generated views): [00](planning/phases/phase-00.html) · [01](planning/phases/phase-01.html) · [02](planning/phases/phase-02.html) · [03](planning/phases/phase-03.html) · [04](planning/phases/phase-04.html) · [05](planning/phases/phase-05.html) · [06](planning/phases/phase-06.html) · [07](planning/phases/phase-07.html) · [08](planning/phases/phase-08.html) · [09](planning/phases/phase-09.html) · [10](planning/phases/phase-10.html).
+- Phase playbooks (source): [00](planning/src/phases/phase-00.md) · [01](planning/src/phases/phase-01.md) · [02](planning/src/phases/phase-02.md) · [03](planning/src/phases/phase-03.md) · [04](planning/src/phases/phase-04.md) · [05](planning/src/phases/phase-05.md) · [06](planning/src/phases/phase-06.md) · [07](planning/src/phases/phase-07.md) · [08](planning/src/phases/phase-08.md) · [09](planning/src/phases/phase-09.md) · [10](planning/src/phases/phase-10.md).
+- Phase playbooks (generated views — secondary, view only): [00](planning/phases/phase-00.html) · [01](planning/phases/phase-01.html) · [02](planning/phases/phase-02.html) · [03](planning/phases/phase-03.html) · [04](planning/phases/phase-04.html) · [05](planning/phases/phase-05.html) · [06](planning/phases/phase-06.html) · [07](planning/phases/phase-07.html) · [08](planning/phases/phase-08.html) · [09](planning/phases/phase-09.html) · [10](planning/phases/phase-10.html).

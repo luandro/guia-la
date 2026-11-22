@@ -1,7 +1,7 @@
 # 15. No visitor accounts at all in v1
 
 - **Decision register:** D-13b
-- **Status:** proposed — master plan §08 marks "No public account at first" as an open decision to validate against real visitor journeys.
+- **Status:** proposed — master plan §08 marks "No public account at first" as an open decision to validate against real visitor journeys
 - **Date:** 2026-11-21
 - **Deciders:** owner (decision pending)
 - **Phase gate:** 07

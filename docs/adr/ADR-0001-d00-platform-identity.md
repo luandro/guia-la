@@ -1,7 +1,7 @@
 # 01. Platform identity
 
 - **Decision register:** D-00
-- **Status:** approved — handoff: "Brand and naming (locked for this planning pass)".
+- **Status:** approved — handoff: "Brand and naming (locked for this planning pass)"
 - **Date:** 2026-11-21
 - **Deciders:** owner (locked in the planning handoff)
 - **Phase gate:** 00

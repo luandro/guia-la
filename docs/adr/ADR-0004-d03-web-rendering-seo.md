@@ -1,7 +1,7 @@
 # 04. Web rendering and SEO
 
 - **Decision register:** D-03
-- **Status:** approved by the owner on 2026-11-21. Spike S1 must still pass; if it fails, the fallback (a) returns to the owner as a new decision.
+- **Status:** approved — by the owner on 2026-11-21. Spike S1 must still pass; if it fails, the fallback (a) returns to the owner as a new decision
 - **Date:** 2026-11-21
 - **Deciders:** owner
 - **Phase gate:** 02

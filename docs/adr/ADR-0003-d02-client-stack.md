@@ -1,7 +1,7 @@
 # 03. Client stack
 
 - **Decision register:** D-02
-- **Status:** proposed.
+- **Status:** proposed
 - **Date:** 2026-11-21
 - **Deciders:** owner (decision pending)
 - **Phase gate:** 02
@@ -10,7 +10,7 @@
 
 ## Context
 
-One codebase must serve web, Android, and iOS. Expo SDK 58 is current: RN 0.88.1, React 19.3, RNW 0.21.4 [research/expo-stack.md].
+One codebase must serve web, Android, and iOS. Expo SDK 58 is current: RN 0.88.1, React 19.3, RNW 0.21.4 [research/expo-stack.md](../../planning/research/expo-stack.md).
 
 ## Options considered
 

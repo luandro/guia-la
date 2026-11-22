@@ -1,7 +1,7 @@
 # 14. No account required to read
 
 - **Decision register:** D-13a
-- **Status:** approved — master plan §01 "What we intentionally avoid: Accounts required to read public destination information".
+- **Status:** approved — master plan §01 "What we intentionally avoid: Accounts required to read public destination information"
 - **Date:** 2026-11-21
 - **Deciders:** owner (locked in the master plan)
 - **Phase gate:** 07

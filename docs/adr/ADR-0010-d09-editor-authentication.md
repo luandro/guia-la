@@ -1,7 +1,7 @@
 # 10. Editor authentication
 
 - **Decision register:** D-09
-- **Status:** approved by the owner on 2026-11-21: Cloudflare Access, configured with the `cf` CLI (cf-cli skill). A5 still validates the editor flow; magic link stays the fallback.
+- **Status:** approved — by the owner on 2026-11-21: Cloudflare Access, configured with the `cf` CLI (cf-cli skill). A5 still validates the editor flow; magic link stays the fallback
 - **Date:** 2026-11-21
 - **Deciders:** owner
 - **Phase gate:** 07

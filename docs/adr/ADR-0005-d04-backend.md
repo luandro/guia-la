@@ -1,7 +1,7 @@
 # 05. Backend
 
 - **Decision register:** D-04
-- **Status:** proposed.
+- **Status:** proposed
 - **Date:** 2026-11-21
 - **Deciders:** owner (decision pending)
 - **Phase gate:** 07
@@ -10,7 +10,7 @@
 
 ## Context
 
-The pilot needs managed compute and storage at low cost. Workers Paid is $5/mo. D1 gives 10 GB per database and 30 days of Time Travel. R2 egress is free [research/backend-stores-starters.md §1].
+The pilot needs managed compute and storage at low cost. It runs on free tiers per D-08 (approved). D1 Free: about 500 MB per database, 7-day Time Travel, daily row read/write caps (inferred — verify in Phase 04). Workers Paid ($5/mo) would raise this to 10 GB/DB and 30-day Time Travel. R2 has free egress but needs a payment method on the account [research/backend-stores-starters.md §1](../../planning/research/backend-stores-starters.md).
 
 ## Options considered
 
