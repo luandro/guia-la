@@ -1,0 +1,122 @@
+[
+  {
+    "id": "fx-serra-001",
+    "slug": "cachoeira-veu-de-nevoa",
+    "category": "waterfall",
+    "location": { "lat": -8.028, "lng": -41.452 },
+    "source": "synthetic",
+    "verifiedAt": "2026-11-22",
+    "content": {
+      "pt-BR": {
+        "name": "Cachoeira Véu de Névoa",
+        "summary": "Queda d'água de dez metros envolta em névoa, com poço fundo para banho.",
+        "machineTranslated": false
+      },
+      "en": {
+        "name": "Mist Veil Waterfall",
+        "summary": "Ten-metre waterfall wrapped in mist, with a deep pool for swimming.",
+        "machineTranslated": true
+      },
+      "es": {
+        "name": "Cascada Velo de Niebla",
+        "summary": "Cascada de diez metros envuelta en niebla, con poza profunda para bañarse.",
+        "machineTranslated": true
+      },
+      "fr": {
+        "name": "Cascade Voile de Brume",
+        "summary": "Chute d'eau de dix mètres enveloppée de brume, avec un bassin profond.",
+        "machineTranslated": true
+      },
+      "nl": {
+        "name": "Waterval Nevelsluier",
+        "summary": "Tien meter hoge waterval in nevel gehuld, met een diep zwembekken.",
+        "machineTranslated": true
+      },
+      "de": {
+        "name": "Nebelschleier-Wasserfall",
+        "summary": "Zehn Meter hoher, in Nebel gehüllter Wasserfall mit tiefem Becken.",
+        "machineTranslated": true
+      }
+    }
+  },
+  {
+    "id": "fx-serra-002",
+    "slug": "cachoeira-dois-saltos",
+    "category": "waterfall",
+    "location": { "lat": -8.041, "lng": -41.468 },
+    "source": "synthetic",
+    "verifiedAt": "2026-11-22",
+    "content": {
+      "pt-BR": {
+        "name": "Cachoeira Dois Saltos",
+        "summary": "Duas quedas seguidas num córrego de pedra; acesso por escada de madeira.",
+        "machineTranslated": false
+      }
+    }
+  },
+  {
+    "id": "fx-serra-003",
+    "slug": "trilha-da-crista",
+    "category": "trail",
+    "location": { "lat": -8.015, "lng": -41.437 },
+    "source": "synthetic",
+    "verifiedAt": "2026-11-22",
+    "content": {
+      "pt-BR": {
+        "name": "Trilha da Crista",
+        "summary": "Caminhada pela crista da serra, com vista para os vales de névoa da manhã.",
+        "machineTranslated": false
+      },
+      "en": {
+        "name": "Ridge Trail",
+        "summary": "Ridge walk with views over the misty morning valleys.",
+        "machineTranslated": true
+      },
+      "es": {
+        "name": "Sendero de la Cresta",
+        "summary": "Caminata por la cresta de la sierra, con vista a los valles con niebla matinal.",
+        "machineTranslated": true
+      }
+    }
+  },
+  {
+    "id": "fx-serra-004",
+    "slug": "trilha-mirante-das-pedras",
+    "category": "trail",
+    "location": { "lat": -8.009, "lng": -41.461 },
+    "source": "synthetic",
+    "verifiedAt": "2026-11-22",
+    "content": {
+      "pt-BR": {
+        "name": "Trilha Mirante das Pedras",
+        "summary": "Subida curta até um mirante de pedra sobre a cidade e o rio.",
+        "machineTranslated": false
+      },
+      "en": {
+        "name": "Stones Lookout Trail",
+        "summary": "Short climb to a stone lookout over the town and the river.",
+        "machineTranslated": true
+      }
+    }
+  },
+  {
+    "id": "fx-serra-005",
+    "slug": "pousada-refugio-da-serra",
+    "category": "stay",
+    "location": { "lat": -8.022, "lng": -41.443 },
+    "source": "synthetic",
+    "verifiedAt": "2026-11-22",
+    "content": {
+      "pt-BR": {
+        "name": "Pousada Refúgio da Serra",
+        "summary": "Refúgio de montanha com lareira e café da manhã com bolos caseiros.",
+        "machineTranslated": false
+      },
+      "de": {
+        "name": "Refúgio da Serra Berghütte",
+        "summary": "Bergrefugium mit Kamin und Frühstück mit selbstgebackenem Kuchen.",
+        "machineTranslated": true
+      }
+    }
+  }
+]

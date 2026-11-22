@@ -1,0 +1,46 @@
+[
+  {
+    "id": "beach",
+    "label": {
+      "pt-BR": "Praia",
+      "en": "Beach",
+      "es": "Playa",
+      "fr": "Plage",
+      "nl": "Strand",
+      "de": "Strand"
+    }
+  },
+  {
+    "id": "restaurant",
+    "label": {
+      "pt-BR": "Restaurante",
+      "en": "Restaurant",
+      "es": "Restaurante",
+      "fr": "Restaurant",
+      "nl": "Restaurant",
+      "de": "Restaurant"
+    }
+  },
+  {
+    "id": "stay",
+    "label": {
+      "pt-BR": "Hospedagem",
+      "en": "Stay",
+      "es": "Alojamiento",
+      "fr": "Hébergement",
+      "nl": "Verblijf",
+      "de": "Unterkunft"
+    }
+  },
+  {
+    "id": "trail",
+    "label": {
+      "pt-BR": "Trilha",
+      "en": "Trail",
+      "es": "Sendero",
+      "fr": "Sentier",
+      "nl": "Pad",
+      "de": "Wanderweg"
+    }
+  }
+]

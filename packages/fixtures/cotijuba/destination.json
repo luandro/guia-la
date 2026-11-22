@@ -1,0 +1,7 @@
+{
+  "id": "cotijuba",
+  "name": "Cotijuba",
+  "defaultLocale": "pt-BR",
+  "locales": ["pt-BR", "en", "es", "fr", "nl", "de"],
+  "source": "synthetic"
+}

@@ -1,0 +1,172 @@
+[
+  {
+    "id": "fx-cotijuba-001",
+    "slug": "praia-da-ponta-norte",
+    "category": "beach",
+    "location": { "lat": -1.238, "lng": -48.562 },
+    "source": "synthetic",
+    "verifiedAt": "2026-11-22",
+    "content": {
+      "pt-BR": {
+        "name": "Praia da Ponta Norte",
+        "summary": "Praia calma na ponta norte da ilha; na maré baixa formam-se bancos de areia.",
+        "machineTranslated": false
+      },
+      "en": {
+        "name": "Ponta Norte Beach",
+        "summary": "Quiet beach on the island's northern tip where low tide reveals sandbanks.",
+        "machineTranslated": true
+      },
+      "es": {
+        "name": "Playa de Punta Norte",
+        "summary": "Playa tranquila en la punta norte de la isla; la marea baja descubre bancos de arena.",
+        "machineTranslated": true
+      },
+      "fr": {
+        "name": "Plage de Ponta Norte",
+        "summary": "Plage calme à la pointe nord de l'île ; la marée basse découvre des bancs de sable.",
+        "machineTranslated": true
+      },
+      "nl": {
+        "name": "Ponta Norte-strand",
+        "summary": "Rustig strand op de noordpunt van het eiland; bij laag water verschijnen zandbanken.",
+        "machineTranslated": true
+      },
+      "de": {
+        "name": "Strand Ponta Norte",
+        "summary": "Ruhiger Strand an der Nordspitze der Insel; bei Ebbe tauchen Sandbänke auf.",
+        "machineTranslated": true
+      }
+    }
+  },
+  {
+    "id": "fx-cotijuba-002",
+    "slug": "praia-do-vento-leste",
+    "category": "beach",
+    "location": { "lat": -1.255, "lng": -48.541 },
+    "source": "synthetic",
+    "verifiedAt": "2026-11-22",
+    "content": {
+      "pt-BR": {
+        "name": "Praia do Vento Leste",
+        "summary": "Praia aberta ao vento, boa para caminhadas longas na areia firme.",
+        "machineTranslated": false
+      }
+    }
+  },
+  {
+    "id": "fx-cotijuba-003",
+    "slug": "praia-das-garcas",
+    "category": "beach",
+    "location": { "lat": -1.247, "lng": -48.568 },
+    "source": "synthetic",
+    "verifiedAt": "2026-11-22",
+    "content": {
+      "pt-BR": {
+        "name": "Praia das Garças",
+        "summary": "Enseada rasa onde garças pescam ao amanhecer.",
+        "machineTranslated": false
+      },
+      "en": {
+        "name": "Herons Beach",
+        "summary": "Shallow cove where herons fish at dawn.",
+        "machineTranslated": true
+      },
+      "es": {
+        "name": "Playa de las Garzas",
+        "summary": "Ensenada poco profunda donde las garzas pescan al amanecer.",
+        "machineTranslated": true
+      }
+    }
+  },
+  {
+    "id": "fx-cotijuba-004",
+    "slug": "sabor-da-mata",
+    "category": "restaurant",
+    "location": { "lat": -1.249, "lng": -48.556 },
+    "source": "synthetic",
+    "verifiedAt": "2026-11-22",
+    "content": {
+      "pt-BR": {
+        "name": "Restaurante Sabor da Mata",
+        "summary": "Cozinha regional com peixe grelhado e farofa da casa, no meio da mata.",
+        "machineTranslated": false
+      },
+      "en": {
+        "name": "Sabor da Mata Restaurant",
+        "summary": "Regional cooking with grilled fish and house farofa, set in the forest.",
+        "machineTranslated": true
+      }
+    }
+  },
+  {
+    "id": "fx-cotijuba-005",
+    "slug": "barraca-tres-coqueiros",
+    "category": "restaurant",
+    "location": { "lat": -1.243, "lng": -48.549 },
+    "source": "synthetic",
+    "verifiedAt": "2026-11-22",
+    "content": {
+      "pt-BR": {
+        "name": "Barraca Três Coqueiros",
+        "summary": "Barraca de praia simples com caldo de caranguejo e suco de frutas da ilha.",
+        "machineTranslated": false
+      },
+      "es": {
+        "name": "Chiringuito Três Coqueiros",
+        "summary": "Chiringuito sencillo de playa con sopa de cangrejo y zumo de frutas de la isla.",
+        "machineTranslated": true
+      }
+    }
+  },
+  {
+    "id": "fx-cotijuba-006",
+    "slug": "pousada-casa-do-cais",
+    "category": "stay",
+    "location": { "lat": -1.236, "lng": -48.553 },
+    "source": "synthetic",
+    "verifiedAt": "2026-11-22",
+    "content": {
+      "pt-BR": {
+        "name": "Pousada Casa do Cais",
+        "summary": "Pousada familiar de madeira ao lado do cais, com varanda de frente para o rio.",
+        "machineTranslated": false
+      },
+      "en": {
+        "name": "Casa do Cais Guesthouse",
+        "summary": "Family wooden guesthouse beside the pier, with a river-facing veranda.",
+        "machineTranslated": true
+      },
+      "fr": {
+        "name": "Pension Casa do Cais",
+        "summary": "Pension familiale en bois près du quai, avec une véranda sur le fleuve.",
+        "machineTranslated": true
+      }
+    }
+  },
+  {
+    "id": "fx-cotijuba-007",
+    "slug": "trilha-do-farol-velho",
+    "category": "trail",
+    "location": { "lat": -1.26, "lng": -48.572 },
+    "source": "synthetic",
+    "verifiedAt": "2026-11-22",
+    "content": {
+      "pt-BR": {
+        "name": "Trilha do Farol Velho",
+        "summary": "Trilha curta de terra até as ruínas do farol antigo, com mirante no fim.",
+        "machineTranslated": false
+      },
+      "de": {
+        "name": "Alter-Leuchtturm-Weg",
+        "summary": "Kurzer Erdweg zu den Ruinen des alten Leuchtturms, mit Aussichtspunkt am Ende.",
+        "machineTranslated": true
+      },
+      "nl": {
+        "name": "Pad van de oude vuurtoren",
+        "summary": "Kort aarden pad naar de ruïnes van de oude vuurtoren, met uitkijkpunt aan het eind.",
+        "machineTranslated": true
+      }
+    }
+  }
+]

@@ -1,0 +1,35 @@
+[
+  {
+    "id": "waterfall",
+    "label": {
+      "pt-BR": "Cachoeira",
+      "en": "Waterfall",
+      "es": "Cascada",
+      "fr": "Cascade",
+      "nl": "Waterval",
+      "de": "Wasserfall"
+    }
+  },
+  {
+    "id": "trail",
+    "label": {
+      "pt-BR": "Trilha",
+      "en": "Trail",
+      "es": "Sendero",
+      "fr": "Sentier",
+      "nl": "Pad",
+      "de": "Wanderweg"
+    }
+  },
+  {
+    "id": "stay",
+    "label": {
+      "pt-BR": "Hospedagem",
+      "en": "Stay",
+      "es": "Alojamiento",
+      "fr": "Hébergement",
+      "nl": "Verblijf",
+      "de": "Unterkunft"
+    }
+  }
+]
