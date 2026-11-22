@@ -1,6 +1,6 @@
 import { Link, useLocalSearchParams } from "expo-router";
 import type { Metadata } from "expo-router/server";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { resolveContent, type Locale, type Place } from "@guia-la/core";
@@ -52,7 +52,9 @@ export function generateMetadata(_request: unknown, params: Params): Metadata {
     title,
     description,
     alternates: {
-      languages: languageAlternates((l) => `/${l}/places`),
+      // x-default is the language picker ("/") — the list pages point at it
+      // and it lists them back (reciprocity, PR #14 review).
+      languages: languageAlternates((l) => `/${l}/places`, "/"),
     },
     openGraph: {
       title,
@@ -91,32 +93,32 @@ function ListContent() {
         <ErrorView error={state.error} retry={retry} />
       )}
       {state.status === "loaded" && state.data && (
-        <FlatList
-          data={state.data.places}
-          keyExtractor={(place) => place.id}
-          ListHeaderComponent={
-            <View style={styles.header}>
-              <Text style={styles.title}>
-                {t("places.listTitle", { destination: destination?.name })}
-              </Text>
-              <Text>
-                {t("places.count", { count: state.data.places.length })}
-              </Text>
-            </View>
-          }
-          renderItem={({ item }) => (
+        // Plain ScrollView + map (no virtualization): a virtualized list
+        // renders only its initial window in the static export, dropping
+        // detail links from the raw HTML beyond ~10 places (PR #14 review).
+        <ScrollView>
+          <View style={styles.header}>
+            <Text style={styles.title}>
+              {t("places.listTitle", { destination: destination?.name })}
+            </Text>
+            <Text>
+              {t("places.count", { count: state.data.places.length })}
+            </Text>
+          </View>
+          {state.data.places.map((place) => (
             <PlaceRow
-              place={item}
+              key={place.id}
+              place={place}
               locale={locale}
               defaultLocale={state.data?.destination.defaultLocale}
               categoryLabel={categoryLabel(
                 state.data?.categories,
-                item,
+                place,
                 locale,
               )}
             />
-          )}
-        />
+          ))}
+        </ScrollView>
       )}
     </View>
   );

@@ -66,7 +66,12 @@ export function generateMetadata(_request: unknown, params: Params): Metadata {
     title,
     description: t("meta.placeDescription", { summary: content.summary }),
     alternates: {
-      languages: languageAlternates((l) => `/${l}/places/${slug}`),
+      // x-default is the destination's default-locale detail page (pt-BR
+      // today) — the version content falls back to (PR #14 review).
+      languages: languageAlternates(
+        (l) => `/${l}/places/${slug}`,
+        `/${destination.defaultLocale}/places/${slug}`,
+      ),
     },
     openGraph: {
       title,
