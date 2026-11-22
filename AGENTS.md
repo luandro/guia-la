@@ -63,14 +63,39 @@ once, record it, and proceed.
 
 ## PR review cycle
 
-The full cycle below is for hard PRs only: production code paths, security,
-money, concurrency, data handling, or wide/risky diffs. Do not spend codex or
-ohmybug reviews on setup, docs, config, or scaffolding PRs — self-review
-those, note the skip in `.state/goal.md`, and merge. The OhMyBug pre-PR gate
-hook refuses `gh pr merge` until a hunt has run; for these PRs use its
-documented escape hatch: `SKIP_BUGHUNT=1 gh pr merge <n> --merge --delete-branch`.
-Never use it on a hard PR. Every hard PR goes
-through, in order:
+**No PR merges until RevEngine `/review` completes at the current `HEAD` commit
+with zero unresolved review threads, all configured checks passing, and either
+`**Recommendation: merge.**` (eligible for `auto-merge` only when explicitly
+authorized and no human-review gates apply) or explicit maintainer approval on
+`needs-human-review` (when the only open item is a fit question or
+maintainer-accepted deferral, or under an explicit maintainer outage/repair
+override when RevEngine itself is unavailable or `review.yml` on `main` is
+broken — try `workflow_dispatch` first, and record the failed/skipped run URL
+and reason in the PR and `.state/goal.md`).** This applies to **every PR**,
+including setup, docs, config, and scaffolding PRs.
+
+Local pre-PR reviews depend on scope:
+- **Setup, docs, config, or scaffolding PRs** (excluding workflows/CI):
+  skip local `codex` and `ohmybug` reviews, self-review the diff, and note the
+  skip in `.state/goal.md` before opening the PR for RevEngine `/review`.
+  OhMyBug's `pre-pr-gate.sh` (`diff-id.sh`) exempts pure docs/skills diffs
+  (`**/*.md`, `**/docs/**`, `**/skills/**`) automatically so plain
+  `gh pr merge <n> --squash` works after RevEngine passes. For non-doc
+  setup/config/scaffolding diffs (such as YAML or JSON), `pre-pr-gate.sh` blocks
+  agent merges without a hunt and reserves `SKIP_BUGHUNT=1` for the human
+  operator — agents must never attach `SKIP_BUGHUNT=1`, so hand off via
+  `needs-human-review` for the owner to merge as operator
+  (`SKIP_BUGHUNT=1 gh pr merge <n> --squash` from the main worktree, only after
+  RevEngine passes).
+- **Hard PRs** (production code paths, security, workflows/CI, money, concurrency,
+  data handling, or wide/risky diffs): run steps 1–2 locally before opening or
+  updating the PR, then complete step 3 on GitHub. Hard PRs where OhMyBug was
+  **not** triggered (neither a critical/high codex finding nor >300 changed
+  lines touching auth, payments, or concurrency) do not run a paid hunt and
+  cannot `auto-merge` — hand off via `needs-human-review` so the owner merges
+  as operator (with `SKIP_BUGHUNT=1` from the main worktree, only after
+  RevEngine passes). Never use `SKIP_BUGHUNT=1` as an agent, and never skip
+  OhMyBug when its trigger conditions fired:
 
 1. **codex review** — `codex review` (config already pins `gpt-6.2-sol`,
    effort `low`). If usage or quota is unavailable, note the skip in
@@ -83,11 +108,21 @@ through, in order:
    bughunter skill's own trigger: the hunt is never the first response to a
    review request and never runs before codex review. Address confirmed
    findings before merge.
-3. **RevEngine GitHub Action (`/review`)** — `.github/workflows/review.yml`
-   runs `laude-institute/rev-engine` on the Claude subscription
-   (`CLAUDE_CODE_OAUTH_TOKEN` repository secret) when a collaborator with write
-   access comments `/review` (or `/review agent`) on a PR, or triggers the
-   workflow manually via `workflow_dispatch`.
+3. **RevEngine GitHub Action (`/review`)** — required on **every PR** before
+   merge. `.github/workflows/review.yml` runs `laude-institute/rev-engine` on
+   the Claude subscription (`CLAUDE_CODE_OAUTH_TOKEN` repository secret) when a
+   collaborator with write or admin access comments `/review` (or
+   `/review agent`) on a PR, or triggers the workflow manually via
+   `workflow_dispatch`. Defaults to model `opus` and effort `high` (override
+   repo-wide with Actions variables `REV_ENGINE_MODEL` / `REV_ENGINE_EFFORT`,
+   or per run via `workflow_dispatch` inputs). Fork PRs are skipped for
+   security. Because `issue_comment` runs restore the Buildx cache read-only,
+   and `workflow_dispatch` requires `pr-number` and runs a full Claude review
+   on that PR (there is no build-only mode), warm the cache by running
+   `workflow_dispatch` on `--ref main` for a real PR after bumping
+   `REV_ENGINE_SHA` or `CLAUDE_CODE_VERSION` (GitHub Actions caches are
+   branch-scoped, so branch dispatches do not populate `main`'s cache;
+   otherwise cold builds still succeed).
 
 Use the `.claude/skills/pr-cycle/SKILL.md` (`pr-cycle` skill) to drive the PR
 review loop: triage findings, push fixes, reply using RevEngine's decision

@@ -26,7 +26,7 @@ You are a careful technical writer with merge discipline, not an implementer.
 ## Canonical docs to read first (relative to the future repo root)
 
 1. `planning/phases/phase-00.html` — the full playbook for this phase.
-2. `planning/decisions.md` — statuses D-00..D-13b; copy verbatim, never upgrade.
+2. `planning/decisions.md` — statuses D-00..D-14; copy verbatim, never upgrade.
 3. `planning/review.md` — proposals (R1–R16, §8) are proposals.
 4. `planning/src/index.md` and `planning/traceability.md` — packet context.
 5. Master plan and handoff (current repo): `docs/guia-la-master-plan.html`,
@@ -43,7 +43,7 @@ You are a careful technical writer with merge discipline, not an implementer.
 4. PR 00-4 — `SPEC.md`: platform spec, non-goals, widget vocabulary
    (widget ≠ card; shared domains), destination model — guia.la platform,
    Cotijuba pilot, Serra demo synthetic destination.
-5. PR 00-5 — `docs/adr/`: template + one ADR per decision D-00..D-13b,
+5. PR 00-5 — `docs/adr/`: template + one ADR per decision D-00..D-14,
    statuses copied verbatim from `planning/decisions.md`; each ADR carries
    its D-xx id in the filename or front matter.
 6. PR 00-6 — `docs/evidence/PR-EVIDENCE.md` + `HANDOFF-STATE.md` conventions

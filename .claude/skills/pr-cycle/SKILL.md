@@ -5,7 +5,9 @@ description: Drive a PR through RevEngine review rounds, fix and resolve finding
 
 # PR Review Cycle
 
-Drive a pull request through local preflight checks and GitHub RevEngine review rounds until nothing is pending at the current head commit, then finish cleanly with either `auto-merge` or `needs-human-review`.
+Drive **every** pull request through pre-PR checks and GitHub RevEngine `/review` rounds until nothing is pending at the current `HEAD` commit, then finish cleanly with either `auto-merge` or `needs-human-review`.
+
+**Rule:** No PR merges until RevEngine `/review` completes at the current `headRefOid` with zero unresolved review threads, all configured checks passing, and either `**Recommendation: merge.**` (eligible for `auto-merge` when authorized and no human-review gates apply) or explicit maintainer approval on `needs-human-review` (when the only open item is a fit question or maintainer-accepted deferral). **Outage / workflow-repair override:** if RevEngine itself is broken or unavailable (expired `CLAUDE_CODE_OAUTH_TOKEN`, quota exhaustion, GitHub outage, or a PR repairing `review.yml` on `main`), use `workflow_dispatch` if possible, and otherwise allow an explicit maintainer override on `needs-human-review` with the failed/skipped run URL and reason recorded on the PR and in `.state/goal.md`. Setup, docs, config, and scaffolding PRs skip only local `codex` / `ohmybug` reviews (noting the skip in `.state/goal.md`), never RevEngine unless that outage override applies.
 
 ## Inputs & Mode Selection
 
@@ -15,16 +17,17 @@ Drive a pull request through local preflight checks and GitHub RevEngine review 
   - `auto-merge`: merge only when **explicitly authorized** for the PR/task, all convergence checks pass at the exact `headRefOid`, and **zero** hard human-review gates fire.
 - **Review mode**:
   - `/review` (**default**, `human` mode): inline comments on high/medium findings (up to 10), collapsed details, project-fit assessment, and merge advice.
-  - `/review agent` (`agent` mode): single summary comment listing up to 80 findings across severities with no fit check (note: `RB_CONFIG_ENGINE=claude-code` disables RevEngine's swarm, so agent mode produces the single-comment agent format from Claude). If `auto-merge` is requested and a fit check is required, always run a final `/review` (`human` mode) round before merging.
+  - `/review agent` (`agent` mode): single summary comment listing up to 80 findings across severities with no fit check (note: `RB_CONFIG_ENGINE=claude-code` disables RevEngine's swarm, so agent mode produces the single-comment agent format from Claude). Always run a final `/review` (`human` mode) round before declaring convergence or merging.
 
 ## Hard Human-Review Gates
 
 These rules **override `auto-merge`** and unconditionally require `needs-human-review`:
 
 1. RevEngine summary opens with `**Recommendation: needs a maintainer's decision.**` (fit verdict is `fits_with_concerns`, `does_not_fit`, or `unclear`). Never write a `**Fit: yes.**` or `**Fit: no.**` answer on behalf of a human maintainer.
-2. The PR touches auth, payments, credentials/secrets/permissions, privacy/security boundaries, destructive data/production changes, infra spending, store publication, or unresolved architecture decisions.
+2. The PR touches auth, payments, credentials/secrets/permissions, privacy/security boundaries, workflows/CI, destructive data/production changes, infra spending, store publication, or unresolved architecture decisions.
 3. Any non-trivial finding is marked `Won't fix:` or `Deferred:` with a product or architecture trade-off.
 4. The loop reaches **5 rounds** without converging, RevEngine fails or skips, or any human reviewer left `CHANGES_REQUESTED` or unresolved comments.
+5. The PR modifies non-doc files (anything outside `**/*.md`, `**/docs/**`, `**/skills/**`) and has no local OhMyBug hunt recorded for the current diff (including non-doc setup/config/scaffolding PRs, and hard PRs where OhMyBug was not triggered — neither a critical/high codex finding nor >300 changed lines touching auth, payments, or concurrency). Do not spend a paid hunt on untriggered PRs, and never attach `SKIP_BUGHUNT=1` as an agent (`pre-pr-gate.sh` reserves it for the human operator); escalate to `needs-human-review` so the owner merges as operator.
 
 ## Loop Procedure (Max 5 Rounds)
 
@@ -32,65 +35,114 @@ These rules **override `auto-merge`** and unconditionally require `needs-human-r
 
 1. Confirm work lives in `.worktrees/<task-slug>` (not directly on `main`) and run local lint/typecheck/tests.
 2. Follow `AGENTS.md`:
-   - **Hard PR** (production code paths, security, money, concurrency, data handling, or wide/risky diffs): run local `codex review`, then conditional `ohmybug` (`lite`) if triggered, and fix confirmed findings before opening the PR.
-   - **Setup/docs/config/scaffolding PR**: self-review the diff and record the skip in `.state/goal.md`.
+   - **Hard PR** (production code paths, security, workflows/CI, money, concurrency, data handling, or wide/risky diffs): run local `codex review`, then conditional `ohmybug` (`lite`) if triggered, and fix confirmed findings before opening the PR. If `ohmybug` was not triggered (neither a critical/high codex finding nor >300 changed lines touching auth, payments, or concurrency), do not spend a paid hunt; escalate to `needs-human-review` (Gate #5) after RevEngine passes.
+   - **Setup/docs/config/scaffolding PR** (excluding workflows/CI): skip local `codex` and `ohmybug`, self-review the diff, and record the skip in `.state/goal.md`. Pure docs/skills diffs bypass `pre-pr-gate.sh` automatically; non-doc config/scaffolding PRs escalate via Option B after RevEngine passes.
 3. Push the branch and open the PR (`gh pr create`) if one does not exist yet.
 
 ### 1. Trigger & Wait (each round)
 
-1. Record the exact commit and UTC timestamp before commenting:
+1. Record the exact commit and UTC timestamp before commenting, then capture the created comment ID from the returned comment URL:
    ```bash
    HEAD_SHA=$(gh pr view "$PR" --json headRefOid --jq .headRefOid)
    TRIGGERED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-   gh pr comment "$PR" --body "/review"   # or "/review agent" for intermediate triage
+   COMMENT_URL=$(gh pr comment "$PR" --body "/review")   # or "/review agent" for intermediate triage
+   COMMENT_ID=${COMMENT_URL##*#issuecomment-}
+   [[ "$COMMENT_ID" =~ ^[0-9]+$ ]] || { echo "Unexpected comment URL: $COMMENT_URL"; exit 1; }
    ```
-2. Find the `Review` workflow run created at or after `$TRIGGERED_AT` and watch it to completion (never busy-poll with `sleep`). Note: `issue_comment` workflows run from the default branch (`main`), so do **not** filter `gh run list` by the PR branch:
+2. Wait briefly (up to ~30s) only for GitHub to enqueue the `Review` workflow run for this PR, then watch the run to completion with `gh run watch` (never `sleep`-poll for workflow completion). Note: `issue_comment` workflows run from the default branch (`main`), so do **not** filter `gh run list` by the PR branch:
    ```bash
    RUN_ID=""
    for _ in $(seq 1 10); do
-     RUN_ID=$(gh run list --workflow review.yml --limit 10 --json databaseId,createdAt,event,url \
-       --jq "[.[] | select(.event == \"issue_comment\" and .createdAt >= \"$TRIGGERED_AT\")] | sort_by(.createdAt) | last | .databaseId // \"\"")
+     RUN_ID=$(gh run list --workflow review.yml --limit 20 \
+       --json databaseId,displayTitle,createdAt,event,conclusion \
+       --jq "[.[] | select(.event == \"issue_comment\" and .displayTitle == \"Review PR #$PR (comment-$COMMENT_ID)\" and .conclusion != \"skipped\" and .conclusion != \"cancelled\")] | sort_by(.createdAt) | last | .databaseId // \"\"")
      [ -n "$RUN_ID" ] && break
      sleep 3
    done
-   [ -n "$RUN_ID" ] || { echo "No review.yml run found after $TRIGGERED_AT"; exit 1; }
+   [ -n "$RUN_ID" ] || { echo "No review.yml run found for PR #$PR (comment-$COMMENT_ID)"; exit 1; }
    gh run watch "$RUN_ID" --exit-status
    ```
-3. If `gh run watch` fails (e.g., missing/expired `CLAUDE_CODE_OAUTH_TOKEN`, quota exhaustion, workflow error) or the job skips without posting a review for `HEAD_SHA`, **stop immediately** and report the run URL and failure reason to the user.
+   *(If `review.yml` on `main` does not yet set `Review PR #<n> (comment-<id>)` in `displayTitle`, omit the `displayTitle` filter and add `and .createdAt >= "$TRIGGERED_AT"` for that bootstrap run, then verify in Step 2 that the posted review cites `HEAD_SHA`. If the watched run was cancelled while pending (e.g., superseded by a newer `/review` comment), do not re-lookup the old `$COMMENT_ID`; inspect Step 2 or trigger a fresh `/review` round.)*
+3. If `gh run watch` fails or the job skips without posting a RevEngine review for `HEAD_SHA` with `submitted_at >= $TRIGGERED_AT`:
+   - When the failure is specific to the `issue_comment` trigger (e.g., GitHub `issue_comment` outage, read-only cache-write error on an older `main` workflow, or a PR repairing `review.yml`), try the **`Fallback: Manual workflow_dispatch`** procedure below first.
+   - Otherwise (e.g., missing/expired `CLAUDE_CODE_OAUTH_TOKEN`, Claude quota exhaustion, or if `workflow_dispatch` also fails/skips), **stop the loop immediately**, apply the **`needs-human-review`** disposition (label + PR handoff comment citing the failed/skipped run URL and reason), record the URL and reason in `.state/goal.md`, and report to the user.
+
+#### Fallback: Manual `workflow_dispatch` (outage or `review.yml` repair)
+
+For an ordinary `issue_comment` outage, always dispatch `--ref main` so the trusted workflow on `main` performs an independent review. Only pass `--ref "$PR_BRANCH"` to **self-test** a PR repairing `.github/workflows/review.yml` (provided `review.yml` with `workflow_dispatch` already exists on `main`); treat a `--ref "$PR_BRANCH"` run as a self-test rather than an independent review gate, and still require `--ref main` (if functional) or explicit maintainer review on `needs-human-review` (Gate #2). If `review.yml` does not exist on `main` or `workflow_dispatch` itself fails, escalate via the explicit maintainer outage/repair override on `needs-human-review`.
+
+```bash
+HEAD_SHA=$(gh pr view "$PR" --json headRefOid --jq .headRefOid)
+TRIGGERED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+MODE="human"   # or "agent"
+REF="main"     # Default for outages. Only set REF=$(gh pr view "$PR" --json headRefName --jq .headRefName) to self-test a repair PR's review.yml (never as an independent review gate).
+DISPATCH_OUT=$(gh workflow run review.yml --ref "$REF" -f pr-number="$PR" -f mode="$MODE")
+RUN_ID=$(printf '%s\n' "$DISPATCH_OUT" | sed -n 's|.*/actions/runs/\([0-9][0-9]*\).*|\1|p' | head -n 1)
+if [ -z "$RUN_ID" ]; then
+  for _ in $(seq 1 10); do
+    RUN_ID=$(gh run list --workflow review.yml --limit 20 \
+      --json databaseId,displayTitle,createdAt,event,conclusion \
+      --jq "[.[] | select(.event == \"workflow_dispatch\" and .displayTitle == \"Review PR #$PR ($MODE)\" and .createdAt >= \"$TRIGGERED_AT\" and .conclusion != \"skipped\" and .conclusion != \"cancelled\")] | sort_by(.createdAt) | last | .databaseId // \"\"")
+    [ -n "$RUN_ID" ] && break
+    sleep 3
+  done
+fi
+[ -n "$RUN_ID" ] || { echo "No workflow_dispatch review.yml run found for PR #$PR after $TRIGGERED_AT"; exit 1; }
+gh run watch "$RUN_ID" --exit-status
+```
+*(If the dispatched ref does not yet set `Review PR #<n> (<mode>)` in `displayTitle`, omit the `displayTitle` filter in the fallback lookup and verify in Step 2 that the posted review cites `HEAD_SHA`.)*
 
 ### 2. Inspect All Pending State
 
-Fetch the latest RevEngine review (`<!-- rev-engine-prime -->`), unresolved threads, human reviews, CI checks, and PR mergeability:
+Fetch the latest RevEngine review (`<!-- rev-engine-prime -->`), paginated PR review state, unresolved threads, CI checks, and PR mergeability (`gh api --paginate --slurp` cannot be combined with `--jq`, so pipe to `jq` directly):
 
 ```bash
 NWO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
 OWNER=${NWO%%/*}
 REPO=${NWO##*/}
 
-# 1. Latest RevEngine review
-gh api "repos/{owner}/{repo}/pulls/$PR/reviews?per_page=100" --paginate \
-  --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- rev-engine-prime -->")))] | sort_by(.submitted_at) | last | {id, submitted_at, commit_id, body}'
+# 1. Latest RevEngine review across all pages
+gh api "repos/{owner}/{repo}/pulls/$PR/reviews?per_page=100" --paginate --slurp \
+  | jq 'add | map(select(.user.login == "github-actions[bot]" and (.body | contains("<!-- rev-engine-prime -->")))) | sort_by(.submitted_at) | last | {id, submitted_at, commit_id, body}'
 
-# 2. PR state + all review threads + human review states
-gh api graphql -f query='
-  query($owner: String!, $repo: String!, $pr: Int!) {
+# 2a. PR metadata + paginated latestReviews
+gh api graphql --paginate --slurp -f owner="$OWNER" -f repo="$REPO" -F pr="$PR" -f query='
+  query($owner: String!, $repo: String!, $pr: Int!, $endCursor: String) {
     repository(owner: $owner, name: $repo) {
       pullRequest(number: $pr) {
         headRefOid
         isDraft
         mergeable
         mergeStateStatus
-        latestReviews(first: 20) {
+        latestReviews(first: 100, after: $endCursor) {
+          pageInfo { hasNextPage endCursor }
           nodes { author { login } state submittedAt }
         }
-        reviewThreads(first: 100) {
+      }
+    }
+  }' | jq '{
+    headRefOid: .[0].data.repository.pullRequest.headRefOid,
+    isDraft: .[0].data.repository.pullRequest.isDraft,
+    mergeable: .[0].data.repository.pullRequest.mergeable,
+    mergeStateStatus: .[0].data.repository.pullRequest.mergeStateStatus,
+    latestReviews: [.[].data.repository.pullRequest.latestReviews.nodes[]]
+  }'
+
+# 2b. Paginated reviewThreads (also verify no thread has truncated comments)
+gh api graphql --paginate --slurp -f owner="$OWNER" -f repo="$REPO" -F pr="$PR" -f query='
+  query($owner: String!, $repo: String!, $pr: Int!, $endCursor: String) {
+    repository(owner: $owner, name: $repo) {
+      pullRequest(number: $pr) {
+        reviewThreads(first: 100, after: $endCursor) {
+          pageInfo { hasNextPage endCursor }
           nodes {
             id
             isResolved
             isOutdated
             path
             line
-            comments(first: 20) {
+            comments(first: 100) {
+              pageInfo { hasNextPage endCursor }
               nodes {
                 databaseId
                 author { login }
@@ -103,14 +155,17 @@ gh api graphql -f query='
         }
       }
     }
-  }' -f owner="$OWNER" -f repo="$REPO" -F pr="$PR"
+  }' | jq '[.[].data.repository.pullRequest.reviewThreads.nodes[]]'
 
-# 3. CI checks
-gh pr checks "$PR"
+# 3. CI checks (exits 0 even when zero checks are configured)
+gh pr view "$PR" --json statusCheckRollup --jq '.statusCheckRollup'
 ```
 
-Verify that the latest RevEngine review body cites `Reviewed commit ${HEAD_SHA:0:7}` (matching the current `headRefOid`). Extract its opening advice line:
+Verify that:
+- The latest RevEngine review exists with `submitted_at >= $TRIGGERED_AT` and cites `Reviewed commit ${HEAD_SHA:0:7}` (matching `headRefOid`).
+- No thread in query `2b` has `comments.pageInfo.hasNextPage == true` (if any does, fetch its remaining comments via GraphQL `node(id: $threadId)` before continuing).
 
+Extract RevEngine's opening advice line:
 - `**Recommendation: merge.**` — clean (nothing medium/high; fit passed or off)
 - `**Recommendation: merge and fast-follow.**` — medium finding(s) remain
 - `**Recommendation: fix, then merge.**` — high finding(s) remain
@@ -120,9 +175,11 @@ Verify that the latest RevEngine review body cites `Reviewed commit ${HEAD_SHA:0
 
 The PR has **converged** if and only if, for the **exact current `headRefOid`**:
 
-1. Latest RevEngine review reviewed the current `headRefOid` and opens with `**Recommendation: merge.**` (or if `**Recommendation: merge and fast-follow.**` only after every remaining medium item was explicitly verified & resolved as `Wrong:` or `Won't fix:` with zero human-gate triggers — even then, prefer one final `/review` round so RevEngine confirms `Recommendation: merge.`).
+1. Latest RevEngine review reviewed the current `headRefOid` in `human` mode and opens with `**Recommendation: merge.**` (if it opened with `**Recommendation: merge and fast-follow.**` and remaining medium items were resolved as `Wrong:`/`Won't fix:`, re-run `/review` so RevEngine confirms `**Recommendation: merge.**` — never auto-merge on `merge and fast-follow.`, and only merge on `needs a maintainer's decision.` via explicit human approval in Option B).
 2. Zero unresolved review threads (RevEngine or human) and no outstanding `CHANGES_REQUESTED` review.
-3. All CI checks pass (none pending or failing).
+3. CI checks (`statusCheckRollup`):
+   - **Zero checks configured (`[]`)**: satisfies CI convergence (do not treat empty checks as a failure, and do not pass `--auto` when merging).
+   - **One or more checks configured**: every `CheckRun` has `status == "COMPLETED"` and `conclusion` in `["SUCCESS", "NEUTRAL", "SKIPPED"]`, and every `StatusContext` has `state == "SUCCESS"` (zero pending or failing checks).
 4. PR is non-draft and mergeable (`mergeable == "MERGEABLE"`).
 
 - **If converged**: go to **Final Disposition**.
@@ -176,24 +233,46 @@ For every open finding:
 
 ### Option A: `auto-merge`
 
-Only allowed when **explicitly authorized** for the PR/task, converged at the exact `headRefOid`, and **no hard human-review gate** applies:
+Only allowed when **explicitly authorized** for the PR/task, converged at the exact `headRefOid`, all configured checks are completed/passing (Step 3), and **no hard human-review gate** applies (including Gate #5: either a pure docs/skills diff that `pre-pr-gate.sh` (`diff-id.sh`) exempts automatically, or a hard PR whose current diff already has a recorded OhMyBug hunt):
 
-1. Re-verify current state immediately before merging:
+1. Resolve the main repository worktree path and branch name, and verify `HEAD_SHA` (captured in Step 1 / verified in Step 2) is still current right before merging:
    ```bash
-   gh pr view "$PR" --json headRefOid,isDraft,mergeable,mergeStateStatus,statusCheckRollup
+   MAIN_ROOT=$(cd "$(git rev-parse --path-format=absolute --git-common-dir)/.." && pwd)
+   PR_BRANCH=$(gh pr view "$PR" --json headRefName --jq .headRefName)
+   CURRENT_SHA=$(gh pr view "$PR" --json headRefOid --jq .headRefOid)
+   [ "$CURRENT_SHA" = "$HEAD_SHA" ] || { echo "PR #$PR head moved from $HEAD_SHA to $CURRENT_SHA; re-run Step 2"; exit 1; }
+   gh pr view "$PR" --json isDraft,mergeable,mergeStateStatus,statusCheckRollup
    ```
-2. Merge (note: GitHub rejects `--auto` on repos without blocking branch protections or pending required checks, so branch on pending checks):
+   If `headRefOid` changed, return to Step 2; if any check is currently pending, wait with `gh pr checks "$PR" --watch` and re-verify (`allow_auto_merge` is disabled on `luandro/guia-la`, so do not pass `--auto`).
+2. Keep your Bash session's `cwd` in `.worktrees/<task-slug>` and run `gh pr merge` inside the `$MAIN_ROOT` subshell bound to the reviewed `$HEAD_SHA` without `--delete-branch` or `SKIP_BUGHUNT=1`:
    ```bash
-   # If required checks are currently pending:
-   gh pr merge "$PR" --auto --squash --delete-branch
-   # If all checks are already green and PR is cleanly mergeable:
-   gh pr merge "$PR" --squash --delete-branch
+   (cd "$MAIN_ROOT" && gh pr merge "$PR" --squash --match-head-commit "$HEAD_SHA")
    ```
-3. Sync local `main`, remove `.worktrees/<task-slug>`, update `.state/goal.md`, and set the corresponding `tsk` task to `review` (only the user sets `done`).
+   *(The subshell avoids git worktree checkout conflicts while keeping the session `cwd` in `.worktrees/<task-slug>` so `pre-pr-gate.sh` hashes the PR branch's actual diff; never `cd` into clean `main` before merging to bypass OhMyBug. Passing `--match-head-commit "$HEAD_SHA"` rejects the merge if a commit landed after inspection — if that happens, keep the worktree and start a new review round. Agents must never attach `SKIP_BUGHUNT=1` — if `pre-pr-gate.sh` blocks an unhunted non-doc PR, stop and escalate via Option B so the owner merges as operator.)*
+3. **Verify merge completed before any cleanup** (never delete the worktree or update `.state/goal.md` while the PR is still `OPEN`):
+   ```bash
+   PR_STATE=""
+   for _ in $(seq 1 5); do
+     PR_STATE=$(gh pr view "$PR" --json state --jq '.state')
+     [ "$PR_STATE" = "MERGED" ] || [ "$PR_STATE" = "CLOSED" ] && break
+     sleep 3
+   done
+   [ "$PR_STATE" = "MERGED" ] || { echo "PR #$PR state is $PR_STATE; skipping cleanup and escalating to needs-human-review"; exit 1; }
+   ```
+   If `PR_STATE` is not `MERGED` (or `gh pr merge` was blocked by `pre-pr-gate.sh`), leave the worktree intact and switch to **Option B (`needs-human-review`)**.
+4. Once `PR_STATE == "MERGED"`, `cd` to `$MAIN_ROOT` so the session does not stay in a deleted directory, then clean up (including a fallback remote branch delete in case `delete_branch_on_merge` was later disabled):
+   ```bash
+   cd "$MAIN_ROOT"
+   git -C "$MAIN_ROOT" pull --ff-only origin main
+   git -C "$MAIN_ROOT" worktree remove ".worktrees/<task-slug>"
+   git -C "$MAIN_ROOT" branch -D "$PR_BRANCH" 2>/dev/null || true
+   git -C "$MAIN_ROOT" push origin --delete "$PR_BRANCH" 2>/dev/null || true
+   ```
+   Then update `.state/goal.md` and set the corresponding `tsk` task to `review` (only the user sets `done`).
 
 ### Option B: `needs-human-review` (default)
 
-Used whenever `auto-merge` is not explicitly authorized, any hard human-review gate triggers, or round 5 ends without convergence:
+Used whenever `auto-merge` is not explicitly authorized, any hard human-review gate triggers (including Gate #5 for unhunted non-doc PRs), a RevEngine run fails/skips (including an outage or `review.yml` repair override), or round 5 ends without convergence:
 
 1. Ensure the `needs-human-review` label exists and apply it:
    ```bash
@@ -202,8 +281,8 @@ Used whenever `auto-merge` is not explicitly authorized, any hard human-review g
    ```
 2. Post a concise handoff comment on the PR listing:
    - Current head commit SHA and rounds run
-   - Latest RevEngine recommendation and fit verdict
+   - Latest RevEngine recommendation and fit verdict (or failure/skip run URL)
    - Fixes pushed and any `Won't fix` / `Deferred` / `Wrong` decisions
    - CI check summary
-   - Exact decision(s) needed from the human maintainer
+   - Exact decision(s) needed from the human maintainer (when handing off an unhunted non-doc PR after RevEngine passes, substitute the actual repository path and PR number into the exact operator merge command — do not leave unset shell variables: `(cd "/abs/path/to/main-repo" && SKIP_BUGHUNT=1 gh pr merge <n> --squash)`)
 3. Update `.state/goal.md`, leave the PR open and `.worktrees/<task-slug>` intact until the human merges.
