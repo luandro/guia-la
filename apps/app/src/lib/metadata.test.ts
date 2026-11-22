@@ -7,16 +7,25 @@ import {
 } from "./metadata.js";
 
 describe("ogLocale", () => {
-  it("converts BCP-47 to OG underscore format", () => {
+  it("maps every UI locale to its language_TERRITORY OG form", () => {
     expect(ogLocale("pt-BR")).toBe("pt_BR");
-    expect(ogLocale("en")).toBe("en");
-    expect(ogLocale("nl")).toBe("nl");
+    expect(ogLocale("en")).toBe("en_US");
+    expect(ogLocale("es")).toBe("es_ES");
+    expect(ogLocale("fr")).toBe("fr_FR");
+    expect(ogLocale("nl")).toBe("nl_NL");
+    expect(ogLocale("de")).toBe("de_DE");
   });
 });
 
 describe("ogAlternateLocales", () => {
-  it("lists the other five locales in OG format", () => {
-    expect(ogAlternateLocales("en")).toEqual(["pt_BR", "es", "fr", "nl", "de"]);
+  it("lists the other five locales in OG form", () => {
+    expect(ogAlternateLocales("en")).toEqual([
+      "pt_BR",
+      "es_ES",
+      "fr_FR",
+      "nl_NL",
+      "de_DE",
+    ]);
   });
 });
 

@@ -74,7 +74,14 @@ export const placeSchema = z.object({
     lng: z.number().min(-180).max(180),
   }),
   source: z.literal("synthetic"),
-  verifiedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD"),
+  // Regex shape plus a calendar round-trip: "2026-02-31" matches the regex
+  // but is not a real date, and the detail page renders new Date(y, m-1, d),
+  // which rolls it forward silently. UTC so the round-trip cannot drift by
+  // a timezone offset.
+  verifiedAt: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD")
+    .refine(isCalendarDate, "real calendar date"),
   // zod 4 note: z.record with an enum key requires every key; locales are
   // optional per place (fixture contract), so this is a partial record.
   content: z
@@ -86,6 +93,21 @@ export const placeSchema = z.object({
 });
 
 export type Place = z.infer<typeof placeSchema>;
+
+/** "2026-02-31" is regex-shaped but not a real date: round-trip it. */
+function isCalendarDate(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (match === null) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
+}
 
 /** A fully loaded destination: the three fixture files, validated together. */
 export interface DestinationData {

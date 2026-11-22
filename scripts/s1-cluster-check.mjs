@@ -3,8 +3,9 @@
 // the exported raw HTML that plain greps cannot express.
 //
 // Failure class it catches:
-//   (1) og:locale values in BCP-47 form ("pt-BR") instead of the OpenGraph
-//       form ("pt_BR") that og:locale consumers expect;
+//   (1) og:locale values not in OpenGraph language_TERRITORY form
+//       ("pt-BR", or a bare "en"/"de") — consumers such as Facebook's
+//       crawler recognise only territory-qualified locales;
 //   (2) a broken hreflang cluster — a missing locale, an x-default that
 //       points at a non-equivalent page, or annotations without reciprocal
 //       return links (search engines ignore non-reciprocal hreflang);
@@ -27,7 +28,19 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const LOCALES = ["en", "pt-BR", "es", "fr", "nl", "de"];
-const OG_FORM = /^[a-z]{2}(_[A-Z]{2})?$/;
+// Explicit per-locale mapping (mirrors apps/app/src/lib/metadata.ts): the OG
+// protocol defines og:locale as language_TERRITORY, and the territory is not
+// derivable from the language code alone (en -> en_US, not "en").
+const OG_LOCALES = {
+  en: "en_US",
+  "pt-BR": "pt_BR",
+  es: "es_ES",
+  fr: "fr_FR",
+  nl: "nl_NL",
+  de: "de_DE",
+};
+// Territory-qualified only: a bare "en" fails this (PR #14 review round B).
+const OG_FORM = /^[a-z]{2}_[A-Z]{2}$/;
 
 const [distDir, fixtureDir] = process.argv.slice(2);
 if (!distDir || !fixtureDir) {
@@ -100,11 +113,15 @@ function checkOg(page, html, expectedLocale) {
   for (const value of values) {
     if (!OG_FORM.test(value)) {
       fail(
-        `${page}: og:locale '${value}' is not in OG form (xx_YY, no hyphen)`,
+        `${page}: og:locale '${value}' is not in OG form (language_TERRITORY, e.g. en_US — no bare language codes, no hyphens)`,
       );
     }
   }
-  const expected = expectedLocale.replace("-", "_");
+  const expected = OG_LOCALES[expectedLocale];
+  if (expected === undefined) {
+    fail(`${page}: no OG mapping for locale '${expectedLocale}'`);
+    return;
+  }
   if (values[0] !== expected) {
     fail(`${page}: og:locale is '${values[0]}', expected '${expected}'`);
   }

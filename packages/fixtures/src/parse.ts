@@ -57,6 +57,7 @@ export function parseDestinationDataset(dataset: {
   }
 
   const categoryIds = new Set(categories.map((category) => category.id));
+  const ids = new Set<string>();
   const slugs = new Set<string>();
 
   for (const place of places) {
@@ -68,6 +69,17 @@ export function parseDestinationDataset(dataset: {
         },
       };
     }
+    if (ids.has(place.id)) {
+      return {
+        ok: false,
+        error: {
+          // place.id is the React key on the list screen; a duplicate id
+          // loads as ok:true today and mis-reconciles rows there.
+          message: `duplicate place id "${place.id}" in destination ${destination.id}`,
+        },
+      };
+    }
+    ids.add(place.id);
     if (slugs.has(place.slug)) {
       return {
         ok: false,
