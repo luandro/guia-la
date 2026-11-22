@@ -193,7 +193,7 @@ jobs:
           tags: rev-engine-prime:action
           build-args: CLAUDE_CODE_VERSION=${{ env.CLAUDE_CODE_VERSION }}
           cache-from: type=gha,scope=rev-engine-${{ env.REV_ENGINE_SHA }}-claude-${{ env.CLAUDE_CODE_VERSION }}
-          cache-to: type=gha,mode=max,scope=rev-engine-${{ env.REV_ENGINE_SHA }}-claude-${{ env.CLAUDE_CODE_VERSION }}
+          cache-to: ${{ github.event_name == 'workflow_dispatch' && format('type=gha,mode=max,scope=rev-engine-{0}-claude-{1}', env.REV_ENGINE_SHA, env.CLAUDE_CODE_VERSION) || '' }}
 
       # Holds GITHUB_TOKEN and no Claude token.
       - name: Collect earlier decisions
