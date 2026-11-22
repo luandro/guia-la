@@ -1,0 +1,47 @@
+{
+  "common": {
+    "appName": "guia.la",
+    "retry": "Opnieuw proberen",
+    "offlineHint": "Je lijkt offline te zijn. Opgeslagen informatie wordt getoond.",
+    "showingOriginal": "Origineel wordt getoond ({{locale}})",
+    "machineTranslated": "Automatisch vertaald",
+    "backToList": "Terug naar alle plaatsen"
+  },
+  "index": {
+    "title": "Kies je taal",
+    "subtitle": "guia.la — lokale gidsen, in jouw taal"
+  },
+  "places": {
+    "listTitle": "Plaatsen in {{destination}}",
+    "count_one": "{{count}} plaats",
+    "count_other": "{{count}} plaatsen",
+    "loading": "Plaatsen laden…",
+    "verifiedAt": "Gecontroleerd op {{date}}",
+    "timeout": "Dit duurt langer dan verwacht.",
+    "errorTitle": "Er ging iets mis",
+    "errorDetail": "De plaatsen konden niet worden geladen.",
+    "empty": "Nog geen plaatsen hier.",
+    "emptyDetail": "Deze bestemming heeft nog geen gepubliceerde plaatsen."
+  },
+  "notFound": {
+    "title": "Pagina niet gevonden",
+    "description": "De pagina die je zoekt bestaat niet.",
+    "back": "Opnieuw beginnen"
+  },
+  "meta": {
+    "homeTitle": "guia.la — lokale reisgidsen",
+    "homeDescription": "Gidsen voor plaatsen, paden en stranden, recht vanuit de bestemming.",
+    "placesTitle": "Plaatsen — {{destination}}",
+    "placesDescription": "Alle plaatsen in {{destination}} op guia.la.",
+    "placeTitle": "{{name}} — {{destination}}",
+    "placeDescription": "{{summary}}"
+  },
+  "locales": {
+    "en": "English",
+    "pt-BR": "Português",
+    "es": "Español",
+    "fr": "Français",
+    "nl": "Nederlands",
+    "de": "Deutsch"
+  }
+}

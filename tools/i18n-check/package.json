@@ -1,0 +1,10 @@
+{
+  "name": "@guia-la/i18n-check",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "i18n key-completeness check (D-14): every locale catalog must match the en reference key set.",
+  "scripts": {
+    "check": "node i18n-check.mjs"
+  }
+}
