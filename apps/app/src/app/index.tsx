@@ -1,8 +1,10 @@
 import { Link } from "expo-router";
 import type { Metadata } from "expo-router/server";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { Screen } from "@/components/screen";
+import { ThemedText } from "@/components/themed-text";
 import { createT, LOCALES } from "@/i18n";
 import { LocaleProvider } from "@/i18n/provider";
 import {
@@ -49,17 +51,19 @@ export default function LocaleIndex() {
 function Content() {
   const { t } = useTranslation();
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t("index.title")}</Text>
-      <Text>{t("index.subtitle")}</Text>
-      <View style={styles.locales}>
-        {LOCALES.map((locale) => (
-          <Link key={locale} href={`/${locale}/places`} style={styles.link}>
-            {t(`locales.${locale}`)}
-          </Link>
-        ))}
+    <Screen>
+      <View style={styles.container}>
+        <ThemedText style={styles.title}>{t("index.title")}</ThemedText>
+        <ThemedText>{t("index.subtitle")}</ThemedText>
+        <View style={styles.locales}>
+          {LOCALES.map((locale) => (
+            <Link key={locale} href={`/${locale}/places`} style={styles.link}>
+              {t(`locales.${locale}`)}
+            </Link>
+          ))}
+        </View>
       </View>
-    </View>
+    </Screen>
   );
 }
 

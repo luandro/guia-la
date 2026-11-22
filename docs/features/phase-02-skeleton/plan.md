@@ -64,6 +64,25 @@
       nothing imports the module and reading device locales needs no
       plugin; re-add only when code depends on the native localization
       metadata it pins.
+  - **PR #15 review round (CodeRabbit, 2026-11-22, follow-up branch):**
+    - **`Screen` container** (`src/components/screen.tsx`): header is hidden,
+      so screens own safe-area spacing; insets + themed background in one
+      shared container (insets are 0 on the web export — raw HTML unchanged).
+    - **`ThemedText`** (`src/components/themed-text.tsx`): RN `Text` defaults
+      to black, unreadable on `DarkTheme`; all screen text now carries the
+      theme's foreground color.
+    - **Detail page scroll**: detail content in a bounded `ScrollView`
+      (small landscape / enlarged text could clip summary, date, back link).
+    - **Client `<html lang>`**: `LocaleProvider` sets
+      `document.documentElement.lang` in an effect — client-side navigation
+      kept the first response's lang otherwise (no-op on native and in the
+      static export).
+    - **`startJourneyAttempt`**: rejects and sync throws become `failed`
+      dispatches (no unhandled rejections, no timeout misreport); deadline
+      cleared on settle (red→green in `use-destination.test.ts`).
+    - **`i18n-check`**: `flattenEntries` Map keeps values beside flattened
+      keys, so a literal dotted key can no longer bypass placeholder
+      validation (red→green in `i18n-check.test.ts`).
 - **Tests that prove it:** core `resolveContent` (exact locale, fallback
   marking, machineTranslated carry-through); fixtures loader (ok parse, error
   on malformed JSON/schema, no throw); i18n-check (missing key, extra key,

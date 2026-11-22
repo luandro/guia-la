@@ -1,8 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import type { Locale } from "@guia-la/core";
 
+import { ThemedText } from "@/components/themed-text";
 import type { JourneyError } from "@/state/journey";
 
 /**
@@ -14,7 +15,9 @@ export function LoadingView() {
   const { t } = useTranslation();
   return (
     <View style={styles.state}>
-      <Text accessibilityRole="progressbar">{t("places.loading")}</Text>
+      <ThemedText accessibilityRole="progressbar">
+        {t("places.loading")}
+      </ThemedText>
     </View>
   );
 }
@@ -23,8 +26,8 @@ export function EmptyView() {
   const { t } = useTranslation();
   return (
     <View style={styles.state}>
-      <Text style={styles.stateTitle}>{t("places.empty")}</Text>
-      <Text>{t("places.emptyDetail")}</Text>
+      <ThemedText style={styles.stateTitle}>{t("places.empty")}</ThemedText>
+      <ThemedText>{t("places.emptyDetail")}</ThemedText>
     </View>
   );
 }
@@ -39,18 +42,20 @@ export function ErrorView({
   const { t } = useTranslation();
   return (
     <View style={styles.state}>
-      <Text style={styles.stateTitle}>{t("places.errorTitle")}</Text>
-      <Text>
+      <ThemedText style={styles.stateTitle}>
+        {t("places.errorTitle")}
+      </ThemedText>
+      <ThemedText>
         {error.kind === "timeout"
           ? t("places.timeout")
           : t("places.errorDetail")}
-      </Text>
+      </ThemedText>
       <Pressable
         accessibilityRole="button"
         onPress={retry}
         style={styles.retryButton}
       >
-        <Text style={styles.retryText}>{t("common.retry")}</Text>
+        <ThemedText style={styles.retryText}>{t("common.retry")}</ThemedText>
       </Pressable>
     </View>
   );
@@ -59,21 +64,31 @@ export function ErrorView({
 export function OfflineHint({ visible }: { visible: boolean }) {
   const { t } = useTranslation();
   if (!visible) return null;
-  return <Text style={styles.offlineHint}>{t("common.offlineHint")}</Text>;
+  return (
+    <ThemedText style={styles.offlineHint}>
+      {t("common.offlineHint")}
+    </ThemedText>
+  );
 }
 
 /** Visible marker when content fell back to the destination's original. */
 export function ShowingOriginalBadge({ locale }: { locale: Locale }) {
   const { t } = useTranslation();
   return (
-    <Text style={styles.marker}>{t("common.showingOriginal", { locale })}</Text>
+    <ThemedText style={styles.marker}>
+      {t("common.showingOriginal", { locale })}
+    </ThemedText>
   );
 }
 
 /** Visible marker for machine-translated content (until human-reviewed). */
 export function MachineTranslatedBadge() {
   const { t } = useTranslation();
-  return <Text style={styles.marker}>{t("common.machineTranslated")}</Text>;
+  return (
+    <ThemedText style={styles.marker}>
+      {t("common.machineTranslated")}
+    </ThemedText>
+  );
 }
 
 const styles = StyleSheet.create({

@@ -9,6 +9,11 @@ timings are comparable but not bit-for-bit).
 
 ## Verdict: **GO recommended, pending the owner's link-preview check**
 
+Owner decision 2026-11-22: the WhatsApp/link-preview check is **deferred to
+Phase 04** — it needs a public preview URL, which does not exist until the
+Phase 04 deploy. Until it runs, the GO stays conditional on it; nothing here
+claims it was done.
+
 One ADR-0004 evidence item is outstanding and is the owner's, not a code
 gate: the **manual WhatsApp/link-preview check has not been done**. A
 Playwright JS-disabled run was **not done** either — the raw-HTML-over-HTTP
@@ -149,9 +154,11 @@ Sample of the asserted raw HTML (pt-BR detail):
 
 ## Outstanding checks (plainly: not done here)
 
-- **Manual WhatsApp/link-preview check — OUTSTANDING, owner's.** Paste a
-  production-URL detail page into WhatsApp (or any link-preview consumer)
-  and confirm the card shows title/description/image. Since review round C
+- **Manual WhatsApp/link-preview check — OUTSTANDING, owner's; deferred to
+  Phase 04 (owner, 2026-11-22).** Paste a production-URL detail page into
+  WhatsApp (or any link-preview consumer)
+  and confirm the card shows title/description/image. It needs a public
+  preview URL, which arrives with the Phase 04 deploy. Since review round C
   the export emits a destination-level `og:image` (`/og/default.png`,
   1200×630, shipped from `apps/app/public/og/`), so the card has an image
   to show; but it is root-relative, and crawlers need an absolute URL once

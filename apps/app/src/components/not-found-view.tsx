@@ -1,10 +1,12 @@
 import { Link } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import type { Locale } from "@guia-la/core";
 
 import { LocaleProvider } from "@/i18n/provider";
+import { Screen } from "@/components/screen";
+import { ThemedText } from "@/components/themed-text";
 
 /**
  * Branded not-found (task 02-9): unknown routes, unknown locales and
@@ -23,14 +25,16 @@ export function NotFoundView({ locale = "en" }: { locale?: Locale }) {
 function NotFoundContent() {
   const { t } = useTranslation();
   return (
-    <View style={styles.container}>
-      <Text style={styles.code}>404</Text>
-      <Text style={styles.title}>{t("notFound.title")}</Text>
-      <Text>{t("notFound.description")}</Text>
-      <Link href="/" style={styles.link}>
-        {t("notFound.back")}
-      </Link>
-    </View>
+    <Screen>
+      <View style={styles.container}>
+        <ThemedText style={styles.code}>404</ThemedText>
+        <ThemedText style={styles.title}>{t("notFound.title")}</ThemedText>
+        <ThemedText>{t("notFound.description")}</ThemedText>
+        <Link href="/" style={styles.link}>
+          {t("notFound.back")}
+        </Link>
+      </View>
+    </Screen>
   );
 }
 

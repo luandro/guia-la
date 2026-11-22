@@ -1,6 +1,6 @@
 import { Link, useLocalSearchParams } from "expo-router";
 import type { Metadata } from "expo-router/server";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { resolveContent, type Locale, type Place } from "@guia-la/core";
@@ -14,6 +14,8 @@ import {
   ShowingOriginalBadge,
 } from "@/components/journey-ui";
 import { NotFoundView } from "@/components/not-found-view";
+import { Screen } from "@/components/screen";
+import { ThemedText } from "@/components/themed-text";
 import { getJourneyDataset } from "@/data/destination";
 import { useDestination } from "@/hooks/use-destination";
 import { createT, isLocale, LOCALES } from "@/i18n";
@@ -87,7 +89,7 @@ function ListContent() {
   const destination = state.data?.destination;
 
   return (
-    <View style={styles.page}>
+    <Screen>
       <OfflineHint visible={state.offline} />
       {state.status === "loading" && <LoadingView />}
       {state.status === "empty" && <EmptyView />}
@@ -100,12 +102,12 @@ function ListContent() {
         // detail links from the raw HTML beyond ~10 places (PR #14 review).
         <ScrollView>
           <View style={styles.header}>
-            <Text style={styles.title}>
+            <ThemedText style={styles.title}>
               {t("places.listTitle", { destination: destination?.name })}
-            </Text>
-            <Text>
+            </ThemedText>
+            <ThemedText>
               {t("places.count", { count: state.data.places.length })}
-            </Text>
+            </ThemedText>
           </View>
           {state.data.places.map((place) => (
             <PlaceRow
@@ -122,7 +124,7 @@ function ListContent() {
           ))}
         </ScrollView>
       )}
-    </View>
+    </Screen>
   );
 }
 
@@ -155,8 +157,8 @@ function PlaceRow({
       accessibilityLabel={content.name}
     >
       <View style={styles.rowText}>
-        <Text style={styles.rowTitle}>{content.name}</Text>
-        {label ? <Text>{label}</Text> : null}
+        <ThemedText style={styles.rowTitle}>{content.name}</ThemedText>
+        {label ? <ThemedText>{label}</ThemedText> : null}
         <View style={styles.markers}>
           {content.isFallback && (
             <ShowingOriginalBadge locale={content.locale} />
@@ -169,7 +171,6 @@ function PlaceRow({
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1 },
   header: { gap: 4, padding: 16 },
   title: { fontSize: 24, fontWeight: "700" },
   row: { padding: 16, borderBottomWidth: StyleSheet.hairlineWidth },

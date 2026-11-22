@@ -2,7 +2,10 @@
 
 - Baseline commit: `c0c99077593a870ba4295798f0471a66288a6c4c` (2026-11-21);
   re-verified unchanged on 2026-11-22 (task 01-1 delta: no change).
-- Backup gate: owner confirmation: PENDING (no export has run).
+- Backup gate: deferred by owner 2026-11-22, not confirmed; no export has
+  run. Backup confirmation and the owner-run export are deferred until the
+  owner schedules them; both are required before any Phase 09 import and
+  before row counts are filled in.
 - Verdict vocabulary: `concept`, `code`, `data`, `fixture`, `reject` —
   exactly one per row ([phase-01.md](../../planning/src/phases/phase-01.md)).
 - `anon-visible` records a known fact with its source, or `unknown` when no

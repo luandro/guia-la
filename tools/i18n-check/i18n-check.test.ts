@@ -161,6 +161,30 @@ describe("compareCatalogs", () => {
     expect(problems).toEqual([]);
   });
 
+  it("validates placeholders for a literal dotted key against a nested reference", () => {
+    // A candidate may write the flattened path as one literal key (i18next
+    // accepts both shapes); the placeholder check must still see its value.
+    // Regression: valueAt() could not walk a literal dotted key, so the
+    // missing {{destination}} passed the gate (PR #15 CodeRabbit review).
+    const problems = compareCatalogs(
+      { places: { listTitle: "Places in {{destination}}" } },
+      { nl: { "places.listTitle": "Plaatsen" } },
+    );
+    expect(problems).toEqual([
+      "nl: placeholders for key places.listTitle differ from reference (reference: {destination}, value: {})",
+    ]);
+  });
+
+  it("validates placeholders when the reference itself uses a literal dotted key", () => {
+    const problems = compareCatalogs(
+      { "places.listTitle": "Places in {{destination}}" },
+      { nl: { places: { listTitle: "Plaatsen" } } },
+    );
+    expect(problems).toEqual([
+      "nl: placeholders for key places.listTitle differ from reference (reference: {destination}, value: {})",
+    ]);
+  });
+
   it("flags empty and non-string values in the reference catalog too", () => {
     const badReference = {
       common: { appName: "", go: "y" },

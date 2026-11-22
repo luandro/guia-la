@@ -18,7 +18,7 @@
 | File | Phase 01 task | What it holds |
 |---|---|---|
 | [extraction-matrix.md](extraction-matrix.md) | 01-2 / 01-3 | One verdict row per legacy table (23), storage bucket (3) and static data file; backup-gate line; owner-export row counts (pending) |
-| [rights-matrix.md](rights-matrix.md) | 01-3 / 01-11 | Licence status per content and media asset; owner keep/ask/drop ruling (pending) — the D-11 input |
+| [rights-matrix.md](rights-matrix.md) | 01-3 / 01-11 | Licence status per content and media asset; owner keep/ask/drop ruling (deferred by owner 2026-11-22, to before Phase 09) — the D-11 input |
 | [scenario-port-list.md](scenario-port-list.md) | 01-4 / 01-5 | Business rules as Given/When/Then scenarios with file:line sources, and the test port list for phases 05 and 08 |
 | [privacy-classification.md](privacy-classification.md) | 01-8 | Personal-data classes, LGPD basis, default not-migrated list; consent re-collection deferred to Phase 09 |
 | [migration-plan.md](migration-plan.md) | 01-9 | Phase 09 draft: what may import, ID/URL mapping, rollback, the not-before-Phase-09 rule |
@@ -52,8 +52,10 @@ the client environment and sent to the browser in the public JS bundle
 it; see [legacy audit §8](../../planning/research/legacy-cotiju-audit.md)).
 These keys must be treated as public and rotated at their providers.
 
-- Status: **pending** — owner action (decision D-12, approval-list item 2;
-  tracked as tsk #297).
+- Status: **deferred by owner (2026-11-22)** — key rotation remains owner
+  action, pending until the owner schedules it (decision D-12, approval-list
+  item 2; tracked as tsk #297). Deferral changes nothing about the exposure:
+  the keys are public and must still be rotated at their providers.
 - No agent action is authorized or performed: agents do not create, rotate,
   view or transmit these keys, and this repo never writes key values
   anywhere.

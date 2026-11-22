@@ -91,6 +91,49 @@ describe("startJourneyAttempt", () => {
     cancel();
   });
 
+  it("dispatches failed when the load rejects (no unhandled rejection)", async () => {
+    const dispatch = vi.fn();
+    const cancel = startJourneyAttempt(
+      () => Promise.reject(new Error("offline")),
+      dispatch,
+    );
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "failed",
+      message: "offline",
+    });
+    cancel();
+  });
+
+  it("turns a synchronous loader throw into a failed dispatch", async () => {
+    const dispatch = vi.fn();
+    const cancel = startJourneyAttempt(() => {
+      throw new Error("sync boom");
+    }, dispatch);
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "failed",
+      message: "sync boom",
+    });
+    cancel();
+  });
+
+  it("clears the deadline once the attempt settles (no late timeout)", async () => {
+    const dispatch = vi.fn();
+    const cancel = startJourneyAttempt(
+      () => Promise.resolve({ ok: true, value: data }),
+      dispatch,
+    );
+
+    await vi.advanceTimersByTimeAsync(0);
+    vi.advanceTimersByTime(LOAD_DEADLINE_MS * 2);
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(dispatch).toHaveBeenCalledWith({ type: "loaded", data });
+    cancel();
+  });
+
   it("runs the loader again for a new attempt (retry wiring)", async () => {
     const load = vi.fn(() => Promise.resolve(okResult));
     const cancelOne = startJourneyAttempt(load, vi.fn());

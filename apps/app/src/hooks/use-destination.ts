@@ -28,14 +28,33 @@ export function startJourneyAttempt(
   const timer = setTimeout(() => {
     dispatch({ type: "deadlineExceeded" });
   }, LOAD_DEADLINE_MS);
-  void Promise.resolve(load()).then((result) => {
-    if (cancelled) return;
-    dispatch(
-      result.ok
-        ? { type: "loaded", data: result.value }
-        : { type: "failed", message: result.error.message },
+  const settle = () => clearTimeout(timer);
+  // load() runs inside a promise continuation so a synchronous throw becomes
+  // a rejection instead of escaping this function (the cleanup below must
+  // always be returned), and rejections dispatch `failed` rather than dying
+  // as an unhandled rejection that the deadline later misreports as a
+  // timeout (PR #15 CodeRabbit review).
+  void Promise.resolve()
+    .then(load)
+    .then(
+      (result) => {
+        settle();
+        if (cancelled) return;
+        dispatch(
+          result.ok
+            ? { type: "loaded", data: result.value }
+            : { type: "failed", message: result.error.message },
+        );
+      },
+      (error: unknown) => {
+        settle();
+        if (cancelled) return;
+        dispatch({
+          type: "failed",
+          message: error instanceof Error ? error.message : String(error),
+        });
+      },
     );
-  });
   return () => {
     cancelled = true;
     clearTimeout(timer);

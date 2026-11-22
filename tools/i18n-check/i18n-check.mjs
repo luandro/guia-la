@@ -21,18 +21,31 @@ export const REQUIRED_LOCALES = ["en", "pt-BR", "es", "fr", "nl", "de"];
 /** Reference locale every catalog is compared against. */
 export const REFERENCE_LOCALE = "en";
 
-/** Flatten a nested catalog object into a set of dot-separated key paths. */
-export function flattenKeys(catalog, prefix = "") {
-  const keys = new Set();
+/**
+ * Flatten a nested catalog into a Map of dotted key path -> leaf value.
+ * Values ride along with the keys (PR #15 CodeRabbit review): a literal
+ * dotted key like {"places.listTitle": …} flattens to the same path as a
+ * nested {"places":{"listTitle": …}}, but a walk-by-segments lookup cannot
+ * retrieve its value — placeholder validation then silently skipped such
+ * keys. Both shapes are valid i18next catalogs, so both must be checked.
+ * A path produced twice (nested + literal in one catalog) keeps the last
+ * value, mirroring the previous Set-based key dedup.
+ */
+export function flattenEntries(catalog, prefix = "", out = new Map()) {
   for (const [key, value] of Object.entries(catalog ?? {})) {
     const path = prefix ? `${prefix}.${key}` : key;
     if (value && typeof value === "object" && !Array.isArray(value)) {
-      for (const nested of flattenKeys(value, path)) keys.add(nested);
+      flattenEntries(value, path, out);
     } else {
-      keys.add(path);
+      out.set(path, value);
     }
   }
-  return keys;
+  return out;
+}
+
+/** Flatten a nested catalog object into a set of dot-separated key paths. */
+export function flattenKeys(catalog) {
+  return new Set(flattenEntries(catalog).keys());
 }
 
 /**
@@ -43,21 +56,23 @@ export function flattenKeys(catalog, prefix = "") {
  * "<locale>: <problem>".
  */
 export function compareCatalogs(reference, candidates) {
-  const referenceKeys = flattenKeys(reference);
+  const referenceEntries = flattenEntries(reference);
+  const referenceKeys = new Set(referenceEntries.keys());
   const problems = [];
-  problems.push(...valueProblems(REFERENCE_LOCALE, reference));
+  problems.push(...valueProblems(REFERENCE_LOCALE, referenceEntries));
   for (const [locale, catalog] of Object.entries(candidates)) {
-    const localeKeys = flattenKeys(catalog);
+    const localeEntries = flattenEntries(catalog);
+    const localeKeys = new Set(localeEntries.keys());
     for (const key of difference(referenceKeys, localeKeys)) {
       problems.push(`${locale}: missing key ${key}`);
     }
     for (const key of difference(localeKeys, referenceKeys)) {
       problems.push(`${locale}: extra key ${key}`);
     }
-    problems.push(...valueProblems(locale, catalog));
+    problems.push(...valueProblems(locale, localeEntries));
     for (const key of intersection(localeKeys, referenceKeys).sort()) {
-      const referenceValue = valueAt(reference, key);
-      const value = valueAt(catalog, key);
+      const referenceValue = referenceEntries.get(key);
+      const value = localeEntries.get(key);
       if (typeof referenceValue !== "string" || typeof value !== "string") {
         continue; // non-string values are reported by valueProblems
       }
@@ -74,9 +89,9 @@ export function compareCatalogs(reference, candidates) {
 }
 
 /** Leaf-value sanity for one catalog: every value must be a non-empty string. */
-function valueProblems(locale, catalog) {
+function valueProblems(locale, entries) {
   const problems = [];
-  for (const [key, value] of leafEntries(catalog)) {
+  for (const [key, value] of entries) {
     if (typeof value !== "string") {
       problems.push(`${locale}: non-string value for key ${key}`);
     } else if (value.trim().length === 0) {
@@ -84,30 +99,6 @@ function valueProblems(locale, catalog) {
     }
   }
   return problems.sort();
-}
-
-/** Flatten a catalog to [dottedKey, leafValue] pairs (mirrors flattenKeys). */
-function leafEntries(catalog, prefix = "") {
-  const entries = [];
-  for (const [key, value] of Object.entries(catalog ?? {})) {
-    const path = prefix ? `${prefix}.${key}` : key;
-    if (value && typeof value === "object" && !Array.isArray(value)) {
-      entries.push(...leafEntries(value, path));
-    } else {
-      entries.push([path, value]);
-    }
-  }
-  return entries;
-}
-
-/** Look up one flattened dotted key in a catalog. */
-function valueAt(catalog, key) {
-  let node = catalog;
-  for (const segment of key.split(".")) {
-    if (node === null || typeof node !== "object") return undefined;
-    node = node[segment];
-  }
-  return node;
 }
 
 /** i18next interpolation names in a translation: "{{count}} places" -> {"count"}. */
