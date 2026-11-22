@@ -1,0 +1,29 @@
+# Machine-generated or vendored trees — never formatted
+node_modules/
+coverage/
+dist/
+.expo/
+.worktrees/
+example/
+
+# Lockfile
+pnpm-lock.yaml
+
+# Binary/image assets
+apps/app/assets/
+
+# Planning docs and their generated HTML views are governed by docs checks,
+# not by the workspace formatter (Phase 02 task 02-1 decision)
+planning/
+docs/guia-la-master-plan.html
+
+# Generated native folders
+apps/app/ios/
+apps/app/android/
+
+# Prose and governance files are not reformatted by the code formatter
+**/*.md
+.github/
+.claude/
+.mcp.json
+docs/

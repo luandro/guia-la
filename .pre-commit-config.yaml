@@ -1,16 +1,48 @@
 # Install once per clone: pre-commit install
 # Each hook names the failure class it catches (D-15).
+default_install_hook_types: [pre-commit, pre-push]
+# Hooks without their own stages run at commit time only (not again on push).
+default_stages: [pre-commit]
 repos:
   - repo: local
     hooks:
       - id: trufflehog
-        name: trufflehog (secret in the commit)
-        entry: trufflehog git file://. --since-commit HEAD --results=verified,unknown --fail --no-update
+        name: trufflehog git (secret in pushed history)
+        entry: scripts/hooks/trufflehog-push.sh
         language: system
         pass_filenames: false
-        stages: [pre-commit, pre-push]
-      - id: check
-        name: scripts/check.sh (ADR status drift, broken packet build)
-        entry: ./scripts/check.sh
+        always_run: true
+        stages: [pre-push]
+      - id: trufflehog-staged
+        name: trufflehog filesystem (secret in a staged file, unverified included)
+        entry: trufflehog filesystem --fail --no-update --results=verified,unknown,unverified
+        language: system
+        exclude: ^pnpm-lock\.yaml$
+      - id: prettier
+        name: prettier (unformatted staged file)
+        entry: pnpm exec prettier --check --ignore-unknown
+        language: system
+        exclude: ^(planning/|docs/guia-la-master-plan\.html)
+      - id: eslint
+        name: eslint (lint error in staged js/ts)
+        entry: pnpm exec eslint
+        language: system
+        files: \.(js|jsx|mjs|cjs|ts|tsx)$
+        exclude: ^(planning/|apps/app/scripts/reset-project\.js)
+      - id: typecheck
+        name: tsc --noEmit (type error in ts/tsx)
+        entry: pnpm typecheck
         language: system
         pass_filenames: false
+        files: \.(ts|tsx)$
+      - id: check-docs
+        name: docs checks (ADR status drift, broken packet build, legacy matrix/fixture privacy)
+        entry: env CHECK_DOCS_ONLY=1 ./scripts/check.sh
+        language: system
+        pass_filenames: false
+      - id: workspace-check
+        name: pnpm check (whole-workspace format, lint, typecheck, unit tests)
+        entry: pnpm check
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

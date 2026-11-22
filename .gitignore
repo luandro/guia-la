@@ -1,3 +1,15 @@
 .worktrees/
 .state/
 CLAUDE.local.md
+
+# Workspace (Phase 02): install and build artifacts never committed
+node_modules/
+dist/
+.expo/
+coverage/
+*.tsbuildinfo
+
+# Secrets never committed (matches the .claude/settings.json deny rules)
+.env*
+!.env.example
+.dev.vars*
