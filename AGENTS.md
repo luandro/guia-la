@@ -75,16 +75,27 @@ and reason in the PR and `.state/goal.md`).** This applies to **every PR**,
 including setup, docs, config, and scaffolding PRs.
 
 Local pre-PR reviews depend on scope:
-- **Setup, docs, config, or scaffolding PRs:** skip local `codex` and `ohmybug`
-  reviews, self-review the diff, and note the skip in `.state/goal.md` before
-  opening the PR for RevEngine `/review`. Because the OhMyBug pre-PR gate hook
-  refuses `gh pr merge` until a local hunt has run, use its documented escape
-  hatch (`SKIP_BUGHUNT=1 gh pr merge <n> --squash` from the main worktree)
-  **only after** RevEngine `/review` has passed — never use `SKIP_BUGHUNT=1`
-  on a hard PR.
-- **Hard PRs** (production code paths, security, money, concurrency, data
-  handling, or wide/risky diffs): run steps 1–2 locally before opening or
-  updating the PR, then complete step 3 on GitHub:
+- **Setup, docs, config, or scaffolding PRs** (excluding workflows/CI security):
+  skip local `codex` and `ohmybug` reviews, self-review the diff, and note the
+  skip in `.state/goal.md` before opening the PR for RevEngine `/review`.
+  OhMyBug's `pre-pr-gate.sh` (`diff-id.sh`) exempts pure docs/skills diffs
+  (`**/*.md`, `**/docs/**`, `**/skills/**`) automatically so plain
+  `gh pr merge <n> --squash` works after RevEngine passes. For non-doc
+  setup/config/scaffolding diffs (such as YAML or JSON), `pre-pr-gate.sh` blocks
+  agent merges without a hunt and reserves `SKIP_BUGHUNT=1` for the human
+  operator — agents must never attach `SKIP_BUGHUNT=1`, so hand off via
+  `needs-human-review` for the owner to merge as operator
+  (`SKIP_BUGHUNT=1 gh pr merge <n> --squash` from the main worktree, only after
+  RevEngine passes).
+- **Hard PRs** (production code paths, security, workflows/CI, money, concurrency,
+  data handling, or wide/risky diffs): run steps 1–2 locally before opening or
+  updating the PR, then complete step 3 on GitHub. Hard PRs where OhMyBug was
+  **not** triggered (clean `codex review` and `<300` changed lines touching
+  auth/payments/concurrency) cannot `auto-merge` without a recorded hunt —
+  either run the `ohmybug` (`lite`) hunt first or hand off via
+  `needs-human-review` so the owner merges as operator (optionally with
+  `SKIP_BUGHUNT=1`, only after RevEngine passes). Never use `SKIP_BUGHUNT=1` as
+  an agent, and never skip OhMyBug when its trigger conditions fired:
 
 1. **codex review** — `codex review` (config already pins `gpt-6.2-sol`,
    effort `low`). If usage or quota is unavailable, note the skip in

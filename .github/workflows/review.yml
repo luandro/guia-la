@@ -2,7 +2,7 @@ name: Review
 
 run-name: >-
   Review PR #${{ github.event.issue.number || inputs.pr-number || 'unknown' }}
-  (${{ github.event_name == 'workflow_dispatch' && (inputs.mode || 'human') || ((github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review ') || startsWith(github.event.comment.body, format('/review{0}', fromJSON('"\n"'))) || startsWith(github.event.comment.body, format('/review{0}', fromJSON('"\r"'))) || startsWith(github.event.comment.body, format('/review{0}', fromJSON('"\t"')))) && 'review-comment' || 'other-comment') }})
+  (${{ github.event_name == 'workflow_dispatch' && (inputs.mode || 'human') || format('comment-{0}', github.event.comment.id) }})
 
 on:
   issue_comment:
@@ -45,13 +45,17 @@ jobs:
   review:
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      (github.event.issue.pull_request && (
-        github.event.comment.body == '/review' ||
-        startsWith(github.event.comment.body, '/review ') ||
-        startsWith(github.event.comment.body, format('/review{0}', fromJSON('"\n"'))) ||
-        startsWith(github.event.comment.body, format('/review{0}', fromJSON('"\r"'))) ||
-        startsWith(github.event.comment.body, format('/review{0}', fromJSON('"\t"')))
-      ))
+      (
+        github.event.issue.pull_request &&
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+        (
+          github.event.comment.body == '/review' ||
+          startsWith(github.event.comment.body, '/review ') ||
+          startsWith(github.event.comment.body, format('/review{0}', fromJSON('"\n"'))) ||
+          startsWith(github.event.comment.body, format('/review{0}', fromJSON('"\r"'))) ||
+          startsWith(github.event.comment.body, format('/review{0}', fromJSON('"\t"')))
+        )
+      )
     concurrency:
       group: rev-engine-${{ github.event.issue.number || inputs.pr-number || github.run_id }}
       cancel-in-progress: false
