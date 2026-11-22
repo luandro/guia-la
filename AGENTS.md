@@ -104,6 +104,14 @@ human-approval boundaries).
 Track this repo's tasks on the tsk board under the `guia.la` project (this
 repo's path). Keep `.state/goal.md` in sync with the active task.
 
+## Project records
+
+- Platform spec, non-goals and vocabulary: [SPEC.md](SPEC.md).
+- Actions that always need a human: [docs/security/APPROVAL-LIST.md](docs/security/APPROVAL-LIST.md). Stop and ask before any of them.
+- Decisions: [planning/decisions.md](planning/decisions.md) is the register; [docs/adr/](docs/adr/) mirrors it. Copy statuses verbatim; never upgrade one.
+- Evidence: every PR fills [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) per [docs/evidence/PR-EVIDENCE.md](docs/evidence/PR-EVIDENCE.md). Never write "passed" unless a run exists; quote its output.
+- Phases: [docs/roadmap.md](docs/roadmap.md). Code is MIT ([LICENSE](LICENSE)).
+
 ## Global config
 
 Machine-wide harness rules live in `~/.claude/CLAUDE.md`; this file never
