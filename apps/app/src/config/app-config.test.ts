@@ -43,6 +43,18 @@ describe("app.config.ts", () => {
     delete process.env.APP_VARIANT;
   });
 
+  it("does not register the expo-localization config plugin", async () => {
+    process.env.APP_ENV = "development";
+    process.env.APP_VARIANT = "cotijuba-web";
+    const config = await loadConfig();
+    // Nothing imports expo-localization, and reading device locales at
+    // runtime works without the config plugin (it only pins native
+    // localization metadata). Re-add it only when code needs that metadata.
+    expect(config.plugins ?? []).not.toContain("expo-localization");
+    delete process.env.APP_ENV;
+    delete process.env.APP_VARIANT;
+  });
+
   it("throws naming APP_VARIANT when it is unset", async () => {
     process.env.APP_ENV = "development";
     delete process.env.APP_VARIANT;

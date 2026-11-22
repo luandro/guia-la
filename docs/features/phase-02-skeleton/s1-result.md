@@ -1,7 +1,11 @@
 # S1 result: static export raw-HTML SEO (02-10, evidence for D-03)
 
-Date: 2026-11-22 · Stack: Expo 58.0.26, expo-router 58.0.32, React 19.3.0,
-`web.output: "static"`, asyncRoutes at SDK 58 default (web: on), Node 24.13.
+Date: 2026-11-22 (re-measured after the PR #14 review fixes) · Stack:
+Expo 58.0.26, expo-router 58.0.32, React 19.3.0,
+`web.output: "static"`, asyncRoutes at SDK 58 default (web: on).
+Original runs: Node 24.13. Re-measurement: Node 22.22.3 (the recording
+sandbox refused Node 24 in every form; the export pipeline is identical,
+timings are comparable but not bit-for-bit).
 
 ## Verdict: **GO** for D-03 (recommended)
 
@@ -11,7 +15,9 @@ Date: 2026-11-22 · Stack: Expo 58.0.26, expo-router 58.0.32, React 19.3.0,
 list, detail and root — with no JavaScript involved. The exported HTML also
 carries the rendered content itself (place names, summaries, fallback and
 machine-translation markers, Intl-formatted dates), because the journey
-state seeds synchronously from the fixture loader at render time.
+state seeds synchronously from the fixture loader at render time. A custom
+`src/app/+html.tsx` shell sets `<html lang>` to each page's route locale
+(the default Expo shell hard-codes `en`).
 
 ## What was measured
 
@@ -22,17 +28,23 @@ Variant: `APP_VARIANT=cotijuba-web` (7 places × 6 locales).
 | HTML files in `apps/app/dist` | **53** |
 | — journey pages (root + 6 lists + 42 details) | 49 |
 | — extras (dynamic-route shells, `+not-found.html`, `_sitemap.html`) | 4 |
-| Export wall time, run 1 (warm Metro cache) | **5.6 s** |
-| Export wall time, run 2 (warm Metro cache) | **7.9 s** |
-| First-ever run after code changes (cold-ish cache) | 15.0 s |
-| Page size per journey page | ~21–22 KB raw HTML |
+| Export wall time, run 1 (warm Metro cache) | **7.0 s** |
+| Export wall time, run 2 (warm Metro cache) | **7.5 s** |
+| Page size per journey page | ~21–23 KB raw HTML |
+
+Not re-measured after the fixes: the first-export cold-cache time (15.0 s
+pre-fix, Node 24.13); the post-fix cold run was consumed by the 11-place
+probe and not timed.
 
 The ×6 locale cost is the table above: 48 locale-prefixed journey pages for
 7 places, produced in a single-digit-second warm export. Extrapolating the
 content model (roughly: pages ≈ 1 + L × (1 + places), L = 6) stays cheap at
 pilot scale; a 100-place destination would be ~607 pages per export, still
 a single `expo export` run — rebuild-on-publish is the operating cost D-03
-already accepts (every content change requires a re-export).
+already accepts (every content change requires a re-export). The list pages
+render every place row (plain `ScrollView` + map, no virtualization), so
+all detail links reach the raw HTML at any place count — verified with a
+temporary 11-place fixture (77 routes) before restoring the real 7.
 
 ## Exact commands
 
@@ -46,9 +58,18 @@ pnpm s1                # both, wired as one root script
 `scripts/s1-assert.sh` output (current state):
 
 ```text
-s1-assert: OK — 49 journey pages checked (title, og:title, og:description,
-og:locale, 6 hreflang each); 53 HTML files total in apps/app/dist
+s1-cluster: OK — 49 journey pages (og form, hreflang cluster + reciprocity,
+  per-locale <html lang>, full list links)
+s1-assert: OK — 49 journey pages checked against
+  packages/fixtures/cotijuba/places.json (title, og:title, og:description,
+  og:locale, 6 hreflang each); 53 HTML files total in apps/app/dist
 ```
+
+`s1-cluster-check.mjs` (called by s1-assert) additionally proves, per page:
+og:locale values in OG form (`xx_YY`, no hyphen — catches a BCP-47 leak),
+the hreflang cluster shape below, reciprocal return links for every
+annotation, `<html lang>` equal to the page's locale, and a raw-HTML link
+from every list page to every detail slug (the virtualization check).
 
 Served check (raw HTML over HTTP, no JS): `npx serve apps/app/dist -l 4173`,
 then a fetch of `/pt-BR/places/praia-da-ponta-norte` returned 200 with
@@ -61,13 +82,29 @@ bytes served are identical.)
 Sample of the asserted raw HTML (pt-BR detail):
 
 ```html
+<html lang="pt-BR">
+…
 <title>Praia da Ponta Norte — Cotijuba</title>
 <meta property="og:title" content="Praia da Ponta Norte — Cotijuba" />
 <meta property="og:description" content="Praia calma na ponta norte da ilha; na maré baixa formam-se bancos de areia." />
 <meta property="og:locale" content="pt_BR" />
-<link rel="alternate" hreflang="en" href="/en/places/praia-da-ponta-norte" />
-<!-- … all six locales + x-default … -->
+<link rel="alternate" href="/en/places/praia-da-ponta-norte" hreflang="en" />
+<!-- … all six locales … -->
+<link rel="alternate" href="/pt-BR/places/praia-da-ponta-norte" hreflang="x-default" />
 ```
+
+## hreflang cluster shape (PR #14 review decision)
+
+- **List pages** (`/<locale>/places`): six locale links to each other,
+  `x-default` → `/` (the language picker). `/` lists the six list pages
+  back and declares no `x-default` of its own — it *is* the target.
+- **Detail pages**: six locale links, `x-default` → the **destination
+  default-locale** detail page (`pt-BR` today). Chosen over the en page
+  because pt-BR is the content every locale falls back to
+  (`destination.defaultLocale` drives it, so a future destination with a
+  different default needs no code change).
+- Every annotation is reciprocal (each target lists the source back);
+  s1-cluster-check fails the export if any return link is missing.
 
 ## Honest limitations
 

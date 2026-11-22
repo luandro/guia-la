@@ -16,6 +16,9 @@
 #   - a <title> element
 #   - og:title, og:description and og:locale meta properties
 #   - hreflang alternates for all six locales
+# Then s1-cluster-check.mjs adds the structural checks (og:locale OG form,
+# hreflang cluster shape + reciprocity, per-locale <html lang>, and the list
+# page linking every detail slug in raw HTML).
 # Prints counts on success; names file and reason on failure.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -65,6 +68,8 @@ for locale in "${LOCALES[@]}"; do
     pages=$((pages + 1))
   done
 done
+
+node scripts/s1-cluster-check.mjs "$DIST" "packages/fixtures/$DEST"
 
 total_html=$(find "$DIST" -name "*.html" -type f | wc -l)
 echo "s1-assert: OK — $pages journey pages checked against $FIXTURE (title, og:title, og:description, og:locale, 6 hreflang each); $total_html HTML files total in $DIST"

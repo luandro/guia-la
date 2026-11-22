@@ -74,6 +74,13 @@ const appVariant = requireVar(
 );
 const destinationId = DESTINATION_BY_VARIANT[appVariant];
 
+// D-01 candidate id (la.guia.app) — permanent after the first store release,
+// so only production uses it, and only after the owner confirms the domain.
+// Every other environment gets a suffixed id that can never collide.
+const APP_ID_BASE = "la.guia.app";
+const appId =
+  appEnv === "production" ? APP_ID_BASE : `${APP_ID_BASE}.${appEnv}`;
+
 const config: ExpoConfig = {
   name: "guia.la",
   slug: "guia-la",
@@ -83,9 +90,11 @@ const config: ExpoConfig = {
   scheme: "guiala",
   userInterfaceStyle: "automatic",
   ios: {
+    bundleIdentifier: appId,
     icon: "./assets/expo.icon",
   },
   android: {
+    package: appId,
     adaptiveIcon: {
       backgroundColor: "#E6F4FE",
       foregroundImage: "./assets/images/android-icon-foreground.png",
@@ -108,7 +117,9 @@ const config: ExpoConfig = {
         imageWidth: 76,
       },
     ],
-    "expo-localization",
+    // No expo-localization config plugin (PR #14 review): nothing imports
+    // the module, and reading device locales needs no plugin. Re-add it
+    // only when code depends on the native localization metadata it pins.
   ],
   experiments: {
     typedRoutes: true,

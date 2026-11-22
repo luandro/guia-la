@@ -42,6 +42,28 @@
     `APP_VARIANT` at config time and publishes it through `expo.extra`;
     runtime code zod-validates `Constants.expoConfig.extra`. No
     `EXPO_PUBLIC_*` vars exist (SPEC.md: nothing to expose yet).
+  - **PR #14 review fixes (02-12 follow-up):**
+    - **hreflang cluster**: list pages pin `x-default` to `/` (the language
+      picker) and `/` lists them back with no `x-default` of its own; detail
+      pages pin `x-default` to the destination default-locale page (pt-BR
+      today). `s1-assert` gained `scripts/s1-cluster-check.mjs`, which
+      proves reciprocity, OG-form `og:locale` values, per-locale
+      `<html lang>`, and full list→detail links on every export.
+    - **`+html.tsx`**: custom static HTML shell (default Expo shell
+      hard-codes `lang="en"`); sets `lang` from the route pathname.
+    - **List rendering**: plain `ScrollView` + map, not `FlatList` —
+      virtualization dropped detail links beyond the initial 10-row window
+      from the raw HTML (proved with an 11-place fixture probe).
+    - **`useDestination`**: load attempt extracted into
+      `startJourneyAttempt` (fake-timer tested: deadline, cancellation,
+      retry re-run).
+    - **`i18n-check` CLI**: main-module detection via
+      `pathToFileURL(realpathSync(argv[1]))` — the hand-built `file://` URL
+      skipped all checks when the script path was a symlink.
+    - **`expo-localization` config plugin removed** from `app.config.ts`:
+      nothing imports the module and reading device locales needs no
+      plugin; re-add only when code depends on the native localization
+      metadata it pins.
 - **Tests that prove it:** core `resolveContent` (exact locale, fallback
   marking, machineTranslated carry-through); fixtures loader (ok parse, error
   on malformed JSON/schema, no throw); i18n-check (missing key, extra key,

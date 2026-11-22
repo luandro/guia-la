@@ -21,23 +21,34 @@ describe("ogAlternateLocales", () => {
 });
 
 describe("languageAlternates", () => {
-  it("maps every locale plus x-default to its hreflang path", () => {
-    expect(languageAlternates((locale) => `/${locale}/places`)).toEqual({
+  it("maps every list locale with the picker page as x-default", () => {
+    expect(languageAlternates((locale) => `/${locale}/places`, "/")).toEqual({
       en: "/en/places",
       "pt-BR": "/pt-BR/places",
       es: "/es/places",
       fr: "/fr/places",
       nl: "/nl/places",
       de: "/de/places",
-      "x-default": "/en/places",
+      "x-default": "/",
     });
   });
 
-  it("keeps the slug for detail pages", () => {
+  it("points detail x-default at the default-locale detail page", () => {
     const alternates = languageAlternates(
       (locale) => `/${locale}/places/praia-da-ponta-norte`,
+      "/pt-BR/places/praia-da-ponta-norte",
     );
-    expect(alternates["pt-BR"]).toBe("/pt-BR/places/praia-da-ponta-norte");
+    expect(alternates["x-default"]).toBe("/pt-BR/places/praia-da-ponta-norte");
+    expect(alternates.de).toBe("/de/places/praia-da-ponta-norte");
     expect(Object.keys(alternates)).toHaveLength(7);
+  });
+
+  it("omits x-default for the root picker page (null)", () => {
+    const alternates = languageAlternates(
+      (locale) => `/${locale}/places`,
+      null,
+    );
+    expect(Object.keys(alternates)).toHaveLength(6);
+    expect(alternates["x-default"]).toBeUndefined();
   });
 });

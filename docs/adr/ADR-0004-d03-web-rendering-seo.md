@@ -28,6 +28,8 @@ Set `web.output: "static"` explicitly. Use `generateMetadata()` for OG tags and 
 
 Source: [decision register, D-03](../../planning/decisions.md). Spike S1: raw-HTML assertions (`curl`, Playwright with JS disabled) for every place page; rebuild time at 1k pages; WhatsApp preview manual check.
 
+**S1 execution evidence (Phase 02, 2026-11-22; status unchanged):** `web.output: "static"` plus `generateMetadata()` emitted `<title>`, `og:*`, per-locale `<html lang>` and reciprocal hreflang into the raw HTML of all 49 journey pages (53 HTML files) for 7 places × 6 locales; export about 7 s warm. Deliberate failure: removing `generateStaticParams` makes `s1-assert` fail on the missing page. Recommendation: GO — details in [s1-result.md](../features/phase-02-skeleton/s1-result.md). CI re-runs `pnpm s1` on every PR.
+
 ## Consequences
 
 If S1 fails, fallback (a) returns to the owner as a new decision. Reversal is medium cost while the route contract is kept.

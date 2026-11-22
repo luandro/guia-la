@@ -7,9 +7,9 @@
 // missing keys (users see fallback/raw keys) and extra keys (dead or
 // unreferenced translations).
 
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, realpathSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 /** The six required UI locales (D-14). */
 export const REQUIRED_LOCALES = ["en", "pt-BR", "es", "fr", "nl", "de"];
@@ -119,9 +119,13 @@ function main() {
 }
 
 // Run as CLI only when invoked directly (unit tests import the functions).
+// pathToFileURL(realpathSync(...)) rather than a hand-built `file://` URL:
+// argv[1] is not realpath'd while import.meta.url is (a symlinked checkout
+// or a "#" / "%" in the path made the hand-built form differ, so main()
+// silently never ran and the gate passed vacuously — PR #14 review).
 if (
   process.argv[1] &&
-  import.meta.url === new URL(`file://${process.argv[1]}`).href
+  import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href
 ) {
   main();
 }
