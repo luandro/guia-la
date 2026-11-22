@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <meta name="description" content="guia.la — architecture charter and autonomous delivery roadmap for an open, modular, white-label destination platform. Draft for technical review." />
+  <title>guia.la · The field guide to building a platform</title>
+  <style>
+    :root { --bg:#f7f5ef; --paper:#fffefa; --ink:#172d2a; --ink2:#38534d; --mute:#657971; --sea:#155c60; --deep:#0c3438; --lime:#d3f08e; --lime-dark:#82b83c; --sand:#e9e4d8; --line:#d9ddd3; --warm:#bb6744; --white:#ffffff; --shadow:0 16px 46px rgba(26,54,44,.09); --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; --mono:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:var(--bg); font-family:var(--font); color:var(--ink); line-height:1.58; -webkit-font-smoothing:antialiased; }
+    button, a { -webkit-tap-highlight-color:transparent; }
+    button { font:inherit; cursor:pointer; }
+    a { color:var(--sea); text-decoration-thickness:1px; text-underline-offset:3px; }
+    a:hover { color:#0b3f40; }
+    :focus-visible { outline:3px solid var(--warm); outline-offset:3px; }
+    ::selection { color:var(--deep); background:var(--lime); }
+    .frame { display:grid; grid-template-columns:258px minmax(0,1fr); min-height:100vh; }
+    .rail { position:sticky; top:0; height:100vh; padding:30px 20px 20px 26px; border-right:1px solid var(--line); display:flex; flex-direction:column; background:#f2f1e9; z-index:5; }
+    .brand { display:flex; align-items:center; gap:12px; font-weight:850; letter-spacing:-.05em; font-size:23px; color:var(--deep); text-decoration:none; }
+    .brandmark { width:38px; height:38px; border-radius:12px; background:var(--deep); color:var(--lime); display:grid; place-items:center; font-size:20px; font-weight:800; }
+    .brand em { font-style:normal; color:#71918b; font-size:13px; letter-spacing:-.01em; margin-left:1px; }
+    .rail-caption { font:700 10px/1.4 var(--mono); letter-spacing:.15em; color:#6c8378; margin:34px 9px 10px; text-transform:uppercase; }
+    nav a { display:flex; justify-content:space-between; padding:9px 11px; text-decoration:none; border-radius:9px; color:#4d665f; font-size:13px; transition:background .2s,color .2s; }
+    nav a:hover,nav a.active { color:var(--deep); background:#dce7d5; }
+    nav a small { font-size:10px; color:#86a199; font-family:var(--mono); }
+    .rail-bottom { margin-top:auto; padding:15px 12px 0; border-top:1px solid var(--line); color:var(--mute); font-size:11px; }
+    .rail-bottom strong { color:var(--sea); }
+    .main { min-width:0; }
+    .content { max-width:1120px; margin:auto; padding:0 52px 100px; }
+    .hero { position:relative; overflow:hidden; background:var(--deep); color:#fff; padding:72px 52px 62px; isolation:isolate; }
+    .hero:before { content:""; position:absolute; inset:-100px -140px auto auto; width:660px; height:660px; border:1px solid #3d7b6d; opacity:.55; border-radius:50%; z-index:-1; box-shadow:0 0 0 78px rgba(80,156,142,.10),0 0 0 155px rgba(80,156,142,.06),0 0 0 240px rgba(80,156,142,.04); }
+    .hero:after { content:""; position:absolute; right:-80px; bottom:-160px; height:360px; width:540px; border-radius:50%; transform:rotate(-27deg); background:linear-gradient(110deg,rgba(210,240,142,.22),transparent 65%); z-index:-1; }
+    .hero-inner { max-width:1120px; margin:auto; position:relative; }
+    .eyebrow { display:flex; align-items:center; gap:9px; text-transform:uppercase; font:700 11px/1.5 var(--mono); letter-spacing:.16em; color:#c1e4c6; }
+    .dot { width:7px; height:7px; border-radius:50%; background:var(--lime); display:inline-block; box-shadow:0 0 0 5px rgba(211,240,142,.12); }
+    h1,h2,h3,h4,p { margin-top:0; }
+    h1 { font-weight:720; font-size:clamp(43px,5.2vw,82px); letter-spacing:-.072em; line-height:1.035; max-width:880px; margin:28px 0 25px; }
+    h1 em { font-style:normal; color:var(--lime); }
+    .hero-desc { max-width:730px; color:#c3d6d0; font-size:clamp(16px,1.5vw,19px); line-height:1.65; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:35px; }
+    .pill { display:inline-flex; align-items:center; gap:8px; border:1px solid #42706b; border-radius:100px; color:#d8e7d9; padding:8px 13px; font:600 11px var(--mono); }
+    .pill.bright { background:var(--lime); color:var(--deep); border-color:var(--lime); }
+    .hero-index { position:absolute; right:0; top:4px; color:#71a697; font:600 12px var(--mono); }
+    section { scroll-margin-top:35px; }
+    .section { padding-top:75px; }
+    .section-label { color:var(--sea); font:800 11px var(--mono); text-transform:uppercase; letter-spacing:.15em; display:flex; gap:12px; align-items:center; margin-bottom:16px; }
+    .section-label:before { content:""; width:29px; height:2px; background:var(--lime-dark); }
+    h2 { font-size:clamp(29px,3.5vw,47px); letter-spacing:-.055em; font-weight:720; line-height:1.13; max-width:800px; margin-bottom:18px; }
+    .lede { max-width:795px; color:var(--ink2); font-size:17px; line-height:1.7; margin-bottom:28px; }
+    h3 { letter-spacing:-.028em; font-size:20px; line-height:1.25; }
+    h4 { font-size:15px; margin-bottom:8px; }
+    p { color:var(--ink2); }
+    .important { background:#e7eddc; border-left:4px solid #7bb345; border-radius:0 14px 14px 0; padding:18px 24px; margin:27px 0; }
+    .important p { margin:0; }
+    .important strong { color:var(--deep); }
+    .warning { background:#f7e9dc; border-left-color:#c37b49; }
+    .warning p { color:#704e3b; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .grid.three { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .panel { background:var(--paper); border:1px solid var(--line); border-radius:15px; padding:23px 24px; box-shadow:0 4px 20px rgba(29,55,41,.025); }
+    .panel p:last-child { margin-bottom:0; }
+    .panel h3 { font-size:19px; }
+    .caption { color:var(--mute); font:600 10px/1.6 var(--mono); letter-spacing:.08em; text-transform:uppercase; margin-bottom:11px; }
+    .card-no { color:var(--warm); font:700 12px var(--mono); margin-bottom:12px; }
+    ul { padding-left:20px; color:var(--ink2); }
+    li { margin-bottom:7px; }
+    .panel ul { margin-bottom:0; }
+    .strike li::marker { color:var(--warm); }
+    .tags { display:flex; gap:7px; flex-wrap:wrap; }
+    .tag { display:inline-block; border:1px solid #c6d3cc; color:#3d675f; font:700 10px var(--mono); border-radius:6px; padding:5px 8px; }
+    .tag.selected { background:#daecd5; border-color:#afd4a8; }
+    .tag.off { color:#8a918c; background:#f5f3ec; border-color:#deded4; text-decoration:line-through; }
+    .blueprint { border:1px solid #c8d7c9; background:linear-gradient(152deg,#f0f4e9,#e1ebe2 80%); border-radius:19px; padding:25px; margin:30px 0 19px; }
+    .blueprint .flow-head { text-transform:uppercase; font:800 11px var(--mono); letter-spacing:.14em; color:#688579; margin-bottom:12px; }
+    .flow-block { text-align:center; background:#fffef9; border:1px solid #c9d9cf; padding:17px; border-radius:12px; }
+    .flow-block strong { color:var(--deep); display:block; }
+    .flow-block span { color:var(--mute); font-size:12px; }
+    .flow-arrow { text-align:center; color:#7fa99a; font-size:24px; line-height:1; margin:10px 0; }
+    .flow-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .flow-row .flow-block { min-width:0; }
+    .flow-dark { background:var(--deep); color:#fff; border:0; }
+    .flow-dark strong { color:#fff; }
+    .flow-dark span { color:#a8c4be; }
+    .example { background:#122f31; color:#d2e9e0; border-radius:15px; padding:23px; overflow:auto; }
+    .example code,.example pre { font:12px/1.75 var(--mono); white-space:pre; }
+    .example .comment { color:#87aea1; }
+    .compare { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .destination { border-radius:14px; padding:19px; background:#eff0e8; border:1px solid #d3d9ce; }
+    .destination.mountain { background:#ecebe5; }
+    .destination .landscape { display:flex; height:78px; border-radius:9px; overflow:hidden; align-items:flex-end; justify-content:space-evenly; background:linear-gradient(175deg,#9ebfbc,#dbe6d4); margin-bottom:16px; }
+    .landscape svg { display:block; width:100%; height:100%; }
+    .destination h3 { font-size:20px; margin-bottom:4px; }
+    .destination p { font-size:12px; color:var(--mute); margin-bottom:15px; }
+    .timeline-controls { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center; padding:14px 0 20px; }
+    .control { border:1px solid #b8cbbd; color:var(--deep); background:#f7f9ef; font-size:12px; border-radius:9px; font-weight:650; padding:9px 13px; }
+    .control:hover { background:#e5f0dd; }
+    .timeline { position:relative; display:grid; gap:13px; }
+    .timeline:before { content:""; position:absolute; left:29px; top:29px; bottom:29px; border-left:1px dashed #bdcdc0; }
+    .phase { position:relative; border:1px solid var(--line); border-radius:15px; background:var(--paper); box-shadow:0 3px 15px rgba(22,57,41,.03); overflow:hidden; }
+    .phase summary { cursor:pointer; display:grid; grid-template-columns:59px minmax(0,1fr) 85px; gap:11px; align-items:center; list-style:none; padding:21px 23px 21px 14px; }
+    .phase summary::-webkit-details-marker { display:none; }
+    .phase summary:hover { background:#f9faf4; }
+    .step { width:38px; height:38px; background:var(--deep); border:3px solid var(--paper); border-radius:50%; color:var(--lime); display:grid; place-items:center; font:750 11px var(--mono); margin-left:0; z-index:1; position:relative; }
+    .phase-title { min-width:0; }
+    .phase-title h3 { font-size:19px; margin:0 0 3px; line-height:1.22; }
+    .phase-title p { color:var(--mute); font-size:12px; line-height:1.55; margin:0; }
+    .phase-kind { justify-self:end; color:var(--sea); font:700 10px var(--mono); text-transform:uppercase; white-space:nowrap; }
+    .phase-content { padding:0 25px 24px 84px; border-top:1px solid #edf0e9; }
+    .phase-details { display:grid; grid-template-columns:1.15fr .85fr; gap:25px; margin-top:20px; }
+    .phase-details p,.phase-details li { font-size:13px; }
+    .phase-details ul { margin:7px 0 0; }
+    .phase-details .criteria { background:#eaf2e2; padding:17px; border-radius:12px; }
+    .criteria p { color:#3b6953; }
+    .gate { display:block; padding-top:13px; border-top:1px solid #c9dec7; margin-top:14px; font-size:12px; font-weight:700; color:#2e624a; }
+    .phases-legend { display:flex; align-items:center; gap:7px; color:var(--mute); font:600 11px var(--mono); }
+    .matrix { width:100%; border-collapse:collapse; font-size:13px; margin:20px 0; }
+    .matrix th,.matrix td { border-bottom:1px solid #d8dfd5; text-align:left; vertical-align:top; padding:13px 11px; }
+    .matrix th { font:800 10px var(--mono); text-transform:uppercase; letter-spacing:.07em; color:#547166; background:#eaece3; }
+    .matrix td:first-child { font-weight:680; color:var(--deep); width:27%; }
+    .small { font-size:13px; }
+    .measure { font:800 24px/1.1 var(--mono); color:var(--sea); margin-bottom:8px; }
+    .checklist { list-style:none; padding:0; }
+    .checklist li { position:relative; padding-left:29px; margin:0; padding-top:10px; padding-bottom:10px; border-bottom:1px solid #e1e5da; font-size:14px; }
+    .checklist li:before { content:"✓"; color:#fff; background:var(--sea); width:17px; height:17px; text-align:center; border-radius:50%; font:700 11px/17px var(--font); position:absolute; top:13px; left:0; }
+    .codepath { font:600 12px var(--mono); color:#3b6958; word-break:break-word; }
+    .review-box { background:var(--deep); color:#fff; padding:30px; border-radius:17px; }
+    .review-box p,.review-box li { color:#c9dcd5; }
+    .review-box strong { color:#e4f8ab; }
+    .review-box h3 { color:#fff; }
+    .review-box a { color:#d8f3a1; }
+    .footer { margin-top:75px; padding-top:24px; border-top:1px solid var(--line); display:flex; justify-content:space-between; gap:20px; color:var(--mute); font-size:11px; }
+    @media (max-width:1100px) { .frame { grid-template-columns:210px minmax(0,1fr); } .rail { padding-left:14px; padding-right:12px; } .content { padding-left:32px; padding-right:32px; } .hero { padding-left:32px; padding-right:32px; } }
+    @media (max-width:860px) { .frame { display:block; } .rail { position:relative; height:auto; padding:14px 20px; display:flex; flex-direction:row; gap:15px; align-items:center; overflow-x:auto; } .rail .brand { flex:none; font-size:20px; } .brandmark { width:30px; height:30px; font-size:16px; } .rail-caption,.rail-bottom { display:none; } .rail nav { display:flex; gap:3px; white-space:nowrap; } nav a { padding:8px; font-size:12px; } nav a small { display:none; } .hero-index { display:none; } .section { padding-top:57px; } }
+    @media (max-width:620px) { .matrix { display:block; max-width:100%; width:100%; overflow-x:auto; } .content { padding:0 19px 65px; } .hero { padding:56px 20px 42px; } h1 { font-size:clamp(40px,10vw,60px); } h2 { font-size:31px; } .grid,.grid.three,.compare,.flow-row,.phase-details { grid-template-columns:1fr; } .phase summary { grid-template-columns:42px minmax(0,1fr); padding-right:12px; gap:6px; } .phase-kind { display:none; } .step { width:31px; height:31px; font-size:10px; } .timeline:before { left:29px; } .phase-content { padding:0 17px 20px 59px; } .phase-title h3 { font-size:17px; } .flow-block { padding:11px; } .footer { flex-direction:column; } .rail { padding-left:12px; } .blueprint { padding:15px; } .panel { padding:19px; } }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*:before,*:after { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
+    @media print { @page { size:A4; margin:14mm; } .frame { display:block; } .rail,.timeline-controls { display:none; } .hero { color:var(--ink); background:#eff5e8; padding:18px 0; } .hero h1 em { color:#417553; } .hero-desc { color:var(--ink2); } .eyebrow { color:var(--sea); } .pill { color:var(--sea); border-color:var(--sea); } .content { max-width:100%; padding:0; } .section { padding-top:30px; break-before:auto; } .phase { break-inside:avoid; } .phase-content { display:block!important; } details > * { display:block!important; } .panel,.blueprint,.review-box { break-inside:avoid; } .review-box { background:#edf5ed; color:var(--ink); } .review-box p,.review-box li,.review-box h3 { color:var(--ink); } .review-box strong { color:var(--sea); } a { color:var(--sea); } }
+  </style>
+</head>
+<body>
+<div class="frame">
+  <aside class="rail" aria-label="Document navigation">
+    <a href="#top" class="brand"><span class="brandmark">g.</span><span>guia.la <em>/ platform</em></span></a>
+    <div class="rail-caption">Field guide · v0.2</div>
+    <nav aria-label="On this page">
+      <a href="#mission">01 — Mandate <small>WHY</small></a>
+      <a href="#legacy">02 — Legacy lessons <small>LEARN</small></a>
+      <a href="#architecture">03 — Architecture <small>DESIGN</small></a>
+      <a href="#widgets">04 — Composition <small>BUILD</small></a>
+      <a href="#roadmap">05 — Phase roadmap <small>EXECUTE</small></a>
+      <a href="#quality">06 — Release gates <small>PROVE</small></a>
+      <a href="#autonomy">07 — Agent operating model <small>RUN</small></a>
+      <a href="#decisions">08 — Open decisions <small>REVIEW</small></a>
+      <a href="#handoff">09 — Handoff & sources <small>START</small></a>
+    </nav>
+    <div class="rail-bottom">Status: <strong>planning / technical review</strong><br />21 November 2026 · Not implementation authorization</div>
+  </aside>
+
+  <main class="main" id="top">
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="hero-index">MASTER PLAN / 00</div>
+        <div class="eyebrow"><span class="dot"></span> guia.la / Platform architecture & delivery charter</div>
+        <h1>One platform.<br /><em>Many places.</em><br />Only what each needs.</h1>
+        <p class="hero-desc">A native-first, white-label destination platform with independently composable widgets, a small backend, and a coding-agent workflow designed to ship continuously with evidence—not just code.</p>
+        <div class="hero-meta">
+          <span class="pill bright">DRAFT FOR AGENT REVIEW</span>
+          <span class="pill">Web · Android · iOS</span>
+          <span class="pill">Build-time modules</span>
+          <span class="pill">Human-verifiable stages</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="section" id="mission">
+        <div class="section-label">01 / Mandate</div>
+        <h2>Why we're building this—and why we're starting again.</h2>
+        <p class="lede">The original Cotiju app started as a practical tourism guide for Cotijuba, Pará. It became a valuable proof of concept, but its feature count, Supabase coupling, parallel caches, complex permissions and unfinished integrations outgrew what a tiny team can reliably maintain. We want to keep the learning and leave the accidental complexity behind.</p>
+        <div class="important"><p><strong>guia.la is not “Cotiju, rewritten.”</strong> guia.la is a sustainable platform for destinations with distinct geography and services. Cotijuba is our first real deployment and field test—not an architecture hardcoded for every future location.</p></div>
+        <div class="important"><p><strong>Identity and naming:</strong> <strong>guia.la</strong> is the reusable white-label platform and intended public brand/domain (registration and DNS are not yet confirmed by this document). <strong>Cotijuba</strong> is the first destination and pilot configuration. <strong>Cotiju / cotiju-app</strong> refers exclusively to the existing legacy proof of concept and its private GitHub repository, not the new platform. New repository, package scope, app bundle IDs and store names must be decided and verified separately; do not assume ownership of a domain, app-store name or handle.</p></div>
+        <div class="grid">
+          <div class="panel"><div class="caption">What we optimize for</div><h3>Small team, growing reach</h3><ul><li>One shared core for web, Android and iOS, with native exceptions only where justified.</li><li>Fast onboarding for destinations, not bespoke engineering each time.</li><li>Verified local content, community ownership and practical information.</li><li>Low predictable infrastructure and operational cost.</li><li>Agent-driven delivery with automated, inspectable quality evidence.</li></ul></div>
+          <div class="panel"><div class="caption">What we intentionally avoid</div><h3>Complexity disguised as flexibility</h3><ul class="strike"><li>Copying the v1 schema, services or auth system wholesale.</li><li>Three separately maintained apps before evidence demands them.</li><li>A marketplace or dynamic plugin loader in v1 of the platform.</li><li>Accounts required to read public destination information.</li><li>Unverified schedules, made-up data or silent stale fallbacks.</li><li>Running every expensive native build on every trivial PR.</li></ul></div>
+        </div>
+        <div class="grid three" style="margin-top:16px">
+          <div class="panel"><div class="measure">01</div><h3>Destination operator</h3><p class="small">A local person or organization can publish and maintain places, services and schedules without developers.</p></div>
+          <div class="panel"><div class="measure">02</div><h3>Visitor</h3><p class="small">A person can find reliable information quickly, share a page, navigate and use core content without an account.</p></div>
+          <div class="panel"><div class="measure">03</div><h3>Developer/agent</h3><p class="small">A new widget or destination is a bounded change with explicit contracts, builds, tests and QA artifacts.</p></div>
+        </div>
+      </section>
+
+      <section class="section" id="legacy">
+        <div class="section-label">02 / Legacy lessons</div>
+        <h2>Preserve the knowledge. Audit the data. Don't inherit the mess.</h2>
+        <p class="lede">The existing private repository <a href="https://github.com/luandro/cotiju-app">luandro/cotiju-app</a> remains the reference implementation and source of historical decisions. It must not become a dependency of guia.la, and its live data must never be rewritten by an unreviewed migration.</p>
+        <div class="grid">
+          <div class="panel"><div class="caption">Extract & adapt</div><h3>High-value ingredients</h3><ul><li>Domain models: places, categories, media, boat timetables, guides, moto-taxis, events and permissions.</li><li>Verified place coordinates, licensed photos, user-facing copy, translations and assets.</li><li>Useful flows: maps, offline experiences, location details, local contact actions and administration.</li><li>Existing Vitest/Playwright cases and known bug reproductions.</li><li>Offline, freshness and timezone lessons; test fixtures from failures.</li></ul></div>
+          <div class="panel"><div class="caption">Reconsider / do not copy</div><h3>Known liabilities</h3><ul><li>Supabase-specific query hooks, auth/realtime context, row-level policy assumptions.</li><li>24-table migration design as a presumed minimum viable schema.</li><li>Multiple overlapping caching layers and indefinite spinners.</li><li>2025-only fallback tide data, inconsistent transport day/validity handling.</li><li>Routes and features with incomplete implementations; stale docs.</li><li>Secrets, private profile records and media without confirmed rights.</li></ul></div>
+        </div>
+        <div class="important warning"><p><strong>Legacy extraction is a dedicated delivery phase (01), not a migration script.</strong> For each asset record provenance, ownership, freshness, consent/licensing, current correctness, destination applicability, and a decision: <em>reuse concept / adapt code / migrate data / archive / discard</em>. Confirm backups and inventories before touching production.</p></div>
+        <p class="small">Reference points to review: <a href="https://github.com/luandro/cotiju-app/issues/63">production incident #63</a>, <a href="https://github.com/luandro/cotiju-app/issues/59">public data audit #59</a>, <a href="https://github.com/luandro/cotiju-app/issues/64">transport validity #64</a>, <a href="https://github.com/luandro/cotiju-app/issues/65">PWA cache security #65</a>, <a href="https://github.com/luandro/cotiju-app/pull/39">unmerged Cloudflare D1 research PR #39</a>, <a href="https://github.com/luandro/cotiju-app/issues/71">earlier rebuild architecture RFC #71</a>. Issue states may have changed; re-check at implementation.</p>
+      </section>
+
+      <section class="section" id="architecture">
+        <div class="section-label">03 / Architecture</div>
+        <h2>A thin core with genuinely independent features.</h2>
+        <p class="lede">For guia.la, the default technical direction is an Expo/React Native universal shell, React Native Web, an explicit widget composition step, and a small Cloudflare backend. It is a <strong>working hypothesis to validate</strong>, not permission to start a multi-month rewrite without proof.</p>
+        <div class="blueprint" role="img" aria-label="Architecture: destinations feed a generated build-time widget registry, producing web, Android and iOS apps, connected to a shared Cloudflare API and data services.">
+          <div class="flow-head">Architecture / conceptual</div>
+          <div class="flow-block"><strong>Destination manifests</strong><span>Brand · locale · widget allowlist · app identities · runtime configuration</span></div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+          <div class="flow-block flow-dark"><strong>Build-time composition tool</strong><span>Validates manifests → generates static imports, routes, native plugin set, bundle assertions</span></div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+          <div class="flow-row">
+            <div class="flow-block"><strong>Web / PWA</strong><span>React Native Web · indexable pages</span></div>
+            <div class="flow-block"><strong>Android</strong><span>Expo / React Native · native modules</span></div>
+            <div class="flow-block"><strong>iOS</strong><span>Expo / React Native · native modules</span></div>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+          <div class="flow-block"><strong>Cloudflare Worker API + CMS</strong><span>Hono · server-side authorization · OpenAPI contracts · scheduled fetches</span></div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+          <div class="flow-row">
+            <div class="flow-block"><strong>D1</strong><span>Small structured, tenant-scoped dataset</span></div>
+            <div class="flow-block"><strong>R2</strong><span>Media · upload policies</span></div>
+            <div class="flow-block"><strong>Cache / jobs</strong><span>Freshness · provenance · offline exports</span></div>
+          </div>
+        </div>
+        <div class="grid">
+          <div class="panel"><div class="caption">Proposed foundations</div><ul><li><strong>Expo + Expo Router:</strong> native-first navigation with web support.</li><li><strong>TypeScript + React Native Web:</strong> shared UI and domain behavior; platform files for truly different components.</li><li><strong>Cloudflare Workers/Hono + D1/Drizzle + R2:</strong> small, testable service boundary.</li><li><strong>Admin interface:</strong> minimal editorial tools; no visitor login by default.</li><li><strong>GitHub Actions + EAS + Playwright + Maestro:</strong> reproducible web/native quality evidence.</li></ul></div>
+          <div class="panel"><div class="caption">Hard architectural constraints</div><ul><li>No widget may import another widget's private implementation.</li><li>Every public API response has explicit error and freshness semantics.</li><li>Tenant-scoped reads/writes are checked on the server; D1 has no PostgreSQL RLS.</li><li>Private resources must not enter shared offline/service-worker caches.</li><li>Maps may use separate <span class="codepath">*.web.tsx</span> and <span class="codepath">*.native.tsx</span> implementations.</li><li>Web share pages must pass HTML/OG tests without relying on JavaScript execution.</li></ul></div>
+        </div>
+      </section>
+
+      <section class="section" id="widgets">
+        <div class="section-label">04 / Composition</div>
+        <h2>Build only what the destination needs.</h2>
+        <p class="lede">A widget is a versioned, testable feature package—not necessarily a tiny homepage card. It can contribute a card, route, map layer, editorial form and backend schema. Beaches and waterfalls should generally share one configurable Places domain; transport services similarly share reusable primitives.</p>
+        <div class="compare">
+          <div class="destination">
+            <div class="landscape" aria-hidden="true"><svg viewBox="0 0 400 95" preserveAspectRatio="none"><path d="M0 58Q48 39 90 51T188 46T290 53T400 35V95H0" fill="#a1c3b8"/><path d="M0 70Q64 52 123 68T268 67T400 58V95H0" fill="#317f80"/><path d="M0 82Q60 68 132 80T280 77T400 75V95H0" fill="#124d57"/></svg></div>
+            <h3>Cotijuba</h3><p>Island destination · example build profile</p>
+            <div class="tags"><span class="tag selected">Places / beaches</span><span class="tag selected">Boats</span><span class="tag selected">Tides</span><span class="tag selected">Moto-taxis</span><span class="tag off">Trails</span><span class="tag off">Guides</span></div>
+          </div>
+          <div class="destination mountain">
+            <div class="landscape" aria-hidden="true"><svg viewBox="0 0 400 95" preserveAspectRatio="none"><path d="M0 70 68 29 117 62 205 6 269 66 336 21 400 57V95H0" fill="#a2b7a2"/><path d="M0 82 71 59 132 87 205 42 267 82 354 50 400 66V95H0" fill="#4e8065"/><path d="M0 95 92 80 147 87 215 69 297 87 360 74 400 86V95H0" fill="#275b55"/></svg></div>
+            <h3>Serra demo</h3><p>Illustrative mountain destination · synthetic test data</p>
+            <div class="tags"><span class="tag selected">Places / waterfalls</span><span class="tag selected">Trails</span><span class="tag selected">Guides</span><span class="tag off">Tides</span><span class="tag off">Boats</span><span class="tag off">Moto-taxis</span></div>
+          </div>
+        </div>
+        <div class="important"><p><strong>Two gates, not one:</strong> <em>build-time inclusion</em> controls imports, routes, JavaScript bundles and optional native packages/permissions; <em>runtime flags</em> control ordering and visibility of code already compiled. A multi-destination flagship app will contain the <strong>union</strong> of features needed by its destinations; a partner-specific build can exclude more.</p></div>
+        <div class="example"><pre><code><span class="comment">// Illustration: agents must validate the actual build graph.</span>
+export default defineDestination({
+  id: 'cotijuba',
+  brand: { name: 'Cotijuba', locale: 'pt-BR' },
+  includedWidgets: ['places', 'boats', 'tides', 'local-services'],
+  config: {
+    places: { categories: ['beaches', 'restaurants', 'stays'] },
+    'local-services': { categories: ['moto-taxi'] },
+  },
+});
+<span class="comment">// Generator emits explicit imports; no wildcard registry.</span></code></pre></div>
+        <div class="grid three" style="margin-top:17px">
+          <div class="panel"><div class="caption">Widget contract</div><h3>Inputs</h3><p class="small">ID, version, config schema, typed API, accessibility/localization rules, optional native capabilities.</p></div>
+          <div class="panel"><div class="caption">Widget contract</div><h3>Outputs</h3><p class="small">Cards, routes, stories, error/offline states, tests, analytics events, bundle proof.</p></div>
+          <div class="panel"><div class="caption">Widget contract</div><h3>Lifecycle</h3><p class="small">Scaffold → review → test → opt into destination → version → release → sunset safely.</p></div>
+        </div>
+      </section>
+
+      <section class="section" id="roadmap">
+        <div class="section-label">05 / Delivery phases</div>
+        <h2>Eleven verifiable checkpoints. No invisible progress.</h2>
+        <p class="lede">Each phase ends in a reviewable artifact and a defined exit gate. Automation begins in the first build, becomes more stringent over time, and retains evidence that another agent can re-check. Phases are sequential for planning but independent work may run in parallel after contracts are stable.</p>
+        <div class="timeline-controls"><div class="phases-legend"><span class="dot" style="background:var(--sea);box-shadow:none"></span> Select a phase to inspect scope, QA and exit gate</div><div><button type="button" class="control" id="expandAll">Expand all</button> <button type="button" class="control" id="collapseAll">Collapse all</button></div></div>
+        <div class="timeline" id="phases">
+          <details class="phase" open><summary><span class="step">00</span><div class="phase-title"><h3>Charter, architecture review & agent protocol</h3><p>Establish constraints, open decisions, acceptance standards and safe autonomy before writing application code.</p></div><span class="phase-kind">Govern</span></summary><div class="phase-content"><div class="phase-details"><div><h4>Produce</h4><ul><li>Platform <span class="codepath">SPEC.md</span>, <span class="codepath">AGENTS.md</span>, architecture decision records, roadmap, glossary, widget vocabulary and non-goals.</li><li>Document exact repos, responsibilities, phase boundaries, branch strategy, source-of-truth files and permissions.</li><li>Define evidence schema for PRs and agent handoffs; identify security/data/store policy decisions needing approval.</li><li>Agent red-team of this charter with prioritized recommendations and trade-offs.</li></ul></div><div class="criteria"><h4>Human / agent QA</h4><p>Interactive master plan + decision register + first proposed agent execution prompt, with contradictions called out.</p><span class="gate">Exit gate: major architectural decisions marked accepted or explicitly provisional; no ambiguous permission to change production.</span></div></div></div></details>
+          <details class="phase" open><summary><span class="step">01</span><div class="phase-title"><h3>Legacy extraction & preservation audit</h3><p>Audit the original Cotiju implementation for reusable domain knowledge, verifiable data and trustworthy assets before designing guia.la's new schema.</p></div><span class="phase-kind">Learn</span></summary><div class="phase-content"><div class="phase-details"><div><h4>Produce</h4><ul><li>Read-only inventory of v1 frontend features, migrations, entities, business rules, public/private data and media.</li><li>Trace real user workflows, current production issues and tests; capture source links/paths and current behavior.</li><li>Classify every reusable item: <em>concept, code, data, test fixture, reject</em>; document license/consent, provenance and freshness.</li><li>Prototype sanitized exports and mapping tables; prepare backup, integrity and rollback plan, but no production writes.</li><li>Extract minimum viable v2 models—not the entire 24-table D1 experiment.</li></ul></div><div class="criteria"><h4>Human / agent QA</h4><p>Searchable extraction matrix, source-linked sample records, migration risk report and a few reproduced v1 bug tests.</p><span class="gate">Exit gate: all critical entities inventoried; private information protected; data owner signs off on any future migration.</span></div></div></div></details>
+          <details class="phase"><summary><span class="step">02</span><div class="phase-title"><h3>Bootstrap Expo universal monorepo</h3><p>Smallest real web, Android and iOS shell; verified SDK and native build compatibility.</p></div><span class="phase-kind">Build</span></summary><div class="phase-content"><div class="phase-details"><div><h4>Produce</h4><ul><li>Official stable Expo template, Expo Router, React Native Web, TypeScript, pnpm workspace and a minimal design shell.</li><li>Clear packages for app, API, core, shared UI, widget contract, widgets, destinations and tools.</li><li>Pin compatible versions; verify current Expo SDK, React Native, native modules, Node and Cloudflare adapter before selecting.</li><li>Basic cloud preview and EAS build configuration; no secrets in client bundles.</li></ul></div><div class="criteria"><h4>Human / agent QA</h4><p>Clickable web preview, Android install/build artifact and iOS cloud build or simulator output, all showing the same reference screen.</p><span class="gate">Exit gate: clean clone boots and reproduces all three outputs with documented commands.</span></div></div></div></details>
+          <details class="phase"><summary><span class="step">03</span><div class="phase-title"><h3>Design system, Storybook & theming</h3><p>Reusable visual grammar independent of Cotijuba's colors or content.</p></div><span class="phase-kind">See</span></summary><div class="phase-content"><div class="phase-details"><div><h4>Produce</h4><ul><li>React Native Storybook compatible with the pinned Expo version, plus a browser-reviewable component catalog where viable.</li><li>Tokens: colors, typography, spacing, elevation, dark mode and accessibility states.</li><li>Cards, lists, navigation, empty/error/loading/offline states, forms and map placeholders; dynamic theme switching in previews.</li><li>Adopt selectively from Ignite and Obytes after evaluating version compatibility and maintenance.</li></ul></div><div class="criteria"><h4>Human / agent QA</h4><p>Story gallery with Cotijuba and Serra demo themes, responsive snapshots and keyboard/screen-reader checks.</p><span class="gate">Exit gate: components have stories/tests, no hardcoded destination branding in core UI.</span></div></div></div></details>
+          <details class="phase"><summary><span class="step">04</span><div class="phase-title"><h3>GitHub previews, native builds & artifact pipeline</h3><p>Turn every significant change into something that can be inspected remotely.</p></div><span class="phase-kind">Ship</span></summary><div class="phase-content"><div class="phase-details"><div><h4>Produce</h4><ul><li>Actions for PR web builds/previews; EAS Android/iOS development builds for relevant changes and release candidates.</li><li>Matrix for destination manifests, artifact retention, logs, preview links, screenshots/video, provenance and checksums.</li><li>Preview/staging/production separation, build caching and concurrency controls, budget and failure alerts.</li><li>Automated PR comments listing QA URLs/artifacts and known limitations.</li></ul></div><div class="criteria"><h4>Human / agent QA</h4><p>A real PR generates a public-or-controlled web preview, Android artifact and cloud iOS evidence without a local Mac.</p><span class="gate">Exit gate: reproducible pipeline; no secrets leaked; credentials and store provisioning requirements recorded.</span></div></div></div></details>
+          <details class="phase"><summary><span class="step">05</span><div class="phase-title"><h3>Tests, regression traps & security guardrails</h3><p>Teach CI to detect regressions before agents are allowed to scale output.</p></div><span class="phase-kind">Prove</span></summary><div class="phase-content"><div class="phase-details"><div><h4>Produce</h4><ul><li>Typecheck, lint, formatting, unit/component/contract tests; Playwright for web, Maestro (or verified alternative) for native.</li><li>Accessibility, responsive visual QA, error injection, offline behavior, dependency review, secret scanning and security checks.</li><li>Document quality budgets and flaky-test protocol; select real-device smoke scenarios for later release gates.</li><li>Deliberately break a widget and demonstrate the CI fails in the correct place.</li></ul></div><div class="criteria"><h4>Human / agent QA</h4><p>Red/green demonstration, screenshots and accessible test reports linked from PR.</p><span class="gate">Exit gate: PR gate cannot silently pass known failure, and an agent can diagnose it from saved evidence.</span></div></div></div></details>
+          <details class="phase"><summary><span class="step">06</span><div class="phase-title"><h3>Widget contract, compiler & two destination builds</h3><p>Prove composability and genuine exclusion before adding many features.</p></div><span class="phase-kind">Core</span></summary><div class="phase-content"><div class="phase-details"><div><h4>Produce</h4><ul><li>Typed widget manifest, versioning, dependency/capability declaration, stories/tests and navigation contracts.</li><li>Build-time generator of explicit imports, routes and Expo native configuration; allowlists validated for both destinations.</li><li>Cotijuba (places, boats, tides, moto-taxi) versus Serra demo (places, trails, guides), with placeholder components if needed.</li><li>Automated bundle inspection and native permission/dependency checks; flagship versus dedicated-build policy.</li></ul></div><div class="criteria"><h4>Human / agent QA</h4><p>Side-by-side interactive previews, app builds, generated manifests, size diffs and proof that excluded widgets are absent.</p><span class="gate">Exit gate: excluded widget code/native dependencies are not shipped in destination-specific builds; runtime toggles cannot bypass build restrictions.</span></div></div></div></details>
+          <details class="phase"><summary><span class="step">07</span><div class="phase-title"><h3>Small multi-destination backend & editorial console</h3><p>Destination-scoped content with authenticated write access and anonymous public reads.</p></div><span class="phase-kind">Data</span></summary><div class="phase-content"><div class="phase-details"><div><h4>Produce</h4><ul><li>Cloudflare Worker API, Hono routes, typed contracts, D1 schema with Drizzle and R2 media handling.</li><li>Small editorial interface; roles and explicit tenant authorization on every protected server route.</li><li>Scoped migrations, fixture seeds, backups, restore drills, image license metadata and controlled uploads.</li><li>Scheduled weather/tide ingestion with source, TTL, validity and failure semantics; cost instrumentation.</li></ul></div><div class="criteria"><h4>Human / agent QA</h4><p>Publish a sample place as an editor, view it anonymously, and prove an editor from another destination cannot access it.</p><span class="gate">Exit gate: tenant isolation, backup/restore and unavailability tests pass; zero need for public visitor login.</span></div></div></div></details>
+          <details class="phase"><summary><span class="step">08</span><div class="phase-title"><h3>First production-grade widget verticals</h3><p>Complete a few journeys end-to-end instead of implementing a large feature catalog.</p></div><span class="phase-kind">Product</span></summary><div class="phase-content"><div class="phase-details"><div><h4>Produce</h4><ul><li>Places directory/detail, typed categories, photos and location actions; map implementations for web and native.</li><li>Boat/transport schedules with weekday, validity and America/Belem timezone tests.</li><li>Tides/weather with verified upstream source and no fabricated fallback data; trustworthy empty/stale states.</li><li>Separate trails/guides reference slice on Serra demo, including geometry and offline policy.</li></ul></div><div class="criteria"><h4>Human / agent QA</h4><p>Navigate complete flows on web, Android emulator and iOS simulator with screenshots, recordings and error/offline scenarios.</p><span class="gate">Exit gate: each widget has docs, stories, tests, provenance and performance evidence; no permanent spinners.</span></div></div></div></details>
+          <details class="phase"><summary><span class="step">09</span><div class="phase-title"><h3>Selective migration, field pilot & content operations</h3><p>Bring in verified information and test with actual destination stakeholders.</p></div><span class="phase-kind">Field</span></summary><div class="phase-content"><div class="phase-details"><div><h4>Produce</h4><ul><li>Import only consented, fresh and verified Cotijuba content from the audited inventory, with ID/URL mappings.</li><li>Local editorial process for source, last checked date, correction contact, ownership and moderation.</li><li>Field tests with visitors, local businesses and transport providers; offline, GPS, readability and trust cases.</li><li>Backfill destination metadata, search previews, QR links, content accuracy monitoring and rollback plan.</li></ul></div><div class="criteria"><h4>Human / agent QA</h4><p>Real content in a staging destination; sign-off from local editors and testers; documented fixes from actual device usage.</p><span class="gate">Exit gate: no anonymous access regressions; content rights and factual freshness confirmed; pilot users can complete core journeys.</span></div></div></div></details>
+          <details class="phase"><summary><span class="step">10</span><div class="phase-title"><h3>Release discipline, self-service growth & agent continuity</h3><p>Operationalize a platform that can keep developing without an expanding engineering team.</p></div><span class="phase-kind">Operate</span></summary><div class="phase-content"><div class="phase-details"><div><h4>Produce</h4><ul><li>Deploy/rollback automation, error monitoring, uptime and data freshness alerts, costs and rate limits.</li><li>Web SEO/metadata, deep links, release track policy and App Store/Play policies for multi-destination vs partner apps.</li><li>Reusable skills for new widget, new destination, QA review, schema migration, incident and release.</li><li>Agent backlog protocol, checkpoint/state files, self-healing loop, PR evidence template and handoff test with a different agent.</li></ul></div><div class="criteria"><h4>Human / agent QA</h4><p>Simulated release/rollback and an independent agent adding a small widget from a specification to a reviewable green PR.</p><span class="gate">Exit gate: operations documented; humans approve sensitive actions; another agent can reproduce, validate and continue work.</span></div></div></div></details>
+        </div>
+      </section>
+
+      <section class="section" id="quality">
+        <div class="section-label">06 / Evidence gates</div>
+        <h2>Every phase is both shippable and falsifiable.</h2>
+        <p class="lede">“It compiles” is not proof. Every PR needs behavioral evidence. Early phases establish these checks; later phases must not regress them.</p>
+        <table class="matrix"><thead><tr><th>Evidence</th><th>Automated proof</th><th>Human inspection</th></tr></thead><tbody>
+          <tr><td>Universal application</td><td>Web export + Android/iOS builds or documented credential blocker; routing smoke tests</td><td>Preview screen + emulator screenshots</td></tr>
+          <tr><td>Widget exclusion</td><td>Static import graph, bundle size/grep checks, native autolinking + permission inspection</td><td>Two destination app journeys</td></tr>
+          <tr><td>Security & privacy</td><td>Tenant A/B tests, anonymous vs editor, leak checks and rate-limit tests</td><td>Threat-model summary and approval for sensitive changes</td></tr>
+          <tr><td>Trustworthy information</td><td>Freshness/source validation, timezone tests, upstream failures, offline tests</td><td>Source verification and local editorial review</td></tr>
+          <tr><td>Web discoverability</td><td>Raw HTML OG/title/canonical assertions, sitemap and crawl checks</td><td>WhatsApp/share preview and page quality review</td></tr>
+          <tr><td>Operational durability</td><td>Backup/restore drill, logs, rollback, reproducible builds</td><td>Release checklist and incident simulation</td></tr>
+        </tbody></table>
+        <div class="grid three">
+          <div class="panel"><div class="caption">Always on PRs</div><h3>Fast gate</h3><p class="small">Types, lint, unit, contracts, web build/preview, targeted Playwright, secrets and schema validation.</p></div>
+          <div class="panel"><div class="caption">On native changes</div><h3>Cloud device gate</h3><p class="small">Targeted Android/iOS builds and Maestro/cloud simulator runs, with video and logs when feasible.</p></div>
+          <div class="panel"><div class="caption">Before releasing</div><h3>Human gate</h3><p class="small">Real-device spot checks, content validation, privacy, policy, budget and rollback checks.</p></div>
+        </div>
+      </section>
+
+      <section class="section" id="autonomy">
+        <div class="section-label">07 / Agent operating model</div>
+        <h2>Autonomy without undetectable damage.</h2>
+        <p class="lede">The agent should work autonomously on bounded, reversible tasks and produce evidence that makes reviews fast. It should not treat permissions to write code as permissions to modify production data, ship store releases or approve its own security exceptions.</p>
+        <div class="grid">
+          <div class="panel"><div class="caption">Autonomous by default</div><ul class="checklist"><li>Read architecture, goals, phase plan, widget contracts and previous work state.</li><li>Pick/plan a bounded task with explicit acceptance criteria and dependency checks.</li><li>Implement on a branch, add relevant tests/stories and create a preview.</li><li>Run the affected build/test matrix, inspect screenshots/logs and self-correct a bounded number of times.</li><li>Publish a PR with summary, evidence, risks, docs changes and the next unblocked task.</li></ul></div>
+          <div class="panel"><div class="caption">Human approval required</div><ul class="checklist"><li>Production data migration, deletion or modifying existing user records.</li><li>Secrets, cloud credentials, permission escalation or security policy relaxation.</li><li>Changes to tenancy/auth boundaries, privacy policy or licensing choices.</li><li>Store publication, billing changes, paid services and public domain cutover.</li><li>Disabling required checks, removing tests or declaring an unverified feature production-ready.</li></ul></div>
+        </div>
+        <div class="important"><p><strong>Source of truth:</strong> Git-tracked <span class="codepath">AGENTS.md</span>, <span class="codepath">SPEC.md</span>, <span class="codepath">docs/architecture/</span>, <span class="codepath">docs/roadmap/</span> and widget contracts. HTML files are human-friendly presentations of the plan; Markdown/JSON are the maintainable machine-readable instructions. Keep them consistent.</p></div>
+      </section>
+
+      <section class="section" id="decisions">
+        <div class="section-label">08 / Unresolved decisions</div>
+        <h2>Disagree early. Validate before committing.</h2>
+        <p class="lede">The coding agent should actively challenge these assumptions. If a choice is expensive or hard to reverse, ask for evidence from a small spike rather than a philosophical preference.</p>
+        <table class="matrix"><thead><tr><th>Decision / default</th><th>Validation required</th></tr></thead><tbody>
+          <tr><td>Expo + React Native Web (default)</td><td>Check current stable SDK support, native maps, bundle compilation, web share metadata and cloud CI</td></tr>
+          <tr><td>Expo Router universal web</td><td>Prove raw-HTML indexability/OG previews and Cloudflare deploy compatibility; keep thin dedicated web renderer as fallback</td></tr>
+          <tr><td>Cloudflare Workers + D1</td><td>Benchmark common queries, geospatial needs, auth/security, backups, migrations, budget and vendor limits</td></tr>
+          <tr><td>Native flags with no code in build</td><td>Prove code elimination and optional native module exclusion using two distinct destination builds</td></tr>
+          <tr><td>One flagship native app</td><td>Confirm store guidelines for template/city clones; partner-specific web allowed, separate native apps case-by-case</td></tr>
+          <tr><td>No public account at first</td><td>Validate actual visitor journeys; only introduce visitor accounts when a concrete feature needs them</td></tr>
+          <tr><td>GitHub + EAS automation</td><td>Compare cloud cost, credentials, simulator coverage, flaky-test rate and limits; occasional real-device tests remain necessary</td></tr>
+          <tr><td>FOSS distribution</td><td>Choose license after assessing legacy code/media rights and commercial strategy; do not presume v1 assets are redistributable</td></tr>
+        </tbody></table>
+      </section>
+
+      <section class="section" id="handoff">
+        <div class="section-label">09 / Handoff</div>
+        <h2>What the reviewing agent should do next.</h2>
+        <div class="review-box"><h3>First: review. Second: generate the phase playbooks.</h3><p>This document is <strong>master plan version 0.2</strong>. The paired file <strong>guia-la-agent-handoff.md</strong> tells an agent how to challenge this plan, check current upstream dependencies and the original Cotiju repository, then generate complete, individual HTML playbooks for phases 00–10 with executable QA and acceptance gates.</p><p><strong>No code migration or production mutation is authorized by this artifact.</strong> If evidence changes a technical recommendation, record the trade-off in a decision note. If access to GitHub, EAS, Cloudflare or source data is unavailable, state the blocker instead of fabricating findings.</p></div>
+        <div class="grid" style="margin-top:16px">
+          <div class="panel"><div class="caption">Expected planning outputs</div><ul><li><span class="codepath">planning/index.html</span> — navigable phase index</li><li><span class="codepath">planning/phases/phase-00.html</span> … <span class="codepath">phase-10.html</span> — detailed agent playbooks</li><li><span class="codepath">planning/review.md</span> — critique, risks, changes</li><li><span class="codepath">planning/decisions.md</span> — ADR candidates / unresolved decisions</li><li><span class="codepath">planning/traceability.md</span> — gates mapped to phases, tests and evidence</li></ul></div>
+          <div class="panel"><div class="caption">Reference resources</div><ul><li><a href="https://github.com/luandro/cotiju-app">Cotiju v1 repository</a> and <a href="https://github.com/luandro/cotiju-app/issues/71">earlier rebuild architecture RFC</a></li><li><a href="https://docs.expo.dev/">Expo documentation</a>, <a href="https://storybook.js.org/docs/get-started/frameworks/react-native">React Native Storybook</a></li><li><a href="https://github.com/infinitered/ignite">Ignite</a>, <a href="https://github.com/obytes/react-native-template-obytes">Obytes</a>, <a href="https://github.com/t3-oss/create-t3-turbo">T3 Turbo</a></li><li><a href="https://developers.cloudflare.com/workers/">Cloudflare Workers</a> and <a href="https://docs.expo.dev/eas/">Expo EAS</a></li><li><a href="https://developer.apple.com/app-store/review/guidelines/">Apple App Review Guidelines</a></li></ul></div>
+        </div>
+        <div class="footer"><span>GUIA.LA / FIELD GUIDE · v0.2 · 2026-11-21</span><span>Plan is provisional. Evidence before implementation.</span></div>
+      </section>
+    </div>
+  </main>
+</div>
+<script>
+  (() => {
+    const all = Array.from(document.querySelectorAll('details.phase'));
+    document.querySelector('#expandAll')?.addEventListener('click', () => all.forEach(d => { d.open = true; }));
+    document.querySelector('#collapseAll')?.addEventListener('click', () => all.forEach(d => { d.open = false; }));
+    const links = Array.from(document.querySelectorAll('nav a'));
+    const sections = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(entries => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            links.forEach(a => { const active = a.getAttribute('href') === '#' + entry.target.id; a.classList.toggle('active', active); if(active) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current'); });
+          }
+        }
+      }, { rootMargin: '-13% 0px -66% 0px' });
+      sections.forEach(s => observer.observe(s));
+    }
+  })();
+</script>
+</body>
+</html>
