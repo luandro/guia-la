@@ -1,7 +1,7 @@
 # guia.la — decision register (ADR candidates)
 
 Statuses: `proposed` (recommendation, no user decision), `validated` (spike evidence supports it, still needs user), `approved` (explicit user decision or existing project record), `rejected`.
-Nothing here is `approved` except D-01, D-03, D-05, D-06, D-08, D-09 and D-11 (owner decisions, 2026-11-21) and D-00 and D-13a, where the master plan v0.2 / handoff states a locked user constraint; those are cited. Evidence links: [review.md](review.md), [research/](research/).
+Nothing here is `approved` except D-01, D-03, D-05, D-06, D-08, D-09, D-11 and D-14 (owner decisions, 2026-11-21) and D-00 and D-13a, where the master plan v0.2 / handoff states a locked user constraint; those are cited. Evidence links: [review.md](review.md), [research/](research/).
 
 | ID | Decision | Status | Phase gate |
 |---|---|---|---|
@@ -20,6 +20,7 @@ Nothing here is `approved` except D-01, D-03, D-05, D-06, D-08, D-09 and D-11 (o
 | D-12 | Legacy app: rotate leaked third-party keys; stale-data banner | owner TODO (tsk #297), outside this repo | 01 |
 | D-13a | No account required to read public destination information | approved (master plan §01 lists it as intentionally avoided) | 07 |
 | D-13b | No visitor accounts at all in v1 | proposed (master plan §08 lists "No public account at first" as needing validation) | 07 |
+| D-14 | PR review gate: RevEngine /review on Claude subscription required before merging every PR; local codex/ohmybug hard-PR-only | approved (owner, 2026-11-21) | 00 |
 
 ---
 
@@ -106,3 +107,8 @@ Nothing here is `approved` except D-01, D-03, D-05, D-06, D-08, D-09 and D-11 (o
 ## D-13b — No visitor accounts at all in v1
 - **Status:** proposed — master plan §08 marks "No public account at first" as an open decision to validate against real visitor journeys.
 - **Proposal:** ship v1 with editor accounts only; introduce visitor accounts only when a concrete feature needs them.
+
+## D-14 — PR review gate and RevEngine subscription
+- **Status:** approved by the owner on 2026-11-21.
+- **Decision:** every PR (including setup, docs, config, and scaffolding PRs) must complete RevEngine `/review` before merge, using the owner's Claude subscription (`CLAUDE_CODE_OAUTH_TOKEN`). Local `codex review` and conditional `ohmybug` (`lite`) remain hard-PR-only (skipped on setup/docs/config PRs with the skip noted in `.state/goal.md`; use `SKIP_BUGHUNT=1` only after RevEngine passes).
+- **Valid merge outcomes:** either `**Recommendation: merge.**` with zero unresolved threads and passing configured checks (`auto-merge` only when explicitly authorized and no human-review gates apply), or explicit maintainer approval on `needs-human-review` (when the only open item is a fit question or maintainer-accepted deferral).

@@ -32,7 +32,7 @@ do is decided here and recorded where an agent can read it in one place.
 | Product owner | Human | Approves the doc set, runs naming checks, records decisions D-01/D-03/D-06/D-08/D-09, confirms legacy access |
 | Orchestrator agent | Agent | Drafts documents, splits work into PR units, reviews every junior diff, keeps statuses honest |
 | Junior implementation agent | Agent | Mechanical doc PRs (formatting, cross-linking, TOCs) via the repo AGENTS.md delegation ladder |
-| Reviewer of record | Agent (orchestrator) | Docs-only PRs are self-reviewed per the project PR cycle; no paid reviews are spent here |
+| Reviewer of record | Agent (orchestrator) + RevEngine | Local codex/ohmybug skipped on docs-only PRs (self-reviewed); RevEngine `/review` (Claude subscription, D-14) required before merge |
 
 - **Complexity/risks:** Low mechanical complexity; the risk is coordination and
   wording — an ambiguous permission sentence in AGENTS.md becomes an
@@ -96,7 +96,7 @@ can link against a stable format.
 | 2 | Create the `guia-la` repository, docs only: default branch, branch protection, PR template shell | Human creates, agent configures | PR 00-2 | 00-1 |
 | 3 | AGENTS.md working agreement: autonomy defaults, the human-approval list, delegation ladder, branch/worktree/PR conventions, evidence wording standard | Agent drafts, human approves | PR 00-3 | 00-2 |
 | 4 | SPEC.md: platform spec, non-goals, widget vocabulary (widget ≠ card; shared domains), destination model — guia.la platform, Cotijuba pilot, Serra demo synthetic mountain destination | Agent drafts, human approves | PR 00-4 | 00-2 |
-| 5 | docs/adr/: ADR template plus seed ADRs mirroring [decisions.md](../decisions.md) D-00..D-13b with statuses copied verbatim — never upgraded | Agent | PR 00-5 | 00-2 |
+| 5 | docs/adr/: ADR template plus seed ADRs mirroring [decisions.md](../decisions.md) D-00..D-14 with statuses copied verbatim — never upgraded | Agent | PR 00-5 | 00-2 |
 | 6 | Evidence rules: `docs/evidence/PR-EVIDENCE.md` template, handoff state file convention, claim-vs-evidence wording rules ("must not say passed unless a run exists") | Agent | PR 00-6 | 00-3 |
 | 7 | Security, privacy, spend baseline: `docs/security/APPROVAL-LIST.md`, secrets policy (env vars only), LGPD data-minimization default, budget ceiling placeholder for D-08 | Agent drafts, human approves | PR 00-7 | 00-3 |
 | 8 | docs/roadmap.md: mirror of phases 00–10 with per-phase exit gates and links back to this packet | Agent | PR 00-8 | 00-5 |
@@ -125,7 +125,7 @@ guia-la/                          (proposed name — D-01 unverified)
     adr/ADR-0000-template.md      status line "- **Status:** <status>",
                                   trailing note allowed (e.g. "— blocked on S1")
     adr/ADR-0001-platform-identity.md   (from D-00, approved)
-    adr/...                       one ADR per decision D-01..D-13b, its D-xx id
+    adr/...                       one ADR per decision D-01..D-14, its D-xx id
                                   in the filename or front matter (both linted)
     evidence/PR-EVIDENCE.md       per-PR evidence template
     evidence/HANDOFF-STATE.md     checkpoint file convention for agent handoffs
@@ -169,7 +169,7 @@ next-unblocked: "PR 01-2 entity matrix"
 - [ ] `guia-la` repository exists, docs only, branch protection on (PR 00-2)
 - [ ] `AGENTS.md` approved and merged (PR 00-3)
 - [ ] `SPEC.md` with non-goals and widget vocabulary approved (PR 00-4)
-- [ ] `docs/adr/` seeded: template + ADRs for D-00..D-13b, statuses verbatim from [decisions.md](../decisions.md) (PR 00-5)
+- [ ] `docs/adr/` seeded: template + ADRs for D-00..D-14, statuses verbatim from [decisions.md](../decisions.md) (PR 00-5)
 - [ ] `docs/evidence/PR-EVIDENCE.md` and `HANDOFF-STATE.md` conventions (PR 00-6)
 - [ ] `docs/security/APPROVAL-LIST.md`, secrets policy, LGPD baseline (PR 00-7)
 - [ ] `docs/roadmap.md` and `docs/glossary.md` (PR 00-8)

@@ -63,10 +63,13 @@ once, record it, and proceed.
 
 ## PR review cycle
 
-**No PR merges until RevEngine `/review` passes** (`**Recommendation: merge.**`,
-zero unresolved review threads, and all configured checks passing at the
-current `HEAD` commit). This applies to **every PR**, including setup, docs,
-config, and scaffolding PRs.
+**No PR merges until RevEngine `/review` completes at the current `HEAD` commit
+with zero unresolved review threads, all configured checks passing, and either
+`**Recommendation: merge.**` (eligible for `auto-merge` only when explicitly
+authorized and no human-review gates apply) or explicit maintainer approval on
+`needs-human-review` (when the only open item is a fit question or
+maintainer-accepted deferral).** This applies to **every PR**, including setup,
+docs, config, and scaffolding PRs.
 
 Local pre-PR reviews depend on scope:
 - **Setup, docs, config, or scaffolding PRs:** skip local `codex` and `ohmybug`
@@ -99,7 +102,10 @@ Local pre-PR reviews depend on scope:
    `workflow_dispatch`. Defaults to model `opus` and effort `high` (override
    repo-wide with Actions variables `REV_ENGINE_MODEL` / `REV_ENGINE_EFFORT`,
    or per run via `workflow_dispatch` inputs). Fork PRs are skipped for
-   security.
+   security. Because `issue_comment` runs restore the Buildx cache read-only,
+   run one `workflow_dispatch` on `main` after bumping `REV_ENGINE_SHA` or
+   `CLAUDE_CODE_VERSION` to warm the cache (otherwise cold builds still
+   succeed).
 
 Use the `.claude/skills/pr-cycle/SKILL.md` (`pr-cycle` skill) to drive the PR
 review loop: triage findings, push fixes, reply using RevEngine's decision
