@@ -12,7 +12,8 @@ exit: Owner approves the docs-only repo and D-01/D-03/D-06/D-08/D-09 responses; 
 
 Phase 00 converts this planning packet into the future repository's operating
 system. It writes **documents only** — no application code, no scaffolding, no
-CI credentials, no deploys. Everything later phases are allowed or forbidden to
+CI credentials (except the standing D-14 RevEngine `CLAUDE_CODE_OAUTH_TOKEN`
+review workflow), no deploys. Everything later phases are allowed or forbidden to
 do is decided here and recorded where an agent can read it in one place.
 
 > [!NOTE] Nothing in this phase authorizes implementation. The packet
@@ -85,8 +86,9 @@ can link against a stable format.
   whether store names and the GitHub repo name are free; which code/content
   license applies (D-11). All are recorded as open, never assumed.
 - **Credentials/tools needed:** a GitHub account able to create the repository
-  (human); a registrar lookup for the domain (human, read-only); no secrets,
-  no API keys, no store accounts are created in this phase.
+  (human); a registrar lookup for the domain (human, read-only); no new
+  secrets, API keys, or store accounts are created in this phase (reusing the
+  standing D-14 RevEngine review workflow secret only).
 
 ## Task breakdown
 
@@ -151,7 +153,8 @@ next-unblocked: "PR 01-2 entity matrix"
 ```
 
 - **Forbidden in this phase:** application code, scaffolding, CI runners with
-  secrets, store accounts, domain purchase, renaming legacy GitHub URLs,
+  secrets (beyond the standing D-14 RevEngine review workflow), store accounts,
+  domain purchase, renaming legacy GitHub URLs,
   marking any decision `approved` without a recorded user decision
   ([decisions.md rule](../decisions.md)).
 - **Security/privacy implications:** the approval list must include (from the

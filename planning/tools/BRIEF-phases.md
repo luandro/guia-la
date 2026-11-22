@@ -6,7 +6,7 @@ You are a senior planner writing **planning documents only** (no app code, no sc
 1. `docs/guia-la-agent-handoff.md` — the "Required contents of every phase HTML" list (12 items) and quality standard. This is your spec.
 2. `docs/guia-la-master-plan.html` — baseline scope for each phase (section 05; read the phase text for your phases).
 3. `planning/review.md` — the orchestrator's critique; its §8 roadmap edits and red-team rows are **proposals** you must incorporate as proposals (say "proposed in review R#/D-#"), never as approved facts.
-4. `planning/decisions.md` — decision IDs D-00..D-13. Reference them; never upgrade a status.
+4. `planning/decisions.md` — decision IDs D-00..D-14. Reference them; never upgrade a status.
 5. `planning/research/*.md` — verified versions, spikes S1–S13, legacy findings. Cite as relative links e.g. `[expo-stack S1](../research/expo-stack.md)` (phase pages live in `planning/phases/`, so links from a phase source go up one level: `../review.md`, `../decisions.md`, `../research/x.md`, `phase-03.html`, `../prompts/phase-03-agent.md`).
 6. `planning/src/phases/phase-00.md` (sample) and `planning/tools/build.py` — the source format and supported Markdown (metadata block between `---`, H2 sections, tables, lists, fenced code, callouts `> [!GATE]`, `> [!RISK]`, `> [!DECISION]`, `> [!NOTE]`, `- [ ]` checkboxes).
 

@@ -7,7 +7,7 @@ description: Drive a PR through RevEngine review rounds, fix and resolve finding
 
 Drive **every** pull request through pre-PR checks and GitHub RevEngine `/review` rounds until nothing is pending at the current `HEAD` commit, then finish cleanly with either `auto-merge` or `needs-human-review`.
 
-**Rule:** No PR merges until RevEngine `/review` completes at the current `headRefOid` with zero unresolved review threads, all configured checks passing, and either `**Recommendation: merge.**` (eligible for `auto-merge` when authorized and no human-review gates apply) or explicit maintainer approval on `needs-human-review` (when the only open item is a fit question or maintainer-accepted deferral). Setup, docs, config, and scaffolding PRs skip only local `codex` / `ohmybug` reviews (noting the skip in `.state/goal.md`), never RevEngine.
+**Rule:** No PR merges until RevEngine `/review` completes at the current `headRefOid` with zero unresolved review threads, all configured checks passing, and either `**Recommendation: merge.**` (eligible for `auto-merge` when authorized and no human-review gates apply) or explicit maintainer approval on `needs-human-review` (when the only open item is a fit question or maintainer-accepted deferral). **Outage / workflow-repair override:** if RevEngine itself is broken or unavailable (expired `CLAUDE_CODE_OAUTH_TOKEN`, quota exhaustion, GitHub outage, or a PR repairing `review.yml` on `main`), use `workflow_dispatch` if possible, and otherwise allow an explicit maintainer override on `needs-human-review` with the failed/skipped run URL and reason recorded on the PR and in `.state/goal.md`. Setup, docs, config, and scaffolding PRs skip only local `codex` / `ohmybug` reviews (noting the skip in `.state/goal.md`), never RevEngine unless that outage override applies.
 
 ## Inputs & Mode Selection
 
@@ -211,19 +211,28 @@ Only allowed when **explicitly authorized** for the PR/task, converged at the ex
    PR_BRANCH=$(gh pr view "$PR" --json headRefName --jq .headRefName)
    gh pr view "$PR" --json headRefOid,isDraft,mergeable,mergeStateStatus,statusCheckRollup
    ```
-2. Always run `gh pr merge` from `$MAIN_ROOT` without `--delete-branch` (the repo has `delete-branch-on-merge` enabled, and `--delete-branch` fails when the branch is checked out in `.worktrees/<task-slug>`). On setup/docs/config/scaffolding PRs where local OhMyBug was skipped per `AGENTS.md`, prefix `gh pr merge` with `SKIP_BUGHUNT=1` (never on hard PRs):
+2. Always run `gh pr merge` from `$MAIN_ROOT` without `--delete-branch` (the repo has `delete-branch-on-merge` enabled, and `--delete-branch` fails when the branch is checked out in `.worktrees/<task-slug>`). Choose ONLY the block matching your PR type (never run `SKIP_BUGHUNT=1` on a hard PR):
    - **If zero checks are configured (`statusCheckRollup` is `[]`) or all checks already pass**:
+
+     Hard PR (local OhMyBug already ran when triggered):
      ```bash
-     # Hard PR (local OhMyBug already ran when triggered):
      (cd "$MAIN_ROOT" && gh pr merge "$PR" --squash)
-     # Setup/docs/config/scaffolding PR (local OhMyBug skipped per AGENTS.md, never on hard PRs):
+     ```
+
+     Setup/docs/config/scaffolding PR (local OhMyBug skipped per `AGENTS.md`):
+     ```bash
      (cd "$MAIN_ROOT" && SKIP_BUGHUNT=1 gh pr merge "$PR" --squash)
      ```
    - **If required checks are currently pending**:
+
+     Hard PR:
      ```bash
-     # Hard PR:
      (cd "$MAIN_ROOT" && gh pr merge "$PR" --auto --squash)
-     # Setup/docs/config/scaffolding PR (never on hard PRs):
+     gh pr checks "$PR" --watch || true
+     ```
+
+     Setup/docs/config/scaffolding PR (never on hard PRs):
+     ```bash
      (cd "$MAIN_ROOT" && SKIP_BUGHUNT=1 gh pr merge "$PR" --auto --squash)
      gh pr checks "$PR" --watch || true
      ```
@@ -231,9 +240,15 @@ Only allowed when **explicitly authorized** for the PR/task, converged at the ex
    ```bash
    PR_STATE=""
    for _ in $(seq 1 10); do
-     PR_STATE=$(gh pr view "$PR" --json state,autoMergeRequest --jq '.state')
-     AUTO_PENDING=$(gh pr view "$PR" --json autoMergeRequest --jq '.autoMergeRequest != null')
-     [ "$PR_STATE" = "MERGED" ] || [ "$PR_STATE" = "CLOSED" ] || [ "$AUTO_PENDING" = "false" ] && break
+     IFS=$'\t' read -r PR_STATE AUTO_PENDING < <(
+       gh pr view "$PR" --json state,autoMergeRequest --jq '[.state, (.autoMergeRequest != null)] | @tsv'
+     )
+     [ "$PR_STATE" = "MERGED" ] || [ "$PR_STATE" = "CLOSED" ] && break
+     if [ "$AUTO_PENDING" = "false" ]; then
+       sleep 3
+       PR_STATE=$(gh pr view "$PR" --json state --jq '.state')
+       break
+     fi
      sleep 6
    done
    [ "$PR_STATE" = "MERGED" ] || { echo "PR #$PR state is $PR_STATE; skipping cleanup and escalating to needs-human-review"; exit 1; }
@@ -249,7 +264,7 @@ Only allowed when **explicitly authorized** for the PR/task, converged at the ex
 
 ### Option B: `needs-human-review` (default)
 
-Used whenever `auto-merge` is not explicitly authorized, any hard human-review gate triggers, a RevEngine run fails/skips, or round 5 ends without convergence:
+Used whenever `auto-merge` is not explicitly authorized, any hard human-review gate triggers, a RevEngine run fails/skips (including an outage or `review.yml` repair override), or round 5 ends without convergence:
 
 1. Ensure the `needs-human-review` label exists and apply it:
    ```bash
