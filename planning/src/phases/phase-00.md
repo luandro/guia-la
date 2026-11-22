@@ -290,7 +290,7 @@ spike may start in parallel once this phase merges. They need:
   stub (PR 00-10) — [legacy audit](../research/legacy-cotiju-audit.md) is the
   starting inventory.
 - D-01 response (names) before Phase 02 pins any identifier.
-- D-02/D-03 left `proposed` is fine for Phase 02's spike — the spike exists
+- D-02 left `proposed` (and D-03 approved subject to S1) is fine for Phase 02's spike — the spike exists
   to produce their evidence, per [review §9](../review.md).
 - The evidence template (PR 00-6) so Phase 01's extraction matrix and Phase
   02's spike report use the same PR evidence format.

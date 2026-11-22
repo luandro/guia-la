@@ -53,7 +53,7 @@ Authoritative documentation (from research, retrieved 2026-11-21/22):
 - Expo Hosting free tier: 100k requests/month, PR preview URLs, no custom domain — [../research/expo-stack.md](../research/expo-stack.md) §1.4
 - `NODE_ENV` forcing and env/variant separation — [../research/expo-stack.md](../research/expo-stack.md) §1.1: Expo CLI forces `NODE_ENV`, and every non-debug build including a custom Staging config uses production env, so config must never key off `NODE_ENV`. Canonical variables: `APP_ENV` = environment (development/preview/staging/production); `APP_VARIANT` = build profile (flagship, cotijuba-web, serra-web — per-destination config keys off this, per the same section); both zod-validated, build fails if either is missing
 
-Decisions and review rows: D-08 (CI/build budget, proposed — this phase supplies its evidence), D-03 (static web export, proposed), R6 (native builds per PR), R1 (provenance pulled forward here), §8.3 (the split).
+Decisions and review rows: D-08 (CI/build budget, proposed — this phase supplies its evidence), D-03 (static web export, approved 2026-11-21; S1 pending), R6 (native builds per PR), R1 (provenance pulled forward here), §8.3 (the split).
 
 Known unknowns:
 

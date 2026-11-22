@@ -37,8 +37,8 @@ available, the gate records the exact blocker instead of pretending.
   per-route OG in raw HTML) and boots on Android (and iOS where hardware
   allows), with versions pinned and every command documented.
 - **Prerequisites:** Phase [00](phase-00.html) decisions recorded — D-01
-  names before identifiers are pinned; D-02/D-03 carry `proposed` status and
-  this phase produces their evidence.
+  names before identifiers are pinned; D-02 is `proposed` and D-03 is approved
+  subject to S1; this phase produces their evidence.
 - **Dependencies:** 00. Phase 01 runs in parallel; only the fixture wiring
   (task 02-5) consumes 01's outputs, and a temporary seed covers 01 lagging.
 - **Expected contributors:**

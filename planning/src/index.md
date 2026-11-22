@@ -17,8 +17,8 @@ short: Review of master plan v0.2 and draft playbooks for phases 00–10. Planni
 
 | Rank | Decision | Recommendation | Evidence needed |
 |---|---|---|---|
-| 1 | D-03 Web SEO rendering | Router static export + rebuild-on-publish | Spike S1 raw-HTML OG assertions |
-| 2 | D-06 Native exclusion scope | Web/JS exclusion now; native one-module spike; defer general | S5 result |
+| — | D-03 Web SEO rendering | **Approved 2026-11-21**: static export + rebuild-on-publish | Spike S1 must still pass |
+| — | D-06 Native exclusion scope | **Approved 2026-11-21**: web/JS now; native one-module spike | — |
 | 3 | D-09 Editor auth | Cloudflare Access pending spike A5 | Tenant A/B write test |
 | 4 | D-05 Map tiles | MapLibre + spike hosted vs PMTiles on R2 | S6, tile cost |
 | 5 | D-08 Spend ceiling | Workers Paid $5/mo + Expo Starter $19/mo when native starts | S12/S13 timings |
@@ -30,7 +30,7 @@ short: Review of master plan v0.2 and draft playbooks for phases 00–10. Planni
 
 - SEO spike and a walking-skeleton Places page move into Phase 02.
 - Phase 04 splits into 04a (web previews + fast gate) and 04b (path-filtered, budgeted native builds).
-- Phase 06 gate: web/JS exclusion + flagship union; native exclusion de-scoped to a spike.
+- Phase 06 gate: web/JS exclusion + flagship union; native exclusion de-scoped to a spike (approved as D-06).
 - Freshness/provenance and "live commit" checks move into Phases 04/07.
 - Numbering 00–10 retained; none of these changes is approved yet.
 

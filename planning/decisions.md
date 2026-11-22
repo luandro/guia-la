@@ -1,17 +1,17 @@
 # guia.la — decision register (ADR candidates)
 
 Statuses: `proposed` (recommendation, no user decision), `validated` (spike evidence supports it, still needs user), `approved` (explicit user decision or existing project record), `rejected`.
-Nothing here is `approved` except D-00 and D-13a, where the master plan v0.2 / handoff states a locked user constraint; those are cited. Evidence links: [review.md](review.md), [research/](research/).
+Nothing here is `approved` except D-03 and D-06 (owner decisions, 2026-11-21) and D-00 and D-13a, where the master plan v0.2 / handoff states a locked user constraint; those are cited. Evidence links: [review.md](review.md), [research/](research/).
 
 | ID | Decision | Status | Phase gate |
 |---|---|---|---|
 | D-00 | Platform identity: guia.la platform, Cotijuba pilot, Cotiju = legacy only | approved (handoff "locked for this planning pass") | 00 |
 | D-01 | Repository, package scope, app IDs, domain | proposed | 00 |
 | D-02 | Client stack: Expo SDK 58 + Expo Router + RNW + TypeScript, official template | proposed | 02 |
-| D-03 | Web rendering/SEO: Router static export + rebuild-on-publish | proposed (needs S1) | 02 |
+| D-03 | Web rendering/SEO: Router static export + rebuild-on-publish | approved (owner, 2026-11-21); S1 must pass, else fallback to Worker share pages returns to the owner | 02 |
 | D-04 | Backend: Cloudflare Workers + Hono + D1 (Drizzle) + R2 | proposed | 07 |
 | D-05 | Maps: MapLibre native + web behind one contract; tile source TBD | proposed (needs S6, tile cost) | 08 |
-| D-06 | Widget exclusion scope: web/JS exclusion required; native exclusion deferred | proposed | 06 |
+| D-06 | Widget exclusion scope: web/JS exclusion required; native exclusion deferred | approved (owner, 2026-11-21) | 06 |
 | D-07 | Distribution: one flagship native app with destination picker; destination web profiles | proposed (strongly supported by store policy) | 10 |
 | D-08 | CI/build budget: GH Actions fast gate; Expo Starter for native; spend ceiling | proposed | 04 |
 | D-09 | Editor authentication: Cloudflare Access vs built magic link | proposed (needs A5) | 07 |
@@ -43,7 +43,7 @@ Nothing here is `approved` except D-00 and D-13a, where the master plan v0.2 / h
 - **Reversal cost:** high after Phase 06.
 
 ## D-03 — Web rendering and SEO
-- **Status:** proposed — blocked on spike S1.
+- **Status:** approved by the owner on 2026-11-21. Spike S1 must still pass; if it fails, the fallback (a) returns to the owner as a new decision.
 - **Proposal:** `web.output: "static"` explicitly; `generateMetadata()` for OG; `generateStaticParams` from the API at build; editor "publish" triggers a rebuild + deploy (GitHub `repository_dispatch` or Workers Builds hook). Deploy to Cloudflare Workers Static Assets.
 - **Alternatives:** (a) Hono-rendered share pages for public detail routes, Expo web for the app shell; (b) `web.output: "server"` on Workers via undocumented `expo-server` workerd adapter [S3] — not recommended.
 - **Evidence required:** raw-HTML assertions (`curl`, Playwright with JS disabled) for every place page; rebuild time at 1k pages; WhatsApp preview manual check.
@@ -65,7 +65,7 @@ Nothing here is `approved` except D-00 and D-13a, where the master plan v0.2 / h
 - **Fallback:** static map image + "open in Google/Apple Maps" deep link.
 
 ## D-06 — Widget exclusion scope
-- **Status:** proposed.
+- **Status:** approved by the owner on 2026-11-21.
 - **Proposal:** Phase 06 must prove JS/route exclusion for two web profiles with negative assertions, and permission/config composition for the flagship. Per-destination native module exclusion: one-module spike only; general mechanism deferred until a partner native app is approved.
 - **Rationale:** flagship app must contain the union; `expo.autolinking.exclude` only documented in `package.json` [S5].
 - **Reversal cost:** low — generator already emits capability lists.
