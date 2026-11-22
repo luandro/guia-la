@@ -143,6 +143,8 @@ Flaky-test protocol: quarantine label with an issue link and 7-day expiry; never
 
 See [decisions.md](decisions.md) for full ADR candidates.
 
+> **Update 2026-11-21:** the owner decided D-01, D-03, D-05, D-06, D-08 (all free tiers — supersedes item 5), D-09 and D-11 (MIT for code); D-12 is an owner TODO. The list below is the original ranking.
+
 1. **D-03 SEO rendering** — static export + rebuild-on-publish (recommended) vs Worker SSR share pages. Evidence: S1 result.
 2. **D-06 Native exclusion scope** — defer general mechanism (recommended).
 3. **D-09 Editor auth** — Cloudflare Access (recommended pending A5) vs built magic link.
