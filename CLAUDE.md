@@ -22,13 +22,16 @@ Delegation ladder (cheapest that fits the job):
 3. **opencode** — junior on free models. Pick current free models with
    `free-models` (picks live in `.state/harnesses.md`), then:
    `opencode run --model <provider/model> "<brief>"`
-4. **codex senior** — `gpt-6.2-sol`, effort `low`: hard implementation,
+4. **codex lower senior** — `gpt-6.1-terra`: scoped implementation a glm
+   attempt got wrong, or a second implementer when glm is busy.
+   Run: `codex exec -m gpt-6.1-terra "<brief>"`
+5. **codex senior** — `gpt-6.2-sol`, effort `low`: hard implementation,
    diagnosis, and the `codex review` step of the PR cycle.
    Run: `codex exec -m gpt-6.2-sol -c model_reasoning_effort=low "<brief>"`
-5. **agy swarm** — complex work that parallelizes. Start
+6. **agy swarm** — complex work that parallelizes. Start
    `agy --model gemini-pro-orchestrator-neon` and run `/swarm`. Give each
    agent its own brief and worktree.
-6. **codex super senior** — `gpt-6.2-astra`: very expensive. Use only for
+7. **codex super senior** — `gpt-6.2-astra`: very expensive. Use only for
    very hard consultations, reviews or planning where a wrong call is costly
    (architecture forks, security-critical review, a stuck diagnosis after
    cheaper tiers failed). Read-only; one focused question with the evidence
