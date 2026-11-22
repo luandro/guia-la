@@ -1,6 +1,6 @@
 import { Link, useLocalSearchParams } from "expo-router";
 import type { Metadata } from "expo-router/server";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { resolveContent, type Locale } from "@guia-la/core";
@@ -13,6 +13,8 @@ import {
   ShowingOriginalBadge,
 } from "@/components/journey-ui";
 import { NotFoundView } from "@/components/not-found-view";
+import { Screen } from "@/components/screen";
+import { ThemedText } from "@/components/themed-text";
 import { getJourneyDataset } from "@/data/destination";
 import { useDestination } from "@/hooks/use-destination";
 import { createT, isLocale, LOCALES } from "@/i18n";
@@ -107,18 +109,18 @@ function DetailContent({ slug }: { slug: string }) {
 
   if (state.status === "loading") {
     return (
-      <View style={styles.page}>
+      <Screen>
         <OfflineHint visible={state.offline} />
         <LoadingView />
-      </View>
+      </Screen>
     );
   }
   if (state.status === "error" && state.error) {
     return (
-      <View style={styles.page}>
+      <Screen>
         <OfflineHint visible={state.offline} />
         <ErrorView error={state.error} retry={retry} />
-      </View>
+      </Screen>
     );
   }
   if (!state.data) {
@@ -143,33 +145,38 @@ function DetailContent({ slug }: { slug: string }) {
   }).format(new Date(year, month - 1, day));
 
   return (
-    <View style={styles.page}>
+    <Screen>
       <OfflineHint visible={state.offline} />
-      <View style={styles.detail}>
-        <Text style={styles.title}>{content.name}</Text>
+      {/* Bounded ScrollView (PR #15 CodeRabbit review): on small landscape
+          screens or with enlarged text the summary, verification date and
+          back link can exceed the viewport; contentContainerStyle keeps the
+          short-content layout unchanged. */}
+      <ScrollView contentContainerStyle={styles.detail}>
+        <ThemedText style={styles.title}>{content.name}</ThemedText>
         {category ? (
-          <Text style={styles.category}>{category.label[locale]}</Text>
+          <ThemedText style={styles.category}>
+            {category.label[locale]}
+          </ThemedText>
         ) : null}
-        <Text style={styles.summary}>{content.summary}</Text>
+        <ThemedText style={styles.summary}>{content.summary}</ThemedText>
         <View style={styles.markers}>
           {content.isFallback && (
             <ShowingOriginalBadge locale={content.locale} />
           )}
           {content.machineTranslated && <MachineTranslatedBadge />}
         </View>
-        <Text style={styles.verified}>
+        <ThemedText style={styles.verified}>
           {t("places.verifiedAt", { date: verified })}
-        </Text>
+        </ThemedText>
         <Link href={`/${locale}/places`} style={styles.back}>
           {t("common.backToList")}
         </Link>
-      </View>
-    </View>
+      </ScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1 },
   detail: { gap: 8, padding: 24 },
   title: { fontSize: 26, fontWeight: "700" },
   category: { fontSize: 14, opacity: 0.7 },
