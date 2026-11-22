@@ -1,0 +1,47 @@
+{
+  "common": {
+    "appName": "guia.la",
+    "retry": "Try again",
+    "offlineHint": "You appear to be offline. Showing saved information.",
+    "showingOriginal": "Showing original ({{locale}})",
+    "machineTranslated": "Machine translated",
+    "backToList": "Back to all places"
+  },
+  "index": {
+    "title": "Choose your language",
+    "subtitle": "guia.la — local guides, in your language"
+  },
+  "places": {
+    "listTitle": "Places in {{destination}}",
+    "count_one": "{{count}} place",
+    "count_other": "{{count}} places",
+    "loading": "Loading places…",
+    "verifiedAt": "Verified on {{date}}",
+    "timeout": "This is taking longer than expected.",
+    "errorTitle": "Something went wrong",
+    "errorDetail": "The places could not be loaded.",
+    "empty": "No places here yet.",
+    "emptyDetail": "This destination has no published places so far."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist.",
+    "back": "Start over"
+  },
+  "meta": {
+    "homeTitle": "guia.la — local travel guides",
+    "homeDescription": "Guides to places, trails and beaches, straight from the destination.",
+    "placesTitle": "Places — {{destination}}",
+    "placesDescription": "All places in {{destination}} on guia.la.",
+    "placeTitle": "{{name}} — {{destination}}",
+    "placeDescription": "{{summary}}"
+  },
+  "locales": {
+    "en": "English",
+    "pt-BR": "Português",
+    "es": "Español",
+    "fr": "Français",
+    "nl": "Nederlands",
+    "de": "Deutsch"
+  }
+}
