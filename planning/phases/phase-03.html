@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<title>Phase 03 — Design system, Storybook and theming · guia.la planning</title>
+<style>
+:root { --bg:#f7f5ef; --paper:#fffefa; --ink:#172d2a; --ink2:#38534d; --mute:#5a6e66;
+  --sea:#155c60; --deep:#0c3438; --lime:#d3f08e; --lime-dark:#82b83c; --sand:#e9e4d8;
+  --line:#d9ddd3; --warm:#a5532f; --white:#ffffff;
+  --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); font-family:var(--font); color:var(--ink); line-height:1.58; }
+a { color:var(--sea); text-underline-offset:3px; }
+a:hover { color:#0b3f40; }
+:focus-visible { outline:3px solid var(--warm); outline-offset:3px; }
+.skip { position:absolute; left:-999px; top:8px; background:var(--deep); color:var(--lime);
+  padding:9px 15px; border-radius:8px; z-index:50; }
+.skip:focus { left:8px; color:var(--lime); }
+.frame { display:grid; grid-template-columns:258px minmax(0,1fr); min-height:100vh; }
+.rail { position:sticky; top:0; height:100vh; padding:28px 18px 18px 24px; border-right:1px solid var(--line);
+  display:flex; flex-direction:column; background:#f2f1e9; z-index:5; overflow-y:auto; }
+.brand { display:flex; align-items:center; gap:11px; font-weight:850; letter-spacing:-.05em;
+  font-size:21px; color:var(--deep); text-decoration:none; }
+.brandmark { width:36px; height:36px; border-radius:11px; background:var(--deep); color:var(--lime);
+  display:grid; place-items:center; font-size:19px; font-weight:800; flex:none; }
+.rail-caption { font:700 10px/1.4 var(--mono); letter-spacing:.15em; color:#5c7568; margin:26px 8px 9px;
+  text-transform:uppercase; }
+.rail nav { display:flex; flex-direction:column; gap:2px; }
+.rail nav a { display:block; padding:7px 10px; text-decoration:none; border-radius:8px;
+  color:#4d665f; font-size:13px; }
+.rail nav a:hover { color:var(--deep); background:#dce7d5; }
+.rail-bottom { margin-top:auto; padding:14px 10px 0; border-top:1px solid var(--line);
+  color:var(--mute); font-size:11px; }
+.rail-bottom strong { color:var(--sea); }
+.main { min-width:0; }
+.content { max-width:1040px; margin:auto; padding:0 48px 90px; }
+.hero { background:var(--deep); color:var(--white); padding:58px 48px 50px; }
+.hero-eyebrow { display:flex; align-items:center; gap:9px; text-transform:uppercase;
+  font:700 11px/1.5 var(--mono); letter-spacing:.16em; color:#c1e4c6; }
+.hero-dot { width:7px; height:7px; border-radius:50%; background:var(--lime); display:inline-block; }
+.hero h1 { font-weight:720; font-size:clamp(34px,4.4vw,58px); letter-spacing:-.06em;
+  line-height:1.06; margin:22px 0 16px; max-width:820px; }
+.hero-short { max-width:720px; color:#c3d6d0; font-size:clamp(16px,1.4vw,18px); line-height:1.65; }
+.hero-pills { display:flex; flex-wrap:wrap; gap:9px; margin-top:26px; }
+.pill { display:inline-flex; align-items:center; border:1px solid #42706b; border-radius:100px;
+  color:#d8e7d9; padding:7px 12px; font:600 11px var(--mono); }
+.pill.bright { background:var(--lime); color:var(--deep); border-color:var(--lime); }
+.pill a { color:inherit; }
+h2 { font-size:clamp(24px,2.8vw,34px); letter-spacing:-.045em; font-weight:720; line-height:1.15;
+  margin:52px 0 16px; scroll-margin-top:20px; }
+h3 { letter-spacing:-.025em; font-size:19px; margin:30px 0 10px; }
+h4 { font-size:15px; margin:22px 0 8px; }
+p { color:var(--ink2); margin:0 0 14px; }
+li { margin-bottom:6px; color:var(--ink2); }
+ul,ol { padding-left:24px; margin:0 0 14px; }
+li ul,li ol { margin:6px 0 2px; }
+table { border-collapse:collapse; font-size:13.5px; width:100%; margin:18px 0; }
+th,td { border-bottom:1px solid #d8dfd5; text-align:left; vertical-align:top; padding:10px 11px; }
+th { font:800 10px var(--mono); text-transform:uppercase; letter-spacing:.07em; color:#3f5f56;
+  background:#eaece3; }
+td { color:var(--ink2); }
+.tablewrap { overflow-x:auto; margin:18px 0; }
+.tablewrap table { margin:0; }
+code { font:.92em var(--mono); background:#ecefe4; border-radius:5px; padding:1px 5px; color:#26433c; }
+pre { background:#122f31; color:#d2e9e0; border-radius:13px; padding:18px; overflow:auto; margin:16px 0; }
+pre code { background:none; color:inherit; padding:0; font:12.5px/1.7 var(--mono); }
+blockquote { margin:16px 0; padding:12px 18px; border-left:4px solid #9db7ad; background:#f0f2ea;
+  border-radius:0 12px 12px 0; color:var(--ink2); }
+blockquote p:last-child { margin-bottom:0; }
+.callout { margin:18px 0; border-radius:12px; padding:14px 18px; border:1px solid var(--line);
+  border-left-width:5px; background:var(--paper); }
+.callout-label { font:800 10px var(--mono); letter-spacing:.14em; text-transform:uppercase;
+  color:var(--deep); margin:0 0 6px; }
+.callout p:last-child { margin-bottom:0; }
+.callout-gate { border-left-color:#2e624a; background:#eaf2e2; }
+.callout-gate .callout-label { color:#2e624a; }
+.callout-risk { border-left-color:var(--warm); background:#f7e9dc; }
+.callout-risk .callout-label { color:var(--warm); }
+.callout-decision { border-left-color:var(--sea); background:#e4eef0; }
+.callout-decision .callout-label { color:var(--sea); }
+.callout-note { border-left-color:#7f8a72; background:#f1f2ec; }
+.callout-note .callout-label { color:#5c6a4e; }
+ul.checklist, ol.checklist { list-style:none; padding-left:2px; }
+.checklist input { margin-right:8px; }
+.linklist { display:flex; flex-wrap:wrap; gap:8px; list-style:none; padding:0; margin:0 0 16px; }
+.linklist li { margin:0; }
+.pillnav { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:26px 0 0; }
+.pillnav a { border:1px solid #b8cbbd; color:var(--deep); background:var(--paper); font-size:12.5px;
+  border-radius:9px; font-weight:650; padding:8px 13px; text-decoration:none; }
+.pillnav a:hover { background:#e5f0dd; }
+.prompt-details summary { cursor:pointer; font:700 12px var(--mono); letter-spacing:.08em;
+  text-transform:uppercase; color:var(--sea); margin-bottom:10px; }
+.copy-btn { border:1px solid #b8cbbd; background:#f7f9ef; color:var(--deep); border-radius:9px;
+  font:650 12px var(--font); padding:8px 13px; cursor:pointer; margin-bottom:10px; }
+.copy-btn:hover { background:#e5f0dd; }
+.footer { margin-top:60px; padding-top:20px; border-top:1px solid var(--line); display:flex;
+  justify-content:space-between; gap:18px; color:var(--mute); font-size:11px; }
+@media (max-width:860px) {
+  .frame { display:block; }
+  .rail { position:relative; height:auto; padding:12px 16px; flex-direction:row; align-items:center;
+    gap:14px; overflow-x:auto; }
+  .rail nav { flex-direction:row; gap:3px; white-space:nowrap; }
+  .rail-caption,.rail-bottom { display:none; }
+  .content { padding:0 18px 60px; }
+  .hero { padding:40px 18px 34px; }
+}
+@media print {
+  @page { size:A4; margin:14mm; }
+  .frame { display:block; }
+  .rail,.copy-btn,.pillnav,.skip { display:none; }
+  .hero { color:var(--ink); background:#eff5e8; padding:14px 0; }
+  .hero-short { color:var(--ink2); }
+  .hero-eyebrow { color:var(--sea); }
+  .pill { color:var(--sea); border-color:var(--sea); }
+  .content { max-width:100%; padding:0; }
+  pre { white-space:pre-wrap; }
+  details { display:block; }
+  a[href^="http"]::after { content:" (" attr(href) ")"; font-size:11px; color:var(--mute); }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="frame">
+<aside class="rail"><a class="brand" href="../index.html"><span class="brandmark">g.</span><span>guia.la <em>/ planning</em></span></a><div class="rail-caption">On this page</div><nav aria-label="On this page"><a href="#phase-identity">Phase identity</a><a href="#why-this-stage-exists">Why this stage exists</a><a href="#inputs-and-source-references">Inputs and source references</a><a href="#task-breakdown">Task breakdown</a><a href="#architecture-choices-and-guardrails">Architecture choices and guardrails</a><a href="#deliverables">Deliverables</a><a href="#visual-and-functional-qa">Visual and functional QA</a><a href="#automated-verification">Automated verification</a><a href="#acceptance-gate">Acceptance gate</a><a href="#risks-rollback-and-handoff">Risks, rollback and handoff</a><a href="#next-phase-handoff">Next phase handoff</a></nav><div class="rail-bottom"><a href="../index.html">← Planning index</a></div></aside>
+<main class="main" id="main">
+<header class="hero">
+<div class="hero-eyebrow"><span class="hero-dot"></span> guia.la / Phase 03</div>
+<h1>Phase 03 — Design system, Storybook and theming</h1>
+<p class="hero-short">Spike S9, then build token-driven UI primitives with per-destination themes, stories, and accessibility checks that every later phase reuses.</p>
+<div class="hero-pills"><span class="pill bright">Status: draft</span><span class="pill">Medium (compatibility)</span><span class="pill">See</span><span class="pill">depends on: <a href="phase-02.html">02</a></span></div>
+</header><div class="content"><h2 id="phase-identity">Phase identity</h2><p>Phase <strong>03</strong> turns the Phase 02 shell into a reviewable design system: a token layer, a small set of primitive components with complete interactive states, React Native Storybook on device and web, and destination theming demonstrated with Cotijuba (pilot destination) and the Serra demo (synthetic mountain destination).</p><ul><li><strong>Objective:</strong> a human who cannot run a simulator opens one URL and reviews every primitive in both destination themes, light and dark; a widget author in Phase 06+ composes screens from these primitives without ever writing a brand color.</li><li><strong>Prerequisites:</strong> Phase 02 exit — pinned Expo SDK 58 monorepo (proposed naming <code>guia-la</code>, packages <code>@guia-la/*</code>), <code>web.output: &quot;static&quot;</code> export working, walking-skeleton Places page from fixture data.</li><li><strong>Dependencies:</strong> Phase 02 (repo layout, pinned versions, export pipeline). See <a href="../decisions.md">../decisions.md</a> D-02 (client stack, proposed).</li><li><strong>Expected contributors:</strong> senior coding agent (implementation), orchestrator agent (code review), human product owner (visual sign-off on themes; no designer is assumed — initial tokens derive from the planning packet&#x27;s own visual language: deep teal, lime accent, warm off-white).</li><li><strong>Complexity and risks:</strong> Medium, dominated by toolchain compatibility. <code>@storybook/react-native</code> 10.7.2 and <code>@storybook/react-native-web-vite</code> 10.6.8 have peer ranges that admit RN 0.88 / React 19.3 / RNW 0.21, but the combination was never built — that is spike S9 (<a href="../research/expo-stack.md">../research/expo-stack.md</a> §3). Storybook 11 is in beta and must not be adopted (<a href="../research/expo-stack.md">../research/expo-stack.md</a> §4). Mitigation: spike first, explicit fallback, nothing in this phase assumes on-device Storybook works. <strong>No hour estimates.</strong></li></ul><h2 id="why-this-stage-exists">Why this stage exists</h2><p>Every later phase reviews UI through these primitives. Phase 04&#x27;s pipeline publishes story builds as review surfaces; Phase 06&#x27;s widget contract requires that widgets contain no styling of their own; Phase 08&#x27;s widgets must ship honest empty, error, loading, and offline states. Establishing that grammar once, with themes as data, is what makes a second destination cheap instead of a fork.</p><p>The legacy app is the counterexample. Its 58 shadcn/Radix primitives are DOM-only and unportable to React Native (<a href="../research/legacy-cotiju-audit.md">../research/legacy-cotiju-audit.md</a> §2), and its missing async states produced the indefinite spinners of issue #60: views with no timeout, empty, error, or retry state (<a href="../research/legacy-cotiju-audit.md">../research/legacy-cotiju-audit.md</a> §9). White-labeling was env-flag only — the flags toggled UI but removed no code (<a href="../research/legacy-cotiju-audit.md">../research/legacy-cotiju-audit.md</a> §inference). This phase makes the state matrix and the theme data first-class so those classes of failure are visible in a story before they reach a device.</p><p>Storybook placement here follows the master plan (phase 03, tag See), with one edit proposed in <a href="../review.md">../review.md</a> §8.2: start with the S9 compatibility spike and keep a named fallback, because R10 rates the untested peers as a medium risk.</p><h2 id="inputs-and-source-references">Inputs and source references</h2><p>Proposed paths in the future <code>guia-la</code> repository (marked proposed; nothing exists yet):</p><ul><li><code>packages/ui/</code> — primitives, tokens, theme engine (proposed)</li><li><code>packages/ui/src/tokens/</code> — token definitions and generated sheets (proposed)</li><li><code>packages/ui/src/theme/</code> — <code>DestinationTheme</code> type, presets (proposed)</li><li><code>apps/app/.rnstorybook/</code> — on-device Storybook config (proposed)</li><li><code>.storybook/</code> — web (RNW-Vite) config at repo or app root (proposed)</li><li>Stories colocated with components as <code>*.stories.tsx</code> (proposed)</li></ul><p>Legacy references (read-only, <code>luandro/cotiju-app</code> at <code>c0c9907</code>):</p><ul><li><code>src/components/ui/</code> — 58 shadcn primitives; concept reference for naming and state coverage only; the DOM implementation is not portable</li><li>Issue #60 — async views without timeout/empty/error/retry; drives the required state matrix</li><li>Issue #67 — missing OG/social preview basics; not this phase&#x27;s scope, but story metadata habits start here</li></ul><p>Authoritative documentation (from research, retrieved 2026-11-21/22):</p><ul><li>Storybook RN setup incl. Expo Router entry-point swapping via <code>STORYBOOK_ENABLED</code> — <a href="../research/expo-stack.md">../research/expo-stack.md</a> §1.7</li><li>Storybook RNW-Vite peers and the &quot;use both runtimes&quot; recommendation — same section</li><li>Expo platform-specific file extensions (<code>.web.tsx</code> needs a non-platform sibling inside <code>app/</code>) — same, §1.5</li></ul><p>Decisions and review rows:</p><ul><li>D-02 client stack (proposed) — this phase must not revisit it; raise blockers, not redesigns</li><li>R10 (Storybook risk), R13 (starters lag SDK 58 by 3–4 SDKs — borrow patterns, adopt nothing) — <a href="../review.md">../review.md</a> §2</li></ul><p>Known unknowns:</p><ul><li>S9 outcome: whether <code>npm create storybook</code> in &quot;Both&quot; mode builds on the SDK 58 template (RN 0.88, React 19.3, Reanimated 4.7, Expo Router modules needing Vite transpilation) — unknown, measure in S9</li><li>Visual snapshot stability across platforms — unknown; this phase baselines web only</li><li>Dark mode depth: whether every primitive needs a dark variant now — proposed: light-first, dark tokens defined but only exercised where cheap</li><li>Whether on-device Storybook and the <code>/gallery</code> fallback can share one component index — proposed: one story list, two renderers, so the fallback is a runtime swap rather than a second catalog to maintain</li></ul><p>Credentials and tools needed: none. Everything in this phase runs locally; no accounts, no network services, no spend.</p><h2 id="task-breakdown">Task breakdown</h2><div class="tablewrap"><table><thead><tr><th scope="col">#</th><th scope="col">Task (bounded)</th><th scope="col">Owner</th><th scope="col">PR unit</th><th scope="col">Depends on</th></tr></thead><tbody><tr><td>1</td><td>Run spike S9: add Storybook in &quot;Both&quot; mode to the Phase 02 template; record exact versions, errors, and verdict in the spike note</td><td>Agent</td><td>PR 03-1</td><td>—</td></tr><tr><td>2</td><td>Record the verdict as a decision note (S9 pass, or fallback per R10: web-only Storybook plus an Expo Router <code>/gallery</code> dev route on device)</td><td>Agent, human informed</td><td>PR 03-2</td><td>1</td></tr><tr><td>3</td><td>Token layer: colors, typography, spacing, radius, elevation, dark-mode pairs; token schema as TypeScript plus zod</td><td>Agent</td><td>PR 03-3</td><td>2</td></tr><tr><td>4</td><td>Theme engine: <code>ThemeProvider</code>, <code>useTheme</code>, runtime switching; presets <code>cotijuba</code> and <code>serra</code> (synthetic palettes, no real-branding claims)</td><td>Agent</td><td>PR 03-4</td><td>3</td></tr><tr><td>5</td><td>Primitives batch 1 with stories: Text/Heading, Button, Card, Chip/Badge, ListRow</td><td>Agent</td><td>PR 03-5</td><td>4</td></tr><tr><td>6</td><td>Primitives batch 2 with stories: TextInput + field scaffolding, Skeleton, EmptyState, ErrorState with retry, OfflineBanner, MapPlaceholder</td><td>Agent</td><td>PR 03-6</td><td>4</td></tr><tr><td>7</td><td>State matrix stories: each primitive rendered in loading, empty, error, offline, light, dark; themes switchable per story</td><td>Agent</td><td>PR 03-7</td><td>5, 6</td></tr><tr><td>8</td><td>Accessibility pass: labels not color alone, minimum target sizes, focus order stories; axe checks wired on web stories</td><td>Agent</td><td>PR 03-8</td><td>7</td></tr><tr><td>9</td><td>Visual diff baseline: screenshot the story set on Chromium; store baselines; threshold policy documented</td><td>Agent</td><td>PR 03-9</td><td>7</td></tr><tr><td>10</td><td>Usage docs and guardrails: how a widget consumes tokens, what is forbidden, how to add a primitive</td><td>Agent</td><td>PR 03-10</td><td>8, 9</td></tr></tbody></table></div><p>Notes on boundaries:</p><ol><li>Task 1 is deliberately first and separate: nothing else in the phase may merge before the S9 verdict exists, because PRs 03-3 through 03-9 must target the runtime configuration the verdict selects.</li><li>Tasks 5 and 6 are two PRs to keep diffs reviewable; a third batch (navigation shells, headers) is explicitly deferred to Phase 06 widget scaffolding, where real routes exist.</li><li>The human owns visual sign-off of both theme presets (PR 03-4) and the accessibility bar (PR 03-8); the agent does not self-approve aesthetics.</li></ol><h2 id="architecture-choices-and-guardrails">Architecture choices and guardrails</h2><p>Locations and contracts (proposed):</p><ul><li><code>packages/ui</code> depends only on <code>react</code>, <code>react-native</code>, and its own token module. It must not import from <code>apps/<em></code>, <code>packages/widgets/</em></code>, or any widget.</li><li>Themes are data: a destination manifest (Phase 06) references a theme id; components read tokens from context. Illustrative sketch:</li></ul><pre><code class="language-ts">// Illustrative only — final types land in the implementing PR.
+export type ThemeTokens = {
+  colors: { bg: string; surface: string; ink: string; accent: string; danger: string };
+  radius: { sm: number; md: number; lg: number };
+  space: (step: 1 | 2 | 3 | 4 | 6 | 8) =&gt; number;
+  type: { heading: object; body: object; caption: object };
+};
+export type DestinationTheme = {
+  id: &#x27;cotijuba&#x27; | &#x27;serra&#x27; | (string &amp; {});
+  defaultMode: &#x27;light&#x27; | &#x27;dark&#x27;;
+  tokens: { light: ThemeTokens; dark: ThemeTokens };
+};</code></pre><p>Patterns:</p><ul><li>StyleSheet at module scope, tokens resolved at render via context — avoids per-render style creation without introducing a CSS-in-RN runtime</li><li>On-device Storybook via entry-point swap (<code>STORYBOOK_ENABLED=true</code>), which keeps Storybook code out of production bundles per the RN setup docs (<a href="../research/expo-stack.md">../research/expo-stack.md</a> §1.7)</li><li>Web stories run on <code>@storybook/react-native-web-vite</code>; both runtimes consume the same CSF files</li></ul><p>Forbidden:</p><ul><li>Porting shadcn/Radix primitives (DOM-only; the lesson is the state matrix, not the code)</li><li>Hardcoded hex colors, font sizes, or the strings <code>cotijuba</code>/<code>serra</code> inside <code>packages/ui/src/components/**</code></li><li>Widget-to-widget or app-to-widget imports from <code>packages/ui</code></li><li>Storybook 11 (beta) or any beta-tagged peer</li><li><code>Platform.OS</code> styling forks without a comment justifying why tokens cannot express it</li></ul><p>Security and privacy implications: none directly — no network, no accounts, no personal data. Fixture content in stories is synthetic; do not copy legacy photos, names, or phone numbers into stories.</p><p>Acceptable alternatives if the primary path fails:</p><ul><li>Fallback A (R10): web-only Storybook plus an Expo Router <code>/gallery</code> route rendered on device in dev builds — accepts slower device review to keep the phase moving</li><li>Alternative styling engines (NativeWind/Tailwind, styled-components): rejected for now — token functions plus StyleSheet have no extra runtime and work identically on RNW; revisit only with evidence of real cost</li></ul><h2 id="deliverables">Deliverables</h2><ul class="checklist"><li><input type="checkbox" disabled> <code>packages/ui</code> package with token layer, theme engine, and both presets (proposed paths above)</li><li><input type="checkbox" disabled> Primitive components: Text, Heading, Button, Card, Chip, ListRow, TextInput, field scaffolding, Skeleton, EmptyState, ErrorState, OfflineBanner, MapPlaceholder</li><li><input type="checkbox" disabled> Colocated CSF stories for every primitive, covering the state matrix</li><li><input type="checkbox" disabled> Storybook configuration for the runtime(s) the S9 verdict selected (<code>.rnstorybook/</code> and/or <code>.storybook/</code>)</li><li><input type="checkbox" disabled> If fallback chosen: <code>/gallery</code> dev route in <code>apps/app</code> rendering the same component set</li><li><input type="checkbox" disabled> Visual baselines stored in-repo with a README stating how to update them deliberately</li><li><input type="checkbox" disabled> <code>docs/ui/usage.md</code> (proposed) — consumption rules, forbidden list, addition checklist</li><li><input type="checkbox" disabled> Spike note <code>docs/spikes/S9-storybook.md</code> (proposed) — versions pinned, errors hit, verdict, decision reference</li><li><input type="checkbox" disabled> Decision-register update: S9 outcome recorded against D-02&#x27;s evidence list (status stays proposed unless the user decides)</li></ul><h2 id="visual-and-functional-qa">Visual and functional QA</h2><p>Manual journeys (human, no simulator required for the web path):</p><ol><li>Open the web Storybook build (local or the Phase 04 preview URL once it exists — pattern TBD in Phase 04). Switch theme cotijuba to serra; every story re-skins with no reload or layout break.</li><li>Toggle light/dark in a theme toolbar knob; confirm dark is not &quot;inverted light&quot; — surfaces and ink swap deliberately.</li><li>Keyboard-navigate the Button and TextInput stories: visible focus, logical order, Enter/Space activation.</li><li>Force the ErrorState story&#x27;s retry action; confirm it fires visibly (a counter or log line in the story), not a silent no-op.</li><li>Run the on-device (or <code>/gallery</code> fallback) surface on an Android emulator and, if available, an iOS simulator; confirm the same stories render and themes switch.</li></ol><p>Agent journeys:</p><ol><li>Render every story headlessly; capture screenshots web (Chromium) — artifacts land in the PR.</li><li>Axe scan over all stories; findings listed with severity, zero critical accepted.</li><li>Grep <code>packages/ui/src/components</code> for hardcoded hex values and destination ids; expect zero hits.</li></ol><p>Platform matrix:</p><div class="tablewrap"><table><thead><tr><th scope="col">Surface</th><th scope="col">Web</th><th scope="col">Android</th><th scope="col">iOS</th></tr></thead><tbody><tr><td>Storybook web build</td><td>required</td><td>n/a</td><td>n/a</td></tr><tr><td>On-device stories or <code>/gallery</code></td><td>n/a</td><td>required (emulator)</td><td>best-effort (simulator; record if unavailable)</td></tr><tr><td>Theme switching</td><td>required</td><td>required</td><td>with above</td></tr></tbody></table></div><p>Error states to verify explicitly: ErrorState with retry, OfflineBanner, EmptyState with a call-to-action, Skeleton-to-content transition. A story that renders none of these is incomplete, not optional.</p><p>Required state matrix (every primitive is story-rendered against each row; a cell marked &quot;n/a&quot; must be justified in the story file):</p><div class="tablewrap"><table><thead><tr><th scope="col">State</th><th scope="col">Expectation</th><th scope="col">Applies to</th></tr></thead><tbody><tr><td>loading</td><td>Skeleton or stable placeholder; no layout shift when data lands</td><td>data-bound components</td></tr><tr><td>empty</td><td>EmptyState with one clear next action, never a bare blank</td><td>lists, cards, directories</td></tr><tr><td>error</td><td>ErrorState naming what failed plus a retry that visibly fires</td><td>anything async</td></tr><tr><td>offline</td><td>OfflineBanner; cached/last-known content where it exists, explicit unavailability where not</td><td>shell, lists, detail views</td></tr><tr><td>dark</td><td>Surfaces and ink swap deliberately; contrast holds (axe)</td><td>all</td></tr><tr><td>reduced motion</td><td>Animations degrade to instant state changes</td><td>Skeleton, transitions</td></tr></tbody></table></div><h2 id="automated-verification">Automated verification</h2><p>Nothing in this phase has been run; every command below is <strong>proposed</strong> until executed in the future repo. The only command form verified in research is the export source-map flag (not needed here). Commands:</p><div class="tablewrap"><table><thead><tr><th scope="col">Command</th><th scope="col">Purpose</th><th scope="col">Status</th></tr></thead><tbody><tr><td><code>pnpm --filter @guia-la/ui typecheck</code></td><td>strict TS on the new package</td><td>proposed</td></tr><tr><td><code>pnpm --filter @guia-la/ui test</code></td><td>unit tests for token resolution and theme switching</td><td>proposed</td></tr><tr><td><code>pnpm --filter @guia-la/ui storybook:build</code></td><td>static web story build (RNW-Vite path, S9-dependent)</td><td>proposed</td></tr><tr><td><code>pnpm --filter @guia-la/ui storybook:test</code></td><td>interaction/a11y (axe) checks over stories</td><td>proposed</td></tr><tr><td><code>pnpm --filter @guia-la/ui snapshot</code></td><td>screenshot diff against stored baselines (Chromium)</td><td>proposed</td></tr><tr><td><code>grep -R -n -E &#x27;#[0-9a-fA-F]{3,8}&#x27; packages/ui/src/components</code></td><td>no hardcoded colors (expect no output)</td><td>proposed</td></tr></tbody></table></div><p>Positive tests: token resolution returns preset values; theme context switches re-render consumers; each primitive&#x27;s happy-path story renders.</p><p>Negative tests: unknown theme id falls back to a named default and logs once (never crash); missing token key fails typecheck, not silently at runtime.</p><p>Deliberate-failure demonstration: temporarily add a low-contrast token pair and a story using it; the axe run must flag the contrast violation. Record the failing output in the PR, then revert. Phase 05 turns this habit into a standing red/green protocol.</p><h2 id="acceptance-gate">Acceptance gate</h2><aside class="callout callout-gate"><p class="callout-label">Gate</p><p>Storybook (or its recorded fallback) reviews every primitive in both destination themes, and the design system contains zero destination-specific code.</p></aside><p>Checklist (observable pass/fail):</p><ul class="checklist"><li><input type="checkbox" disabled> S9 spike note exists with pinned versions and a verdict; fallback chosen only if the spike failed</li><li><input type="checkbox" disabled> Every primitive has stories covering loading, empty, error, offline, light, dark</li><li><input type="checkbox" disabled> Theme switch (cotijuba to serra, light to dark) works in the review URL without reload</li><li><input type="checkbox" disabled> Axe scan reports zero critical findings; findings list attached to the PR</li><li><input type="checkbox" disabled> Grep finds no hardcoded colors or destination ids under <code>packages/ui/src/components</code></li><li><input type="checkbox" disabled> Visual baselines committed with an update policy</li><li><input type="checkbox" disabled> Human sign-off recorded on both theme presets</li></ul><p>Blocks progression if:</p><ul><li>The S9 verdict is missing — Phase 04 cannot wire previews, and Phase 06 cannot define widget styling rules</li><li>Any primitive ships without error/empty/loading states — Phase 08 widgets would inherit the legacy #60 spinner class</li><li>Destination branding leaks into <code>packages/ui</code> — the white-label claim (D-00) becomes false at the first destination</li></ul><h2 id="risks-rollback-and-handoff">Risks, rollback and handoff</h2><div class="tablewrap"><table><thead><tr><th scope="col">Risk</th><th scope="col">Likelihood</th><th scope="col">Impact</th><th scope="col">Mitigation</th></tr></thead><tbody><tr><td>S9 fails: peers break on RN 0.88 / Expo Router modules</td><td>medium</td><td>medium</td><td>Fallback A defined before work starts (R10); spike is PR 03-1, nothing else merges first</td></tr><tr><td>Storybook 11 churn invalidates config</td><td>medium</td><td>low</td><td>Pin 10.x exact; treat major bumps as a decision, not a dependency update</td></tr><tr><td>Visual diffs flake (fonts, antialiasing)</td><td>medium</td><td>low</td><td>Web/Chromium only this phase; thresholds documented; baselines updated deliberately, never auto-accepted</td></tr><tr><td>Scope creep into widget components</td><td>high</td><td>medium</td><td>Primitives only; navigation shells and real screens belong to Phase 06/08; reviewer rejects scope in PR review</td></tr><tr><td>Dark mode doubles every task</td><td>medium</td><td>low</td><td>Light-first; dark tokens defined, exercised where cheap, completed as a follow-up PR if needed</td></tr></tbody></table></div><p>Sensitive operations needing human approval: none in this phase (no accounts, no spend, no production systems). The human approves aesthetics and the a11y bar only.</p><p>Budget impact: zero — local builds only.</p><p>Rollback: <code>packages/ui</code> is additive to the Phase 02 repo; any PR reverts independently. If the whole approach fails, the Phase 02 shell is untouched.</p><p>Restart instructions for an agent picking up mid-phase:</p><ol><li>Read <code>docs/spikes/S9-storybook.md</code> (if present) for the runtime verdict; do not re-litigate it</li><li>Check merged PRs labeled <code>03-*</code> for completed tasks; the table above defines the order</li><li>Every task maps to one PR; resume at the first unmerged task whose dependencies are merged</li></ol><h2 id="next-phase-handoff">Next phase handoff</h2><p>Phase 04 (pipeline) needs from this phase:</p><ul><li>The storybook build command and output directory that previews will publish (<code>storybook:build</code> output path)</li><li>The unit/typecheck commands to slot into the fast gate</li><li>Baseline locations so the pipeline can run snapshot diffs without re-baselining</li></ul><p>Phase 06 (widget contract) needs:</p><ul><li>The <code>DestinationTheme</code> / token types as the styling contract widgets must consume</li><li>The forbidden list in <code>docs/ui/usage.md</code> as the basis for boundary lint rules</li></ul><p>Records to hand over: S9 spike note; theme preset files; axe findings list; the deliberate-failure demonstration output. Next phase page: <a href="phase-04.html">phase-04.html</a>. Agent prompt: <a href="../prompts/phase-04-agent.md">../prompts/phase-04-agent.md</a>. This phase&#x27;s own prompt: <a href="../prompts/phase-03-agent.md">../prompts/phase-03-agent.md</a>.</p><h2 id="agent-execution-prompt">Agent execution prompt</h2><p>The full agent prompt lives at <a href="../prompts/phase-03-agent.md">../prompts/phase-03-agent.md</a>.</p><button type="button" class="copy-btn" data-target="agent-prompt">Copy prompt</button><details class="prompt-details" open><summary>Prompt contents</summary><pre id="agent-prompt"><code># Phase 03 agent prompt — design system, Storybook and theming
+
+&gt; **DO NOT EXECUTE THIS PROMPT YET.** It is planning output. It becomes active only
+&gt; after the product owner approves the guia.la planning packet and the repository exists.
+
+## Role
+
+You are the senior implementation agent for Phase 03 of guia.la: design tokens,
+primitives, React Native Storybook, and destination theming. You implement, you do
+not redesign the stack. The full playbook is `planning/phases/phase-03.html` in the
+planning packet — read it before writing code.
+
+## Hard constraints (global, non-negotiable)
+
+- No writes to production data, the legacy `luandro/cotiju-app` repo, or any live service.
+- No secrets, API keys, or personal data in code, stories, fixtures, or PR descriptions.
+- No store publication, DNS changes, or spending without explicit human approval.
+- Evidence over claims: never state a command ran or passed unless you show its output.
+- Small PRs: one task from the playbook&#x27;s table per PR unit (`PR 03-1` … `PR 03-10`).
+
+## Read first (paths relative to the guia.la repo)
+
+1. `AGENTS.md` and `SPEC.md` — working agreement and platform spec.
+2. `docs/adr/` — decisions D-02 (client stack), D-00 (identity: guia.la platform,
+   Cotijuba pilot, Cotiju is legacy only).
+3. The planning packet&#x27;s `planning/phases/phase-03.html` — your contract for this phase.
+4. `docs/spikes/S9-storybook.md` if it exists — the Storybook verdict; do not re-litigate.
+
+## Context you inherit
+
+- Phase 02 exits with a pinned Expo SDK 58 monorepo (`apps/app`, `packages/*`),
+  `web.output: &quot;static&quot;` export, and a fixture-driven Places walking skeleton.
+- Spike S9 is unresolved: Storybook RN 10.7 + RNW-Vite 10.6 on RN 0.88 / React 19.3
+  has never been built by us. PR 03-1 runs it. Nothing else merges before its verdict.
+- Fallback if S9 fails (from review R10): web-only Storybook plus an Expo Router
+  `/gallery` dev route on device. Adopting it is a recorded decision, not a defeat.
+- Starters (Ignite, Obytes, T3) lag SDK 58 by 3–4 SDKs — borrow patterns, adopt nothing.
+
+## Ordered tasks
+
+1. **PR 03-1** — S9 spike: add Storybook in &quot;Both&quot; mode; pin exact versions; record
+   errors and verdict in `docs/spikes/S9-storybook.md`.
+2. **PR 03-2** — verdict recorded; fallback chosen only if the spike failed.
+3. **PR 03-3** — token layer (color, type, space, radius, elevation, dark pairs) as
+   TypeScript + zod schema.
+4. **PR 03-4** — `ThemeProvider`, `useTheme`, runtime switching; presets `cotijuba`
+   and `serra` (synthetic palettes; no real-branding claims).
+5. **PR 03-5** — primitives batch 1: Text, Heading, Button, Card, Chip, ListRow.
+6. **PR 03-6** — primitives batch 2: TextInput, field scaffolding, Skeleton,
+   EmptyState, ErrorState (retry), OfflineBanner, MapPlaceholder.
+7. **PR 03-7** — state-matrix stories: each primitive in loading/empty/error/offline,
+   light/dark, both themes.
+8. **PR 03-8** — accessibility: labels not color alone, target sizes, focus order;
+   axe checks on web stories; zero critical accepted.
+9. **PR 03-9** — visual baselines (Chromium) with an update policy.
+10. **PR 03-10** — `docs/ui/usage.md`: consumption rules, forbidden list, addition checklist.
+
+## Acceptance criteria
+
+- Storybook (or the recorded fallback) reviews every primitive in both themes,
+  light and dark, at one URL.
+- No hardcoded colors or the strings `cotijuba`/`serra` under `packages/ui/src/components`.
+- Every primitive has loading, empty, error, and offline stories.
+- The deliberate-failure demo (low-contrast token flagged by axe) is recorded, then reverted.
+- Human sign-off on both theme presets is requested explicitly, not assumed.
+
+## PR evidence package (every PR)
+
+- Summary: what changed, why, which task it closes.
+- Link to the phase task or issue.
+- Commands run with output excerpts (typecheck, unit, storybook build, axe, snapshot).
+- Screenshots: at least one story per new component, both themes.
+- Risks and known limitations stated plainly.
+- Docs updated (usage guide, spike note where relevant).
+- The next task this PR unblocks.
+
+## Stop and ask when…
+
+- S9 fails in a way the fallback cannot cover (e.g. web Storybook also breaks).
+- A primitive seems to need widget- or destination-specific behavior — that is a
+  Phase 06+ concern; do not invent a hook into it here.
+- A dependency outside the pinned set looks required — propose it with evidence,
+  do not add it silently.
+- You are asked to approve your own visual design — human sign-off is not delegable.
+</code></pre></details><div class="pillnav"><a href="phase-02.html">← Phase 02</a><a href="phase-04.html">Phase 04 →</a></div><div class="footer"><span>guia.la planning packet</span><span>Phase 03 · generated by planning/tools/build.py</span></div></div>
+</main>
+</div>
+<script>
+document.querySelectorAll('.copy-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    var t = document.getElementById(b.getAttribute('data-target'));
+    if (!t) return;
+    var done = function(){ b.textContent = 'Copied'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t.textContent).then(done, function(){});
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = t.textContent; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  });
+});
+</script>
+</body>
+</html>

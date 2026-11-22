@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<title>Phase 04 — GitHub previews, native builds and artifact pipeline · guia.la planning</title>
+<style>
+:root { --bg:#f7f5ef; --paper:#fffefa; --ink:#172d2a; --ink2:#38534d; --mute:#5a6e66;
+  --sea:#155c60; --deep:#0c3438; --lime:#d3f08e; --lime-dark:#82b83c; --sand:#e9e4d8;
+  --line:#d9ddd3; --warm:#a5532f; --white:#ffffff;
+  --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); font-family:var(--font); color:var(--ink); line-height:1.58; }
+a { color:var(--sea); text-underline-offset:3px; }
+a:hover { color:#0b3f40; }
+:focus-visible { outline:3px solid var(--warm); outline-offset:3px; }
+.skip { position:absolute; left:-999px; top:8px; background:var(--deep); color:var(--lime);
+  padding:9px 15px; border-radius:8px; z-index:50; }
+.skip:focus { left:8px; color:var(--lime); }
+.frame { display:grid; grid-template-columns:258px minmax(0,1fr); min-height:100vh; }
+.rail { position:sticky; top:0; height:100vh; padding:28px 18px 18px 24px; border-right:1px solid var(--line);
+  display:flex; flex-direction:column; background:#f2f1e9; z-index:5; overflow-y:auto; }
+.brand { display:flex; align-items:center; gap:11px; font-weight:850; letter-spacing:-.05em;
+  font-size:21px; color:var(--deep); text-decoration:none; }
+.brandmark { width:36px; height:36px; border-radius:11px; background:var(--deep); color:var(--lime);
+  display:grid; place-items:center; font-size:19px; font-weight:800; flex:none; }
+.rail-caption { font:700 10px/1.4 var(--mono); letter-spacing:.15em; color:#5c7568; margin:26px 8px 9px;
+  text-transform:uppercase; }
+.rail nav { display:flex; flex-direction:column; gap:2px; }
+.rail nav a { display:block; padding:7px 10px; text-decoration:none; border-radius:8px;
+  color:#4d665f; font-size:13px; }
+.rail nav a:hover { color:var(--deep); background:#dce7d5; }
+.rail-bottom { margin-top:auto; padding:14px 10px 0; border-top:1px solid var(--line);
+  color:var(--mute); font-size:11px; }
+.rail-bottom strong { color:var(--sea); }
+.main { min-width:0; }
+.content { max-width:1040px; margin:auto; padding:0 48px 90px; }
+.hero { background:var(--deep); color:var(--white); padding:58px 48px 50px; }
+.hero-eyebrow { display:flex; align-items:center; gap:9px; text-transform:uppercase;
+  font:700 11px/1.5 var(--mono); letter-spacing:.16em; color:#c1e4c6; }
+.hero-dot { width:7px; height:7px; border-radius:50%; background:var(--lime); display:inline-block; }
+.hero h1 { font-weight:720; font-size:clamp(34px,4.4vw,58px); letter-spacing:-.06em;
+  line-height:1.06; margin:22px 0 16px; max-width:820px; }
+.hero-short { max-width:720px; color:#c3d6d0; font-size:clamp(16px,1.4vw,18px); line-height:1.65; }
+.hero-pills { display:flex; flex-wrap:wrap; gap:9px; margin-top:26px; }
+.pill { display:inline-flex; align-items:center; border:1px solid #42706b; border-radius:100px;
+  color:#d8e7d9; padding:7px 12px; font:600 11px var(--mono); }
+.pill.bright { background:var(--lime); color:var(--deep); border-color:var(--lime); }
+.pill a { color:inherit; }
+h2 { font-size:clamp(24px,2.8vw,34px); letter-spacing:-.045em; font-weight:720; line-height:1.15;
+  margin:52px 0 16px; scroll-margin-top:20px; }
+h3 { letter-spacing:-.025em; font-size:19px; margin:30px 0 10px; }
+h4 { font-size:15px; margin:22px 0 8px; }
+p { color:var(--ink2); margin:0 0 14px; }
+li { margin-bottom:6px; color:var(--ink2); }
+ul,ol { padding-left:24px; margin:0 0 14px; }
+li ul,li ol { margin:6px 0 2px; }
+table { border-collapse:collapse; font-size:13.5px; width:100%; margin:18px 0; }
+th,td { border-bottom:1px solid #d8dfd5; text-align:left; vertical-align:top; padding:10px 11px; }
+th { font:800 10px var(--mono); text-transform:uppercase; letter-spacing:.07em; color:#3f5f56;
+  background:#eaece3; }
+td { color:var(--ink2); }
+.tablewrap { overflow-x:auto; margin:18px 0; }
+.tablewrap table { margin:0; }
+code { font:.92em var(--mono); background:#ecefe4; border-radius:5px; padding:1px 5px; color:#26433c; }
+pre { background:#122f31; color:#d2e9e0; border-radius:13px; padding:18px; overflow:auto; margin:16px 0; }
+pre code { background:none; color:inherit; padding:0; font:12.5px/1.7 var(--mono); }
+blockquote { margin:16px 0; padding:12px 18px; border-left:4px solid #9db7ad; background:#f0f2ea;
+  border-radius:0 12px 12px 0; color:var(--ink2); }
+blockquote p:last-child { margin-bottom:0; }
+.callout { margin:18px 0; border-radius:12px; padding:14px 18px; border:1px solid var(--line);
+  border-left-width:5px; background:var(--paper); }
+.callout-label { font:800 10px var(--mono); letter-spacing:.14em; text-transform:uppercase;
+  color:var(--deep); margin:0 0 6px; }
+.callout p:last-child { margin-bottom:0; }
+.callout-gate { border-left-color:#2e624a; background:#eaf2e2; }
+.callout-gate .callout-label { color:#2e624a; }
+.callout-risk { border-left-color:var(--warm); background:#f7e9dc; }
+.callout-risk .callout-label { color:var(--warm); }
+.callout-decision { border-left-color:var(--sea); background:#e4eef0; }
+.callout-decision .callout-label { color:var(--sea); }
+.callout-note { border-left-color:#7f8a72; background:#f1f2ec; }
+.callout-note .callout-label { color:#5c6a4e; }
+ul.checklist, ol.checklist { list-style:none; padding-left:2px; }
+.checklist input { margin-right:8px; }
+.linklist { display:flex; flex-wrap:wrap; gap:8px; list-style:none; padding:0; margin:0 0 16px; }
+.linklist li { margin:0; }
+.pillnav { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:26px 0 0; }
+.pillnav a { border:1px solid #b8cbbd; color:var(--deep); background:var(--paper); font-size:12.5px;
+  border-radius:9px; font-weight:650; padding:8px 13px; text-decoration:none; }
+.pillnav a:hover { background:#e5f0dd; }
+.prompt-details summary { cursor:pointer; font:700 12px var(--mono); letter-spacing:.08em;
+  text-transform:uppercase; color:var(--sea); margin-bottom:10px; }
+.copy-btn { border:1px solid #b8cbbd; background:#f7f9ef; color:var(--deep); border-radius:9px;
+  font:650 12px var(--font); padding:8px 13px; cursor:pointer; margin-bottom:10px; }
+.copy-btn:hover { background:#e5f0dd; }
+.footer { margin-top:60px; padding-top:20px; border-top:1px solid var(--line); display:flex;
+  justify-content:space-between; gap:18px; color:var(--mute); font-size:11px; }
+@media (max-width:860px) {
+  .frame { display:block; }
+  .rail { position:relative; height:auto; padding:12px 16px; flex-direction:row; align-items:center;
+    gap:14px; overflow-x:auto; }
+  .rail nav { flex-direction:row; gap:3px; white-space:nowrap; }
+  .rail-caption,.rail-bottom { display:none; }
+  .content { padding:0 18px 60px; }
+  .hero { padding:40px 18px 34px; }
+}
+@media print {
+  @page { size:A4; margin:14mm; }
+  .frame { display:block; }
+  .rail,.copy-btn,.pillnav,.skip { display:none; }
+  .hero { color:var(--ink); background:#eff5e8; padding:14px 0; }
+  .hero-short { color:var(--ink2); }
+  .hero-eyebrow { color:var(--sea); }
+  .pill { color:var(--sea); border-color:var(--sea); }
+  .content { max-width:100%; padding:0; }
+  pre { white-space:pre-wrap; }
+  details { display:block; }
+  a[href^="http"]::after { content:" (" attr(href) ")"; font-size:11px; color:var(--mute); }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="frame">
+<aside class="rail"><a class="brand" href="../index.html"><span class="brandmark">g.</span><span>guia.la <em>/ planning</em></span></a><div class="rail-caption">On this page</div><nav aria-label="On this page"><a href="#phase-identity">Phase identity</a><a href="#why-this-stage-exists">Why this stage exists</a><a href="#inputs-and-source-references">Inputs and source references</a><a href="#task-breakdown">Task breakdown</a><a href="#architecture-choices-and-guardrails">Architecture choices and guardrails</a><a href="#deliverables">Deliverables</a><a href="#visual-and-functional-qa">Visual and functional QA</a><a href="#automated-verification">Automated verification</a><a href="#acceptance-gate">Acceptance gate</a><a href="#risks-rollback-and-handoff">Risks, rollback and handoff</a><a href="#next-phase-handoff">Next phase handoff</a></nav><div class="rail-bottom"><a href="../index.html">← Planning index</a></div></aside>
+<main class="main" id="main">
+<header class="hero">
+<div class="hero-eyebrow"><span class="hero-dot"></span> guia.la / Phase 04</div>
+<h1>Phase 04 — GitHub previews, native builds and artifact pipeline</h1>
+<p class="hero-short">Ship 04a (fast web gate plus PR previews with provenance) and 04b (path-filtered, budget-capped Expo native builds) so every meaningful change is remotely inspectable.</p>
+<div class="hero-pills"><span class="pill bright">Status: draft</span><span class="pill">High (spend)</span><span class="pill">Ship</span><span class="pill">depends on: <a href="phase-02.html">02</a>, <a href="phase-03.html">03</a></span></div>
+</header><div class="content"><h2 id="phase-identity">Phase identity</h2><p>Phase <strong>04</strong> builds the delivery pipeline. Split (proposed in <a href="../review.md">../review.md</a> §8.3, numbering unchanged):</p><ul><li><strong>04a — web previews and fast gate (required):</strong> a GitHub Actions fast gate on every PR (typecheck, lint, unit tests, web export), a deployed web preview per PR, an automated PR comment with QA links, and build provenance on every artifact.</li><li><strong>04b — native build and artifact pipeline (budget-capped):</strong> Expo Android/iOS development builds triggered by path filters or labels rather than every PR, artifact retention, provenance and checksums, simulator strategy groundwork, and a recorded spend ceiling.</li></ul><ul><li><strong>Objective:</strong> any reviewer opens a PR and inspects the change running — web by URL, Android by artifact, iOS by Expo build link — and can tell exactly which commit produced each artifact.</li><li><strong>Prerequisites:</strong> Phase 02 exit (monorepo, pinned SDK 58, working web export) is enough to start 04a; Phase 03&#x27;s typecheck/test/storybook commands wire into the gate when they land — only those slots wait for 03.</li><li><strong>Dependencies:</strong> Phase 02, Phase 03 — 04a starts as soon as Phase 02 exits; only the Storybook/snapshot gate slots depend on Phase 03; 04b may complete in parallel with Phases 05/06 (review §8.3 proposal).</li><li><strong>Expected contributors:</strong> senior coding agent (workflow implementation), orchestrator agent (review), human product owner (approves spend and credentials: Expo account linkage, GitHub secrets, any paid plan — D-08).</li><li><strong>Complexity and risks:</strong> High, and the risk is money and queue behavior, not code. The Expo free plan allows 15 Android + 15 iOS builds per month on a low-priority queue with 90+ minute peak waits, a 45-minute build timeout, and no Maestro jobs; Starter is $19/month with $45 build credit and a 2-hour timeout (<a href="../research/expo-stack.md">../research/expo-stack.md</a> §1.8). Per-PR native builds are therefore forbidden by design. <strong>No hour estimates.</strong></li></ul><h2 id="why-this-stage-exists">Why this stage exists</h2><p>The platform&#x27;s operating model is agents shipping evidence, not claims (<a href="../review.md">../review.md</a> §1). That requires a pipeline before it requires features: previews are how a human reviews UI without a toolchain, and artifacts with provenance are how an incident investigator answers &quot;which commit is live&quot; — the question the legacy incident #63 could not answer, with two live hosts and unclear provenance (<a href="../research/legacy-cotiju-audit.md">../research/legacy-cotiju-audit.md</a> §9, #63).</p><p>The legacy repo also demonstrates the cost model this phase must avoid: it ran seven workflow files (including a Surge deploy) while PR #52 additionally configured Cloudflare Workers Builds triggers — not a workflow — so two deploy paths were live simultaneously, which is exactly how &quot;what is live&quot; became ambiguous (<a href="../research/legacy-cotiju-audit.md">../research/legacy-cotiju-audit.md</a> §2). One deploy target per environment, one provenance record per artifact.</p><p>The 04a/04b split is a review proposal (R6, D-08), incorporated here as a proposal: web-only per-PR gating, native builds path-filtered and nightly, budget ceiling recorded before the first paid minute.</p><h2 id="inputs-and-source-references">Inputs and source references</h2><p>Proposed paths in the future <code>guia-la</code> repository:</p><ul><li><code>.github/workflows/fast-gate.yml</code> (proposed) — 04a gate</li><li><code>.github/workflows/web-preview.yml</code> (proposed) — 04a preview deploy and PR comment</li><li><code>.github/workflows/native-builds.yml</code> (proposed) — 04b path-filtered/nightly builds</li><li><code>eas.json</code> (proposed) — build profiles (<code>development</code>, <code>preview</code>)</li><li><code>.eas/workflows/*.yml</code> (proposed) — Expo Workflows definitions</li><li><code>docs/pipeline/provenance.md</code> (proposed) — artifact naming, checksum, live-commit record</li><li><code>docs/pipeline/budget.md</code> (proposed) — ceiling, alert threshold, first-month actuals</li></ul><p>Legacy references (read-only): <code>.github/workflows/</code> in <code>luandro/cotiju-app</code> (seven workflows, dual hosting — cautionary reference only); PR #52&#x27;s cold-load staging smoke pattern is the one worth porting (smoke against a deployed preview, not localhost).</p><p>Authoritative documentation (from research, retrieved 2026-11-21/22):</p><ul><li>Expo pricing and plan limits — <a href="../research/expo-stack.md">../research/expo-stack.md</a> §1.8 (figures cited below)</li><li>Maestro on Workflows: <code>.maestro/*.yml</code>, <code>e2e-test</code> profile, <code>eas workflow:run --non-interactive --wait --json</code>; runs on PRs only when the GitHub repo is linked in the Expo dashboard — same section</li><li>Cloudflare Workers Static Assets for static sites; static-asset requests are free and do not invoke the Worker; Workers Paid is $5/month minimum — <a href="../research/backend-stores-starters.md">../research/backend-stores-starters.md</a> §1</li><li>Expo Hosting free tier: 100k requests/month, PR preview URLs, no custom domain — <a href="../research/expo-stack.md">../research/expo-stack.md</a> §1.4</li><li><code>NODE_ENV</code> forcing and env/variant separation — <a href="../research/expo-stack.md">../research/expo-stack.md</a> §1.1: Expo CLI forces <code>NODE_ENV</code>, and every non-debug build including a custom Staging config uses production env, so config must never key off <code>NODE_ENV</code>. Canonical variables: <code>APP_ENV</code> = environment (development/preview/staging/production); <code>APP_VARIANT</code> = build profile (flagship, cotijuba-web, serra-web — per-destination config keys off this, per the same section); both zod-validated, build fails if either is missing</li></ul><p>Decisions and review rows: D-08 (CI/build budget, proposed — this phase supplies its evidence), D-03 (static web export, proposed), R6 (native builds per PR), R1 (provenance pulled forward here), §8.3 (the split).</p><p>Known unknowns:</p><ul><li>Preview URL mechanics on Workers (version-scoped preview URLs) — proposed, verify in this phase before relying on the pattern; the documented alternative is Expo Hosting PR previews with its free-tier limits</li><li>GitHub Actions minute allowance for a private repo — unknown; verify the account plan (public repos are free)</li><li>Real build minutes per workflow (S12) and GH Actions emulator flake rate (S13) — unknown, measure when 04b runs</li><li>Whether GH Actions cache eviction under quota pressure makes cold runs routine — unknown; the budget doc records gate duration p50/p95 once running</li><li>iOS build requires Apple developer credentials provisioning — exact requirement recorded in this phase; provisioning itself is a human action</li></ul><p>Credentials and tools needed (names only, values never in repo): <code>EXPO_TOKEN</code>, GitHub Actions secrets store, Cloudflare API token (if Workers previews), Expo account linked to the GitHub repo. Human creates and injects all of these; the agent never sees the values.</p><h2 id="task-breakdown">Task breakdown</h2><div class="tablewrap"><table><thead><tr><th scope="col">#</th><th scope="col">Task (bounded)</th><th scope="col">Owner</th><th scope="col">PR unit</th><th scope="col">Depends on</th></tr></thead><tbody><tr><td>1</td><td>Fast gate workflow: typecheck, lint, unit tests, <code>pnpm export:web</code> on every PR (Storybook build and snapshot slots are added when Phase 03 lands); pnpm store caching; concurrency cancel on new push</td><td>Agent</td><td>PR 04-1</td><td>Phase 02</td></tr><tr><td>2</td><td>Web preview deploy per PR; verify the chosen mechanism actually serves the export; record the URL pattern</td><td>Agent</td><td>PR 04-2</td><td>1</td></tr><tr><td>3</td><td>PR comment automation listing preview URL, artifact links, commit SHA; update on re-push</td><td>Agent</td><td>PR 04-3</td><td>2</td></tr><tr><td>4</td><td>Provenance: artifact names embed commit SHA and profile; sha256 checksums recorded; deploy step writes a live-commit record (file plus workflow summary)</td><td>Agent</td><td>PR 04-4</td><td>2</td></tr><tr><td>5</td><td>Secret hygiene on the built bundle: grep the exported web dist for secret-shaped strings; fail on hits</td><td>Agent</td><td>PR 04-5</td><td>2</td></tr><tr><td>6</td><td><code>eas.json</code> profiles and first Workflows definitions; document required credentials and account linkage</td><td>Agent</td><td>PR 04-6</td><td>1</td></tr><tr><td>7</td><td>Native trigger policy: builds on <code>native</code> label or path filter (native config, native deps, <code>apps/app/**</code> platform files) plus a nightly schedule; never per-PR</td><td>Agent</td><td>PR 04-7</td><td>6</td></tr><tr><td>8</td><td>Budget record: ceiling (proposed initial: Expo Starter $19/month plus Workers Paid $5/month per D-08), alert at 80%, failure alerts; first actuals appended when available</td><td>Agent, human approves ceiling</td><td>PR 04-8</td><td>6</td></tr><tr><td>9</td><td>Simulator strategy note: options are Expo cloud simulators ($0.10/min, 60 min/month included on paid plans until 2027) versus GH Actions emulator (S13); decision deferred to Phase 05 with 04b measurements attached</td><td>Agent</td><td>PR 04-9</td><td>7</td></tr><tr><td>10</td><td>Evidence packaging: workflows upload logs, screenshots where produced, artifact checksums; retention policy documented</td><td>Agent</td><td>PR 04-10</td><td>7</td></tr></tbody></table></div><p>Notes:</p><ol><li>Tasks 1–5 are 04a and are required before any later phase claims CI evidence. Tasks 6–10 are 04b and may land during Phase 05/06 (review §8.3).</li><li>Task 8&#x27;s ceiling is a human decision (D-08). The agent proposes numbers from research; the user sets the ceiling. No paid plan is activated without that approval.</li><li>One deploy target per environment is a hard rule (legacy #63 lesson): previews go to the preview target, staging to staging, production does not exist yet in this phase.</li></ol><h2 id="architecture-choices-and-guardrails">Architecture choices and guardrails</h2><p>Pipeline shape:</p><pre><code class="language-yaml"># Illustrative only — the implementing PR owns the real workflow syntax.
+# fast-gate.yml (every PR): pnpm install --frozen-lockfile -&gt;
+#   typecheck -&gt; lint -&gt; unit -&gt; export:web -&gt; bundle secret grep
+# native-builds.yml (label &#x27;native&#x27; OR paths: eas.json, app.config.*,
+#   package.json native deps; plus cron nightly):
+#   eas build --profile development --platform android (then ios)</code></pre><p>Workflow inventory (proposed; one concern per file, no mega-workflow):</p><ul><li><code>fast-gate.yml</code> — every PR and push to main; the only required check that blocks merge</li><li><code>web-preview.yml</code> — on PR open/synchronize; deploys preview, posts/updates the PR comment, tears down on close</li><li><code>native-builds.yml</code> — on <code>native</code> label, path filter, or nightly cron; never per PR by default</li><li>Cache and concurrency are settings on these files, not separate workflows</li></ul><p>Preview lifecycle (proposed):</p><ol><li>Created on first successful export in a PR; URL recorded in the PR comment</li><li>Updated in place on every re-push; a failed export leaves the previous preview but the comment marks it stale with the failing SHA</li><li>Deleted on PR close or merge; deletion is verifiable (URL returns a clear gone response, not a stale build)</li></ol><p>Guardrails:</p><ul><li>Node pinned via <code>.nvmrc</code> to a supported LTS (research: SDK 58 needs Node 22.13+/24.3+/26+; odd releases unsupported — <a href="../research/expo-stack.md">../research/expo-stack.md</a> §1.1)</li><li>Lockfile frozen in CI; dependency bumps are explicit PRs, never side effects</li><li><code>EXPO_PUBLIC_*</code> values are the only vars allowed in client bundles; the secret grep (task 5) treats anything else found in <code>dist/</code> as a failure. Research warns the Atlas file also inlines env values and must be treated as a secret artifact, never published (§1.9)</li><li>Preview deploys are ephemeral and clearly labeled non-production; no production DNS, no custom domain, no store submission in this phase</li><li>Concurrency: one in-flight run per PR, superseded runs cancelled</li></ul><p>Forbidden:</p><ul><li>Per-PR native builds (free-plan quota exhausts in days and the low-priority queue makes them useless as gates — R6)</li><li>Activating paid plans, purchasing anything, or linking store credentials without the human&#x27;s explicit approval (D-08)</li><li>Secrets echoed into logs, PR comments, or artifact names</li><li>Deploying anything labeled production; publishing to an app store</li><li>Caching that spans lockfile changes</li></ul><p>Security and privacy implications: workflow logs are the main leak surface; the secret grep and <code>EXPO_PUBLIC_</code> discipline are the countermeasures. PR comments must contain URLs and SHAs only, never env values.</p><p>Acceptable alternatives:</p><ul><li>Preview host: Expo Hosting PR previews (documented, free 100k req/month, no custom domain) versus Workers Static Assets with version previews (production-aligned, mechanism unverified). Recommended: verify both in task 2, pick one, record why in <code>docs/pipeline/provenance.md</code>. Not a user decision unless cost differs from zero.</li><li>Native gate placement: Expo Workflows versus GH Actions emulator — explicitly deferred to Phase 05 with S12/S13 data (task 9).</li></ul><h2 id="deliverables">Deliverables</h2><ul class="checklist"><li><input type="checkbox" disabled> <code>.github/workflows/fast-gate.yml</code> green on a real PR</li><li><input type="checkbox" disabled> Web preview deployed per PR with a documented, verified URL pattern</li><li><input type="checkbox" disabled> PR comment bot listing preview URL, artifacts, commit SHA, and known limitations</li><li><input type="checkbox" disabled> Provenance record: artifact naming scheme, checksums, live-commit record for every deploy</li><li><input type="checkbox" disabled> Secret grep step failing the gate on bundle hits</li><li><input type="checkbox" disabled> <code>eas.json</code> with development/preview profiles; Workflows definitions; credentials inventory (names and where they live, no values)</li><li><input type="checkbox" disabled> Native trigger policy implemented (label/path filter plus nightly) — not per-PR</li><li><input type="checkbox" disabled> <code>docs/pipeline/budget.md</code> with the user-set ceiling, 80% alert, and failure-alert channel recorded</li><li><input type="checkbox" disabled> Simulator strategy note with costs and the open S13 question</li><li><input type="checkbox" disabled> Retention policy for artifacts and logs</li><li><input type="checkbox" disabled> Preview teardown on PR close verified (URL returns a gone response, not a stale build)</li></ul><h2 id="visual-and-functional-qa">Visual and functional QA</h2><p>Manual journeys (human):</p><ol><li>Open a draft PR that changes a UI primitive. The PR comment shows: preview URL (clickable, loads the walking-skeleton Places page), commit SHA matching the branch head, and — for an Android-flagged PR — an artifact link.</li><li>Download the Android artifact; confirm its name embeds the commit SHA and the checksum in the provenance record matches a local <code>sha256sum</code>.</li><li>Break the export deliberately (invalid env var): the gate fails, the PR comment or check run shows the failing step, and no stale preview is left serving the old build as if current.</li><li>On the Expo dashboard (if 04b is live): confirm the build queue position and total minutes for one Android dev build; append actuals to <code>docs/pipeline/budget.md</code>.</li></ol><p>Agent journeys:</p><ol><li>From a clean checkout, re-run the gate locally with the same commands the workflow uses; outputs match.</li><li>Curl the preview URL with JavaScript disabled; the exported HTML still renders the shell (static output sanity, ties to D-03).</li></ol><p>Platform matrix:</p><div class="tablewrap"><table><thead><tr><th scope="col">Surface</th><th scope="col">Web</th><th scope="col">Android</th><th scope="col">iOS</th></tr></thead><tbody><tr><td>Fast gate + preview</td><td>required per PR</td><td>n/a</td><td>n/a</td></tr><tr><td>Dev build artifact</td><td>n/a</td><td>required (one 04b run)</td><td>required (one 04b run; blocked-with-reason acceptable if Apple credentials absent)</td></tr></tbody></table></div><p>Error states to verify: gate failure surfaces the failing command and first error line in the check run; a cancelled superseded run leaves no half-deployed preview; a secret grep hit fails closed.</p><h2 id="automated-verification">Automated verification</h2><p>Nothing has been run in the future repo; statuses below reflect research only. The source-map flag form is <strong>validated</strong> (verified against the CLI in research); everything else is <strong>proposed</strong>.</p><div class="tablewrap"><table><thead><tr><th scope="col">Command</th><th scope="col">Purpose</th><th scope="col">Status</th></tr></thead><tbody><tr><td><code>pnpm export:web</code> (wrapping <code>npx expo export -p web</code>)</td><td>produce the static bundle for preview and grep</td><td>proposed (command form documented in research §1.3)</td></tr><tr><td><code>pnpm export:web -- --source-maps external</code></td><td>emit source maps for later exclusion assertions</td><td><strong>validated</strong> (flag verified in research §1.9; not yet run on our repo)</td></tr><tr><td><code>pnpm dlx expo-doctor</code></td><td>SDK alignment check in CI</td><td>proposed</td></tr><tr><td><code>pnpm dlx actionlint</code></td><td>workflow syntax check</td><td>proposed</td></tr><tr><td><code>eas build --profile development --platform android --non-interactive</code></td><td>04b dev build</td><td>proposed; credential-gated (EXPO_TOKEN, account linkage)</td></tr><tr><td><code>sha256sum</code> over artifacts vs recorded checksums</td><td>provenance match</td><td>proposed</td></tr><tr><td>secret grep script over <code>dist/</code></td><td>fail on secret-shaped strings</td><td>proposed</td></tr></tbody></table></div><p>Positive tests: a UI-only PR triggers exactly the fast gate and a preview, never a native build; artifact SHA matches commit; preview serves the new build.</p><p>Negative tests: a PR touching <code>eas.json</code> without the native label still triggers a native build (path filter works); a workflow with an undefined secret fails closed with a clear message; the secret grep fails on a planted canary string in a throwaway branch (demonstrate once, revert).</p><p>Deliberate-failure demonstration: plant a canary secret in the branch, show the grep step failing the gate with the file named, revert. Keep the output excerpt as the PR&#x27;s evidence artifact. Phase 05 formalizes this as a standing protocol.</p><h2 id="acceptance-gate">Acceptance gate</h2><aside class="callout callout-gate"><p class="callout-label">Gate</p><p>04a: every PR ships a fast gate result and a live, provenance-stamped web preview with zero secrets in the bundle. 04b: at least one Android and one iOS build produced through the pipeline within the recorded budget, or an explicit credentials blocker documented.</p></aside><p>Checklist (observable pass/fail):</p><ul class="checklist"><li><input type="checkbox" disabled> A real PR shows: green fast gate, clickable preview URL, PR comment with QA links and commit SHA</li><li><input type="checkbox" disabled> Preview URL pattern documented and verified to serve the PR&#x27;s build (not a stale one)</li><li><input type="checkbox" disabled> Artifact checksums recorded and spot-verified by the human</li><li><input type="checkbox" disabled> Secret grep demonstrated failing on a canary, then passing after revert</li><li><input type="checkbox" disabled> Native builds fire only on label/path filter or nightly — demonstrated by a UI-only PR producing none</li><li><input type="checkbox" disabled> Budget ceiling recorded with user approval; 80% alert configured; first actuals appended if 04b ran</li><li><input type="checkbox" disabled> Credentials inventory lists every secret by name and location, with zero values in repo or logs</li><li><input type="checkbox" disabled> No production DNS, store submission, or paid activation exists in the diff</li></ul><p>Blocks progression if:</p><ul><li>The fast gate can be merged while red (required check missing) — every later phase&#x27;s evidence claim becomes unreliable</li><li>A secret reaches a preview URL or PR comment — stop, rotate, and notify the human immediately</li><li>The preview serves stale content after re-push — reviewers would approve the wrong build</li><li>Native spend begins with no recorded ceiling (D-08 violated)</li></ul><h2 id="risks-rollback-and-handoff">Risks, rollback and handoff</h2><div class="tablewrap"><table><thead><tr><th scope="col">Risk</th><th scope="col">Likelihood</th><th scope="col">Impact</th><th scope="col">Mitigation</th></tr></thead><tbody><tr><td>Free-tier native queue (90+ min peaks) stalls 04b for days</td><td>high</td><td>medium</td><td>04b is not a blocker for 05/06; nightly cadence accepted; Starter activation is a priced, human-approved option</td></tr><tr><td>Preview mechanism on Workers does not behave as expected</td><td>medium</td><td>medium</td><td>Verify in task 2 before standardizing; Expo Hosting PR previews are the documented fallback</td></tr><tr><td>Spend overrun (build overage: Android $1–$2, iOS $2–$4 per build; Maestro $0.05/job; cloud simulators $0.10/min — research §1.8)</td><td>medium</td><td>high</td><td>Path-filtered triggers, nightly cap, 80% alert, hard ceiling; free plan cannot incur overage (research §1.8)</td></tr><tr><td>Secret leak via logs or Atlas artifact</td><td>low</td><td>high</td><td>Secret grep, log hygiene, Atlas treated as secret per research §1.9; canary demo proves detection</td></tr><tr><td>iOS blocked on Apple credentials</td><td>high</td><td>low</td><td>Acceptable: record the blocker as the gate result; iOS evidence deferred to when the human provisions credentials</td></tr><tr><td>GH Actions private-repo allowance exhausted</td><td>medium</td><td>medium</td><td>Verify plan in task 1; keep the gate under the 10-minute target; cache aggressively</td></tr><tr><td>Parallel agents collide on workflow files</td><td>medium</td><td>low</td><td>One concern per workflow file (inventory above); PR units are sequential per the task table</td></tr></tbody></table></div><p>Sensitive operations needing human approval: activating any paid plan (Expo Starter, Workers Paid beyond free); creating/linking accounts or credentials; anything touching DNS or stores (none is planned in this phase).</p><p>Budget impact: intended zero on free tiers; proposed ceiling per D-08 is $19/month (Expo Starter) plus $5/month (Workers Paid) — both only after user approval. GitHub Actions cost depends on repo visibility and plan (verify).</p><p>Rollback: workflows are declarative; reverting the PR disables the pipeline. 04a and 04b revert independently — disabling native builds never touches the web gate. Preview targets are ephemeral; deleting them destroys nothing tracked.</p><p>Restart instructions for an agent picking up mid-phase:</p><ol><li>Read <code>docs/pipeline/provenance.md</code> and <code>docs/pipeline/budget.md</code> for decisions already recorded</li><li>Check which of PRs 04-1..04-10 are merged; the table defines order and 04a/04b membership</li><li>Never re-verify a preview mechanism already verified — read the note instead</li><li>If credentials are missing, record the blocker and continue with 04a work; do not wait idle</li></ol><h2 id="next-phase-handoff">Next phase handoff</h2><p>Phase 05 (tests and guardrails) needs from this phase:</p><ul><li>The fast-gate workflow structure and slot ordering (typecheck, lint, unit, export — test layers insert here)</li><li>The provenance and evidence-packaging pattern its test reports reuse</li><li>S12/S13 measurements (build minutes, emulator feasibility) feeding the simulator-strategy decision (task 9 hands the decision over)</li><li>The budget record it must not blow: nightly Maestro lives inside the ceiling</li></ul><p>Records to hand over: workflow files, verified preview URL pattern, credentials inventory, budget sheet with actuals, the canary demonstration output. Next phase page: <a href="phase-05.html">phase-05.html</a>. Agent prompt: <a href="../prompts/phase-05-agent.md">../prompts/phase-05-agent.md</a>. This phase&#x27;s own prompt: <a href="../prompts/phase-04-agent.md">../prompts/phase-04-agent.md</a>.</p><h2 id="agent-execution-prompt">Agent execution prompt</h2><p>The full agent prompt lives at <a href="../prompts/phase-04-agent.md">../prompts/phase-04-agent.md</a>.</p><button type="button" class="copy-btn" data-target="agent-prompt">Copy prompt</button><details class="prompt-details" open><summary>Prompt contents</summary><pre id="agent-prompt"><code># Phase 04 agent prompt — previews, native builds, artifact pipeline
+
+&gt; **DO NOT EXECUTE THIS PROMPT YET.** It is planning output. It becomes active only
+&gt; after the product owner approves the guia.la planning packet and the repository exists.
+
+## Role
+
+You are the senior implementation agent for Phase 04 of guia.la: the delivery
+pipeline. Split per the review: **04a** (fast web gate + PR previews + provenance,
+required) and **04b** (path-filtered, budget-capped Expo native builds). The full
+playbook is `planning/phases/phase-04.html` in the planning packet — read it first.
+
+## Hard constraints (global, non-negotiable)
+
+- No writes to production data, the legacy repo, or any live service.
+- No secrets or personal data in workflows, logs, PR comments, or artifact names.
+- No store publication, DNS changes, account creation, or **spending** without
+  explicit human approval (decision D-08). The Expo free plan only; no paid plan
+  activation by you, ever.
+- Evidence over claims: show workflow runs, URLs, and checksums — never assert them.
+- Small PRs: one pipeline concern per PR unit (`PR 04-1` … `PR 04-10`).
+
+## Read first (paths relative to the guia.la repo)
+
+1. `AGENTS.md` and `SPEC.md`.
+2. `docs/adr/` — D-08 (budget), D-03 (static web), D-02 (stack).
+3. The planning packet&#x27;s `planning/phases/phase-04.html` — your contract.
+4. `docs/pipeline/provenance.md` and `docs/pipeline/budget.md` if they exist —
+   decisions already recorded; do not re-verify what is verified.
+
+## Context you inherit
+
+- Phase 02 exits with the pinned SDK 58 monorepo and a working web export; Phase 03
+  exits with typecheck/unit/storybook commands the gate will run.
+- Expo free plan: 15 Android + 15 iOS builds/month, low-priority queue (90+ min
+  peaks), 45-min timeout, **no Maestro**. Per-PR native builds are forbidden by design.
+- The legacy incident (#63) failed on unknown provenance: two live hosts, no
+  &quot;which commit is live&quot; answer. One deploy target per environment is a hard rule.
+- `NODE_ENV` is forced by Expo CLI — never key config off it. `APP_ENV` selects
+  the environment (development/preview/staging/production); `APP_VARIANT`
+  selects the build profile (flagship, cotijuba-web, serra-web). Both are
+  zod-validated and the build fails if either is missing.
+
+## Ordered tasks
+
+1. **PR 04-1** — fast gate workflow: typecheck, lint, unit, `pnpm export:web`;
+   frozen lockfile; concurrency cancel; pnpm caching.
+2. **PR 04-2** — web preview per PR; verify the mechanism actually serves the
+   export (Expo Hosting PR previews vs Workers Static Assets — verify, pick one,
+   record why).
+3. **PR 04-3** — PR comment automation: preview URL, artifacts, commit SHA; updates on re-push.
+4. **PR 04-4** — provenance: artifact names embed commit SHA + profile; sha256
+   checksums; deploy writes a live-commit record.
+5. **PR 04-5** — bundle secret grep over `dist/`; fails the gate on hits.
+6. **PR 04-6** — `eas.json` profiles + Workflows definitions; credentials
+   inventory (names and locations only, never values).
+7. **PR 04-7** — native trigger policy: `native` label or path filter plus nightly
+   cron; demonstrate a UI-only PR triggers no build.
+8. **PR 04-8** — budget record: propose the ceiling from the playbook (D-08);
+   the human sets it; alert at 80%; append actuals when runs exist.
+9. **PR 04-9** — simulator strategy note (cloud simulators vs GH Actions
+   emulator, S13); decision deferred to Phase 05 with data.
+10. **PR 04-10** — evidence packaging: logs, screenshots, checksums uploaded;
+    retention policy documented.
+
+## Acceptance criteria
+
+- A real draft PR shows: green gate, clickable preview serving that PR&#x27;s build,
+  PR comment with QA links and SHA.
+- Checksums recorded and spot-verified by the human.
+- Canary-secret demonstration: the grep fails the gate naming the file, then passes after revert.
+- A UI-only PR produces no native build; a PR touching `eas.json` does.
+- iOS blocked on Apple credentials is acceptable **only** as a documented blocker
+  with the exact provisioning requirement recorded.
+- Zero secrets in any log, comment, or artifact name.
+
+## PR evidence package (every PR)
+
+- Summary and the task closed; link to it.
+- Workflow run links with the relevant step output excerpted.
+- The preview URL for the PR itself.
+- Checksums for any artifact produced.
+- Risks and limitations (queue waits, deferred iOS, unverified preview mechanics).
+- Docs updated (provenance, budget, credentials inventory).
+- The next task this PR unblocks.
+
+## Stop and ask when…
+
+- Any step would require creating an account, activating a paid plan, or touching DNS.
+- The preview mechanism behaves differently than documented — record findings and
+  ask before standardizing on it.
+- A secret appears anywhere it should not: stop, do not push, notify the human
+  immediately (rotation is their call).
+- The budget ceiling is unset (D-08 undecided) and a task would consume build
+  credits — present costs from the playbook instead of running it.
+- You are tempted to make a security scan advisory-only — that is a human decision.
+</code></pre></details><div class="pillnav"><a href="phase-03.html">← Phase 03</a><a href="phase-05.html">Phase 05 →</a></div><div class="footer"><span>guia.la planning packet</span><span>Phase 04 · generated by planning/tools/build.py</span></div></div>
+</main>
+</div>
+<script>
+document.querySelectorAll('.copy-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    var t = document.getElementById(b.getAttribute('data-target'));
+    if (!t) return;
+    var done = function(){ b.textContent = 'Copied'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t.textContent).then(done, function(){});
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = t.textContent; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<title>Phase 05 — Tests, regression traps and security guardrails · guia.la planning</title>
+<style>
+:root { --bg:#f7f5ef; --paper:#fffefa; --ink:#172d2a; --ink2:#38534d; --mute:#5a6e66;
+  --sea:#155c60; --deep:#0c3438; --lime:#d3f08e; --lime-dark:#82b83c; --sand:#e9e4d8;
+  --line:#d9ddd3; --warm:#a5532f; --white:#ffffff;
+  --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); font-family:var(--font); color:var(--ink); line-height:1.58; }
+a { color:var(--sea); text-underline-offset:3px; }
+a:hover { color:#0b3f40; }
+:focus-visible { outline:3px solid var(--warm); outline-offset:3px; }
+.skip { position:absolute; left:-999px; top:8px; background:var(--deep); color:var(--lime);
+  padding:9px 15px; border-radius:8px; z-index:50; }
+.skip:focus { left:8px; color:var(--lime); }
+.frame { display:grid; grid-template-columns:258px minmax(0,1fr); min-height:100vh; }
+.rail { position:sticky; top:0; height:100vh; padding:28px 18px 18px 24px; border-right:1px solid var(--line);
+  display:flex; flex-direction:column; background:#f2f1e9; z-index:5; overflow-y:auto; }
+.brand { display:flex; align-items:center; gap:11px; font-weight:850; letter-spacing:-.05em;
+  font-size:21px; color:var(--deep); text-decoration:none; }
+.brandmark { width:36px; height:36px; border-radius:11px; background:var(--deep); color:var(--lime);
+  display:grid; place-items:center; font-size:19px; font-weight:800; flex:none; }
+.rail-caption { font:700 10px/1.4 var(--mono); letter-spacing:.15em; color:#5c7568; margin:26px 8px 9px;
+  text-transform:uppercase; }
+.rail nav { display:flex; flex-direction:column; gap:2px; }
+.rail nav a { display:block; padding:7px 10px; text-decoration:none; border-radius:8px;
+  color:#4d665f; font-size:13px; }
+.rail nav a:hover { color:var(--deep); background:#dce7d5; }
+.rail-bottom { margin-top:auto; padding:14px 10px 0; border-top:1px solid var(--line);
+  color:var(--mute); font-size:11px; }
+.rail-bottom strong { color:var(--sea); }
+.main { min-width:0; }
+.content { max-width:1040px; margin:auto; padding:0 48px 90px; }
+.hero { background:var(--deep); color:var(--white); padding:58px 48px 50px; }
+.hero-eyebrow { display:flex; align-items:center; gap:9px; text-transform:uppercase;
+  font:700 11px/1.5 var(--mono); letter-spacing:.16em; color:#c1e4c6; }
+.hero-dot { width:7px; height:7px; border-radius:50%; background:var(--lime); display:inline-block; }
+.hero h1 { font-weight:720; font-size:clamp(34px,4.4vw,58px); letter-spacing:-.06em;
+  line-height:1.06; margin:22px 0 16px; max-width:820px; }
+.hero-short { max-width:720px; color:#c3d6d0; font-size:clamp(16px,1.4vw,18px); line-height:1.65; }
+.hero-pills { display:flex; flex-wrap:wrap; gap:9px; margin-top:26px; }
+.pill { display:inline-flex; align-items:center; border:1px solid #42706b; border-radius:100px;
+  color:#d8e7d9; padding:7px 12px; font:600 11px var(--mono); }
+.pill.bright { background:var(--lime); color:var(--deep); border-color:var(--lime); }
+.pill a { color:inherit; }
+h2 { font-size:clamp(24px,2.8vw,34px); letter-spacing:-.045em; font-weight:720; line-height:1.15;
+  margin:52px 0 16px; scroll-margin-top:20px; }
+h3 { letter-spacing:-.025em; font-size:19px; margin:30px 0 10px; }
+h4 { font-size:15px; margin:22px 0 8px; }
+p { color:var(--ink2); margin:0 0 14px; }
+li { margin-bottom:6px; color:var(--ink2); }
+ul,ol { padding-left:24px; margin:0 0 14px; }
+li ul,li ol { margin:6px 0 2px; }
+table { border-collapse:collapse; font-size:13.5px; width:100%; margin:18px 0; }
+th,td { border-bottom:1px solid #d8dfd5; text-align:left; vertical-align:top; padding:10px 11px; }
+th { font:800 10px var(--mono); text-transform:uppercase; letter-spacing:.07em; color:#3f5f56;
+  background:#eaece3; }
+td { color:var(--ink2); }
+.tablewrap { overflow-x:auto; margin:18px 0; }
+.tablewrap table { margin:0; }
+code { font:.92em var(--mono); background:#ecefe4; border-radius:5px; padding:1px 5px; color:#26433c; }
+pre { background:#122f31; color:#d2e9e0; border-radius:13px; padding:18px; overflow:auto; margin:16px 0; }
+pre code { background:none; color:inherit; padding:0; font:12.5px/1.7 var(--mono); }
+blockquote { margin:16px 0; padding:12px 18px; border-left:4px solid #9db7ad; background:#f0f2ea;
+  border-radius:0 12px 12px 0; color:var(--ink2); }
+blockquote p:last-child { margin-bottom:0; }
+.callout { margin:18px 0; border-radius:12px; padding:14px 18px; border:1px solid var(--line);
+  border-left-width:5px; background:var(--paper); }
+.callout-label { font:800 10px var(--mono); letter-spacing:.14em; text-transform:uppercase;
+  color:var(--deep); margin:0 0 6px; }
+.callout p:last-child { margin-bottom:0; }
+.callout-gate { border-left-color:#2e624a; background:#eaf2e2; }
+.callout-gate .callout-label { color:#2e624a; }
+.callout-risk { border-left-color:var(--warm); background:#f7e9dc; }
+.callout-risk .callout-label { color:var(--warm); }
+.callout-decision { border-left-color:var(--sea); background:#e4eef0; }
+.callout-decision .callout-label { color:var(--sea); }
+.callout-note { border-left-color:#7f8a72; background:#f1f2ec; }
+.callout-note .callout-label { color:#5c6a4e; }
+ul.checklist, ol.checklist { list-style:none; padding-left:2px; }
+.checklist input { margin-right:8px; }
+.linklist { display:flex; flex-wrap:wrap; gap:8px; list-style:none; padding:0; margin:0 0 16px; }
+.linklist li { margin:0; }
+.pillnav { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:26px 0 0; }
+.pillnav a { border:1px solid #b8cbbd; color:var(--deep); background:var(--paper); font-size:12.5px;
+  border-radius:9px; font-weight:650; padding:8px 13px; text-decoration:none; }
+.pillnav a:hover { background:#e5f0dd; }
+.prompt-details summary { cursor:pointer; font:700 12px var(--mono); letter-spacing:.08em;
+  text-transform:uppercase; color:var(--sea); margin-bottom:10px; }
+.copy-btn { border:1px solid #b8cbbd; background:#f7f9ef; color:var(--deep); border-radius:9px;
+  font:650 12px var(--font); padding:8px 13px; cursor:pointer; margin-bottom:10px; }
+.copy-btn:hover { background:#e5f0dd; }
+.footer { margin-top:60px; padding-top:20px; border-top:1px solid var(--line); display:flex;
+  justify-content:space-between; gap:18px; color:var(--mute); font-size:11px; }
+@media (max-width:860px) {
+  .frame { display:block; }
+  .rail { position:relative; height:auto; padding:12px 16px; flex-direction:row; align-items:center;
+    gap:14px; overflow-x:auto; }
+  .rail nav { flex-direction:row; gap:3px; white-space:nowrap; }
+  .rail-caption,.rail-bottom { display:none; }
+  .content { padding:0 18px 60px; }
+  .hero { padding:40px 18px 34px; }
+}
+@media print {
+  @page { size:A4; margin:14mm; }
+  .frame { display:block; }
+  .rail,.copy-btn,.pillnav,.skip { display:none; }
+  .hero { color:var(--ink); background:#eff5e8; padding:14px 0; }
+  .hero-short { color:var(--ink2); }
+  .hero-eyebrow { color:var(--sea); }
+  .pill { color:var(--sea); border-color:var(--sea); }
+  .content { max-width:100%; padding:0; }
+  pre { white-space:pre-wrap; }
+  details { display:block; }
+  a[href^="http"]::after { content:" (" attr(href) ")"; font-size:11px; color:var(--mute); }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="frame">
+<aside class="rail"><a class="brand" href="../index.html"><span class="brandmark">g.</span><span>guia.la <em>/ planning</em></span></a><div class="rail-caption">On this page</div><nav aria-label="On this page"><a href="#phase-identity">Phase identity</a><a href="#why-this-stage-exists">Why this stage exists</a><a href="#inputs-and-source-references">Inputs and source references</a><a href="#task-breakdown">Task breakdown</a><a href="#architecture-choices-and-guardrails">Architecture choices and guardrails</a><a href="#deliverables">Deliverables</a><a href="#visual-and-functional-qa">Visual and functional QA</a><a href="#automated-verification">Automated verification</a><a href="#acceptance-gate">Acceptance gate</a><a href="#risks-rollback-and-handoff">Risks, rollback and handoff</a><a href="#next-phase-handoff">Next phase handoff</a></nav><div class="rail-bottom"><a href="../index.html">← Planning index</a></div></aside>
+<main class="main" id="main">
+<header class="hero">
+<div class="hero-eyebrow"><span class="hero-dot"></span> guia.la / Phase 05</div>
+<h1>Phase 05 — Tests, regression traps and security guardrails</h1>
+<p class="hero-short">Teach CI to catch the failure classes the legacy app actually had — async-state spinners, timezone rollover, validity windows, hidden type debt, secret leaks — with red/green proof and a flaky-test protocol.</p>
+<div class="hero-pills"><span class="pill bright">Status: draft</span><span class="pill">Medium (flakiness)</span><span class="pill">Prove</span><span class="pill">depends on: <a href="phase-04.html">04</a></span></div>
+</header><div class="content"><h2 id="phase-identity">Phase identity</h2><p>Phase <strong>05</strong> installs the regression traps. It adds the test layers the fast gate runs (unit, component, contract-shaped, web E2E, accessibility, visual, security scans), encodes the legacy app&#x27;s real failure classes as fixtures and named traps, proves the gate fails when it must (red/green demonstrations), and writes the quality budgets and flaky-test protocol that govern everything after.</p><ul><li><strong>Objective:</strong> CI that cannot silently pass the failure classes guia.la has already seen: indefinite spinners on failed loads, stale or wrongly-dated tide data, boat schedules ignoring weekday/validity, type errors hidden by the build, secrets in bundles, and authenticated responses entering shared caches.</li><li><strong>Prerequisites:</strong> Phase 04a exit (fast gate workflow exists and runs per PR; preview deploys work).</li><li><strong>Dependencies:</strong> Phase 04. Native E2E (Maestro) placement uses 04b&#x27;s S12/S13 measurements; per the review §8.4 proposal, native Maestro runs nightly/on release candidates, not per PR.</li><li><strong>Expected contributors:</strong> senior coding agent (suites and traps), orchestrator agent (verifies red/green evidence honestly), human product owner (approves the flaky-test protocol and the real-device smoke list; only the human permits skipping or deleting a test).</li><li><strong>Complexity and risks:</strong> Medium, and the risk is flakiness and scope creep, not difficulty. Visual and E2E suites are where CI credibility goes to die; the protocol and the web-first bias are the mitigations. <strong>No hour estimates.</strong></li></ul><h2 id="why-this-stage-exists">Why this stage exists</h2><p>Because the legacy app passed green CI while broken. Its build skipped typecheck and hid 455 <code>tsc</code> errors (issue #69; PR #52 reported them); its ~234 Vitest and ~136 Playwright cases were static counts that never ran in this planning pass (<a href="../research/legacy-cotiju-audit.md">../research/legacy-cotiju-audit.md</a> §6), and one timing-flaky weather test was already tolerated. The incidents this phase traps are documented, not hypothetical:</p><ul><li>#60: async views without deadline, empty, error, or retry states — infinite spinners when the backend is slow or down</li><li>#62: tide fallback hard-codes a 2025 file; out-of-range dates return an empty &quot;success&quot; with a fresh <code>lastUpdated</code>; UTC date keys show the wrong day after 21:00 local (UTC-3)</li><li>#64: next-boat logic uses the device clock, ignores weekday/validity windows, and labels a wrong departure &quot;tomorrow&quot;</li><li>#65: the service worker cached authenticated Supabase responses for 24 hours beside public ones</li><li>#66: navigation blocked on <code>navigator.onLine</code>, which is not backend health</li><li>Secrets by design: third-party API keys shipped in the public bundle (<a href="../research/legacy-cotiju-audit.md">../research/legacy-cotiju-audit.md</a> §8; R5, D-12)</li></ul><p>Agents scaling output is the whole operating model; this phase is what makes that safe. The review&#x27;s testing strategy (§5) and the master plan&#x27;s phase 05 both make the red/green demonstration the exit proof: deliberately break things and show CI catching each one.</p><h2 id="inputs-and-source-references">Inputs and source references</h2><p>Proposed paths in the future <code>guia-la</code> repository:</p><ul><li><code>packages/testing/</code> — shared helpers only, no fixtures: render-with-theme, fixture loader, network-fail harness (proposed)</li><li><code>packages/fixtures/{cotijuba,serra}/</code> — synthetic fixtures only, extending Phase 01&#x27;s sets: places, boat schedules with validity windows, tide series spanning a year boundary (proposed)</li><li><code>packages/testing/regressions/</code> — named traps, one per legacy failure class (proposed)</li><li><code>apps/app/e2e/</code> — Playwright suites (proposed)</li><li><code>.maestro/</code> — native smoke flows (proposed)</li><li><code>docs/quality/budgets.md</code>, <code>docs/quality/flaky-protocol.md</code>, <code>docs/quality/red-green-demo.md</code> (proposed)</li></ul><p>Legacy references (read-only, <code>luandro/cotiju-app</code>): tests are ported as <strong>scenarios, not code</strong> (R15): <code>first-load.spec.ts</code> (cold load with backend down, time-to-useful under 5 s — PR #52 pattern), the tide rollover bug, boat validity, PWA cache privacy audit (#65). Do not copy Supabase-coupled test code.</p><p>Authoritative documentation (from research): Playwright and Maestro tool placement per review §5; Maestro on Workflows mechanics (<code>.maestro/*.yml</code>, <code>e2e-test</code> profile, <code>eas workflow:run</code>, PR-triggered only when the repo is linked — <a href="../research/expo-stack.md">../research/expo-stack.md</a> §1.8); <code>navigator.onLine</code> unreliability (#66); timezone requirement <code>America/Belem</code> (legacy audit inference).</p><p>Decisions and review rows: D-08 (budget — Maestro at $0.05/job plus minutes lives inside the ceiling), D-10 (offline semantics — v1 web caching rules arrive in 08; this phase builds the harness that will verify them), D-13b (no visitor accounts — automated check), D-12 (legacy key rotation is an owner action outside this repo), R15 (fixtures not test code), review §5 (gate table), §8.4 (native Maestro on nightly/RC).</p><p>Known unknowns:</p><ul><li>S13: GH Actions emulator Maestro flake rate — prototype in this phase if 04b deferred it; unknown, measure</li><li>WebKit Playwright stability in CI — nightly only (review §5); unknown until run</li><li>The tide/boat pure functions themselves land in Phase 08; this phase ships the trap harness and fixtures with the tests marked to activate when the functions exist — an honest pending marker, not a skip</li><li>Whether WebKit nightly results match Chromium closely enough to share baselines — unknown; assume separate baselines until measured</li></ul><p>Credentials and tools needed: none new beyond Phase 04&#x27;s. Maestro runs (if any) consume the Expo budget under D-08.</p><h2 id="task-breakdown">Task breakdown</h2><div class="tablewrap"><table><thead><tr><th scope="col">#</th><th scope="col">Task (bounded)</th><th scope="col">Owner</th><th scope="col">PR unit</th><th scope="col">Depends on</th></tr></thead><tbody><tr><td>1</td><td><code>packages/testing</code> helpers: render with ThemeProvider, synthetic fixture loader, deterministic clock (<code>FakeTimer</code> at a set America/Belem instant), network-fail harness</td><td>Agent</td><td>PR 05-1</td><td>Phase 04</td></tr><tr><td>2</td><td>Unit/component suites for Phase 03 primitives: state matrix assertions (loading/empty/error/offline render, retry fires)</td><td>Agent</td><td>PR 05-2</td><td>1</td></tr><tr><td>3</td><td>Regression traps named for legacy classes: <code>legacy-60-spinner</code>, <code>legacy-62-tide-rollover</code>, <code>legacy-64-boat-validity</code>, <code>legacy-66-offline-nav</code> — fixtures now, pending markers where logic lands in 08</td><td>Agent</td><td>PR 05-3</td><td>1</td></tr><tr><td>4</td><td>Playwright web suite: smoke journeys on fixture data (home, places list/detail), JS-disabled raw-HTML assertion kept from the Phase 02 gate, backend-down error journey with time-to-useful budget</td><td>Agent</td><td>PR 05-4</td><td>1</td></tr><tr><td>5</td><td>Accessibility automation: axe on key pages and on the story set from Phase 03; zero-critical policy</td><td>Agent</td><td>PR 05-5</td><td>2</td></tr><tr><td>6</td><td>Visual regression: Chromium screenshots of stories and key pages against Phase 03 baselines; threshold and update policy in docs</td><td>Agent</td><td>PR 05-6</td><td>2</td></tr><tr><td>7</td><td>Security scans: gitleaks in CI, extend Phase 04&#x27;s bundle secret grep to a standing rule, dependency review on lockfile changes, no-credential-prompt check on public pages (D-13b)</td><td>Agent</td><td>PR 05-7</td><td>Phase 04</td></tr><tr><td>8</td><td>Maestro smoke flows (<code>.maestro/</code>): app opens, destination renders, a place detail opens; wired to nightly/RC per review §8.4 — not per PR; placement decision recorded with S12/S13 data</td><td>Agent</td><td>PR 05-8</td><td>04b (or explicitly deferred)</td></tr><tr><td>9</td><td>Red/green demonstrations: four planted failures — broken error state, type error, canary secret, stale preview/OG regression — each shown failing the correct gate step, then reverted; evidence archived</td><td>Agent, human reviews evidence</td><td>PR 05-9</td><td>4, 7</td></tr><tr><td>10</td><td>Quality budgets and flaky protocol docs: fast-gate time target (review §5 proposes under 10 minutes), trap coverage over vanity percentages, quarantine label with issue link and 7-day expiry, never delete or skip without human approval</td><td>Agent, human approves protocol</td><td>PR 05-10</td><td>9</td></tr><tr><td>11</td><td>Test report artifact: HTML report generated in CI and linked from the PR alongside the preview URL</td><td>Agent</td><td>PR 05-11</td><td>4</td></tr></tbody></table></div><p>Notes:</p><ol><li>Task 3&#x27;s traps are the phase&#x27;s core deliverable. Each names its legacy issue, carries a fixture reproducing the bug shape, and asserts the honest behavior (visible error, explicit &quot;unavailable&quot;, correct local date) rather than a mocked success.</li><li>Task 8 may be explicitly deferred if 04b has not produced measurements; the gate then records &quot;native E2E pending — S13/budget&quot; as a blocker with a reason, which is an acceptable, honest state (quality standard: mark gates blocked rather than paper over).</li><li>Task 9 is the exit proof. The demonstrations run on a throwaway branch; the evidence (failing output excerpts per gate step) is archived in <code>docs/quality/red-green-demo.md</code> and the PR description.</li></ol><h2 id="architecture-choices-and-guardrails">Architecture choices and guardrails</h2><p>Test layering (all proposed until run):</p><pre><code class="language-text">fast gate (every PR, target &lt; 10 min, review §5):
+  typecheck -&gt; lint -&gt; unit/component (Vitest) -&gt; regression traps
+  -&gt; export:web -&gt; Playwright smoke (Chromium, incl. JS-disabled HTML)
+  -&gt; axe on pages and stories -&gt; visual diff (Chromium)
+  -&gt; gitleaks + bundle secret grep + dependency review
+nightly / RC:
+  WebKit Playwright -&gt; Android + iOS Maestro -&gt; (restore drills arrive in 07)</code></pre><p>Contracts and patterns:</p><ul><li>Determinism first: no real network in unit/component suites; the network-fail harness simulates down/slow/hanging backends — the #60 class must be testable without a flaky proxy</li><li>Deterministic clock: timezone-sensitive traps pin an America/Belem instant (e.g. 21:30 local) rather than relying on wall time; legacy #62/#64 are clock bugs and must not be tested with a live clock</li><li>Fixtures are synthetic and versioned; importing legacy data into fixtures is forbidden (privacy and licensing unverified — D-11)</li><li>Trap naming convention <code>legacy-&lt;issue&gt;-&lt;slug&gt;</code> keeps each trap traceable to its documented failure</li></ul><p>Trap index (starter set; extend, never duplicate — each row names its legacy issue and its honest assertion):</p><div class="tablewrap"><table><thead><tr><th scope="col">Trap</th><th scope="col">Legacy failure it encodes</th><th scope="col">Fixture needed</th><th scope="col">Status at phase exit</th></tr></thead><tbody><tr><td><code>legacy-60-spinner</code></td><td>async view without deadline/empty/error/retry (#60)</td><td>network-fail harness over the places page</td><td>active</td></tr><tr><td><code>legacy-62-tide-rollover</code></td><td>UTC date key shows the wrong tide day after 21:00 local (#62)</td><td>tide series spanning a year boundary, clock pinned 21:30 America/Belem</td><td>pending marker until Phase 08 function exists</td></tr><tr><td><code>legacy-64-boat-validity</code></td><td>next-boat ignores weekday and validity window (#64)</td><td>schedules with weekday masks and expired validity ranges</td><td>pending marker until Phase 08 function exists</td></tr><tr><td><code>legacy-66-offline-nav</code></td><td><code>navigator.onLine</code> blocked navigation (#66)</td><td>page journey with network down but shell cached</td><td>active</td></tr></tbody></table></div><p>Forbidden:</p><ul><li>Skipping, deleting, or <code>todo</code>-ing a failing test without the human&#x27;s approval (charter rule; the quarantine label is the only sanctioned relief and it expires in 7 days)</li><li>Snapshot tests that assert mock implementations rather than behavior</li><li>Real credentials, real personal data, or live third-party APIs in any suite</li><li>Vanity coverage percentages as a gate metric; the gate counts trap classes covered</li><li><code>navigator.onLine</code> as a proxy for backend health in any test or product code (#66)</li><li>Per-PR native builds or Maestro jobs (R6, §8.4)</li></ul><p>Security and privacy implications: suites must not log fixture tokens resembling real secrets into CI output (the gitleaks step would fail the run — test that too); dependency review gates on lockfile diffs to catch supply-chain drift early.</p><p>Acceptable alternatives:</p><ul><li>Maestro alternatives (Detox, Appium): acceptable only with evidence of lower flake or cost; Maestro is the default per tooling research; the choice is recorded, not debated per PR</li><li>Web-only visual diffs now, per-platform baselines later (when native E2E lands) — accepted explicitly rather than by omission</li></ul><h2 id="deliverables">Deliverables</h2><ul class="checklist"><li><input type="checkbox" disabled> <code>packages/testing</code> helpers with the deterministic clock and network-fail harness</li><li><input type="checkbox" disabled> Synthetic fixture sets under <code>packages/fixtures/{cotijuba,serra}/</code>: places, boat schedules with validity windows and weekday masks, tide series spanning a year boundary in America/Belem</li><li><input type="checkbox" disabled> Regression traps <code>legacy-60</code>, <code>legacy-62</code>, <code>legacy-64</code>, <code>legacy-66</code> (pending markers where Phase 08 logic is required)</li><li><input type="checkbox" disabled> Playwright web suite with JS-disabled HTML assertions and the backend-down time-to-useful journey</li><li><input type="checkbox" disabled> Axe integration over pages and stories; zero-critical policy in docs</li><li><input type="checkbox" disabled> Visual regression wired to Phase 03 baselines with an update policy</li><li><input type="checkbox" disabled> Security layer: gitleaks, standing bundle secret grep, dependency review, no-login check</li><li><input type="checkbox" disabled> <code>.maestro/</code> smoke flows wired to nightly/RC, or a recorded deferral with reason</li><li><input type="checkbox" disabled> <code>docs/quality/red-green-demo.md</code> with the four demonstrations&#x27; evidence</li><li><input type="checkbox" disabled> <code>docs/quality/budgets.md</code> and <code>docs/quality/flaky-protocol.md</code> approved by the human</li><li><input type="checkbox" disabled> Test report artifact linked from every PR</li></ul><h2 id="visual-and-functional-qa">Visual and functional QA</h2><p>Manual journeys (human):</p><ol><li>Open the red/green evidence PR: read <code>docs/quality/red-green-demo.md</code>; every demonstration shows a failing gate step with the exact error, and the follow-up green run after revert. The human confirms the failures are the <em>right</em> failures (correct gate step, diagnosable message).</li><li>Open a PR comment: preview URL, test report link, and trap summary all present; open the report and find the backend-down journey result with its time-to-useful number.</li><li>Attempt a keyboard-only pass of the Places page on the preview; confirm focus visibility matches the axe-clean story set.</li><li>Review the trap list: each names its legacy issue and shows its fixture; none contains legacy data.</li></ol><p>Agent journeys:</p><ol><li>Introduce a deliberate spinner (remove an error state) on a branch; the Playwright backend-down journey must fail with the trap name in the output.</li><li>Set the fixture clock to 21:30 America/Belem on December 31; the tide-rollover trap must assert the correct local date (pending-marker logic permitting).</li><li>Plant a canary secret; gitleaks and the bundle grep both fail; the report names the file.</li><li>Verify a quarantined test still appears in the report with its label, issue link, and expiry — and that the expiry, once past, fails the run.</li></ol><p>Platform matrix:</p><div class="tablewrap"><table><thead><tr><th scope="col">Surface</th><th scope="col">Web</th><th scope="col">Android</th><th scope="col">iOS</th></tr></thead><tbody><tr><td>Unit, traps, a11y, visual, security</td><td>required per PR</td><td>n/a</td><td>n/a</td></tr><tr><td>Playwright Chromium smoke</td><td>required per PR</td><td>n/a</td><td>n/a</td></tr><tr><td>Playwright WebKit</td><td>nightly</td><td>n/a</td><td>n/a</td></tr><tr><td>Maestro smoke</td><td>n/a</td><td>nightly/RC</td><td>nightly/RC (or recorded deferral)</td></tr></tbody></table></div><p>Error states to verify: backend down (visible error, retry, time-to-useful within budget), fixture empty (EmptyState, not a skeleton forever), year-boundary date rollover, and a quarantined test showing its label and expiry in the report rather than vanishing. Trap pending markers surface as explicit &quot;pending — Phase 08&quot; entries in the report — never as green checkmarks.</p><h2 id="automated-verification">Automated verification</h2><p>Nothing has run; all commands are <strong>proposed</strong> except where research verified the form. Per the quality standard, planning documents define expected output and may not claim a pass.</p><div class="tablewrap"><table><thead><tr><th scope="col">Command</th><th scope="col">Purpose</th><th scope="col">Status</th></tr></thead><tbody><tr><td><code>pnpm typecheck</code></td><td>strict TS gate (the #69 trap)</td><td>proposed</td></tr><tr><td><code>pnpm test</code></td><td>unit, component, regression traps (Vitest)</td><td>proposed</td></tr><tr><td><code>pnpm test:e2e</code></td><td>Playwright Chromium smoke incl. JS-disabled HTML</td><td>proposed</td></tr><tr><td><code>pnpm test:a11y</code></td><td>axe over pages and stories</td><td>proposed</td></tr><tr><td><code>pnpm test:visual</code></td><td>screenshot diff against baselines</td><td>proposed</td></tr><tr><td>gitleaks GitHub Action (or installed Go binary) running <code>gitleaks detect --redact</code></td><td>secret scan of the repo</td><td>proposed</td></tr><tr><td>bundle secret grep (from Phase 04)</td><td>scan <code>dist/</code> for secret-shaped strings</td><td>proposed</td></tr><tr><td><code>eas workflow:run .eas/workflows/e2e-test-android.yml --non-interactive --wait --json</code></td><td>Maestro on Workflows (nightly)</td><td>proposed; form documented in research §1.8; budget- and credential-gated</td></tr></tbody></table></div><p>Positive tests: each suite green on main; report artifact published; traps assert honest behaviors (error surfaces, explicit unavailability, correct local dates).</p><p>Negative tests (the phase&#x27;s core): the four red/green demonstrations of task 9 — broken error state, type error, canary secret, stale-HTML/OG regression — each must fail the correct gate step. A demonstration that fails the <em>wrong</em> step is itself a defect to fix before exit.</p><p>Deliberate-failure demonstrations are not extra credit here; they are the acceptance gate (master plan phase 05: &quot;deliberately break a widget and demonstrate the CI fails in the correct place&quot;).</p><h2 id="acceptance-gate">Acceptance gate</h2><aside class="callout callout-gate"><p class="callout-label">Gate</p><p>The gate fails on every planted failure class at the correct step, an agent can diagnose each failure from saved evidence alone, and no test is skipped outside the quarantine protocol.</p></aside><p>Checklist (observable pass/fail):</p><ul class="checklist"><li><input type="checkbox" disabled> Four red/green demonstrations archived with failing and passing evidence</li><li><input type="checkbox" disabled> Fast gate runs within the documented time budget on a typical PR</li><li><input type="checkbox" disabled> Backend-down journey asserts visible error and time-to-useful (no spinner trap regressed)</li><li><input type="checkbox" disabled> Timezone traps use a deterministic America/Belem clock; no test depends on wall time</li><li><input type="checkbox" disabled> Fixtures contain zero legacy personal data or media (reviewer spot-check)</li><li><input type="checkbox" disabled> Quarantine protocol written and approved; no test currently skipped without a label, issue link, and expiry</li><li><input type="checkbox" disabled> Native E2E wired to nightly/RC, or a deferral recorded with the blocking reason (S13, budget, or credentials)</li><li><input type="checkbox" disabled> Test report linked from a real PR alongside the preview URL</li><li><input type="checkbox" disabled> Pending traps display as pending in the report; none displays as passed</li><li><input type="checkbox" disabled> Quarantine list at RC is empty or every entry justified with an issue link</li><li><input type="checkbox" disabled> Quality budgets doc approved by the human</li></ul><p>Blocks progression if:</p><ul><li>Any planted failure passes the gate — CI evidence is untrustworthy and Phase 06&#x27;s exclusion assertions (which depend on this gate) would be meaningless</li><li>A regression trap asserts a mocked success instead of honest behavior — the legacy #62 failure mode, rebuilt as a test</li><li>Visual or E2E flakiness exceeds the protocol&#x27;s tolerance with no quarantine path — review velocity collapses</li><li>Security scans are advisory-only (warn but not fail) — secrets ship (R5)</li></ul><h2 id="risks-rollback-and-handoff">Risks, rollback and handoff</h2><div class="tablewrap"><table><thead><tr><th scope="col">Risk</th><th scope="col">Likelihood</th><th scope="col">Impact</th><th scope="col">Mitigation</th></tr></thead><tbody><tr><td>E2E/visual flakiness erodes trust</td><td>high</td><td>high</td><td>Web-first, deterministic harnesses, thresholds, quarantine with 7-day expiry; never auto-accept baseline updates</td></tr><tr><td>Maestro cost and flake on nightly (at $0.05/job plus minutes — research §1.8)</td><td>medium</td><td>medium</td><td>Nightly cadence, minimal flow set, S13 emulator comparison; stays inside D-08 ceiling</td></tr><tr><td>Trap scope creep into Phase 08 business logic</td><td>high</td><td>medium</td><td>Traps ship fixtures and pending markers, not implementations; reviewer enforces the boundary</td></tr><tr><td>Suites slow the gate past budget</td><td>medium</td><td>medium</td><td>Sharding, targeted runs by path, budgets doc tracks the number per PR</td></tr><tr><td>WebKit nightlies unstable in CI</td><td>medium</td><td>low</td><td>Nightly-only placement isolates it from PR flow; quarantine protocol applies</td></tr><tr><td>Quarantine abused to silence real failures</td><td>low</td><td>high</td><td>7-day expiry auto-fails the run afterwards; human audits the quarantine list at every RC</td></tr></tbody></table></div><p>Sensitive operations needing human approval: deleting or skipping any test; relaxing a security scan to advisory; approving the flaky protocol and budgets; any real-device testing arrangements (later, at RC).</p><p>Budget impact: intended zero beyond Phase 04&#x27;s pipeline; Maestro nightly jobs bill per research §1.8 rates inside the D-08 ceiling — record monthly actuals in <code>docs/pipeline/budget.md</code>.</p><p>Rollback: every suite is additive and independently disableable via config (not deletion). The red/green evidence PR is throwaway by design. Disabling a suite is a documented, reversible config change — never a <code>git rm</code>.</p><p>Restart instructions for an agent picking up mid-phase:</p><ol><li>Read <code>docs/quality/budgets.md</code> and <code>flaky-protocol.md</code> first; they bind you</li><li>Check <code>packages/testing/regressions/</code> for existing traps before adding one; extend, do not duplicate</li><li>The task table above is the order; PRs 05-1 and 05-7 unblock the most</li><li>If a demonstration already exists in <code>red-green-demo.md</code>, do not redo it; verify and move on</li></ol><h2 id="next-phase-handoff">Next phase handoff</h2><p>Phase 06 (widget contract and exclusion) needs from this phase:</p><ul><li>The fast-gate slot structure its exclusion assertions (compose checks, source-map greps) plug into</li><li>The contract-test pattern widgets must satisfy before opting into a destination manifest</li><li>The evidence/report template its negative assertions reuse</li><li>Confidence that a gate pass means something — which is exactly what the red/green demonstrations bought</li></ul><p>Records to hand over: trap index with statuses, fixture inventory, protocol and budgets docs, the red/green evidence, nightly job definitions, and any deferral with its blocking reason. Phase 08 activates pending traps rather than rewriting them — the index is the contract. This phase&#x27;s prompt: <a href="../prompts/phase-05-agent.md">../prompts/phase-05-agent.md</a>. Next phase page: <a href="phase-06.html">phase-06.html</a>.</p><h2 id="agent-execution-prompt">Agent execution prompt</h2><p>The full agent prompt lives at <a href="../prompts/phase-05-agent.md">../prompts/phase-05-agent.md</a>.</p><button type="button" class="copy-btn" data-target="agent-prompt">Copy prompt</button><details class="prompt-details" open><summary>Prompt contents</summary><pre id="agent-prompt"><code># Phase 05 agent prompt — tests, regression traps, security guardrails
+
+&gt; **DO NOT EXECUTE THIS PROMPT YET.** It is planning output. It becomes active only
+&gt; after the product owner approves the guia.la planning packet and the repository exists.
+
+## Role
+
+You are the senior implementation agent for Phase 05 of guia.la: the test layers,
+regression traps, security guardrails, red/green demonstrations, and the quality
+protocols. The full playbook is `planning/phases/phase-05.html` in the planning
+packet — read it before writing any test.
+
+## Hard constraints (global, non-negotiable)
+
+- No writes to production data, the legacy repo, or any live service.
+- No secrets, real personal data, or legacy media in fixtures — synthetic only.
+- No store/DNS/spend actions without human approval; Maestro jobs consume the
+  D-08 budget — nightly cadence only, never per PR.
+- Evidence over claims: a test that never ran is a pending marker, not a pass.
+- Small PRs (`PR 05-1` … `PR 05-11`); never delete or skip a test yourself —
+  quarantine (label + issue link + 7-day expiry) is the only sanctioned relief
+  and it needs the protocol applied.
+
+## Read first (paths relative to the guia.la repo)
+
+1. `AGENTS.md` and `SPEC.md`.
+2. `docs/adr/` — D-08 (budget), D-10 (offline semantics), D-12 (legacy keys),
+   D-13b (no visitor accounts in v1).
+3. The planning packet&#x27;s `planning/phases/phase-05.html` — your contract.
+4. `docs/quality/budgets.md` and `docs/quality/flaky-protocol.md` if present —
+   they bind you.
+5. `packages/testing/regressions/` if present — extend existing traps, never duplicate.
+
+## Context you inherit
+
+- Phase 04a gives you the fast gate (typecheck, lint, unit, export, secret grep)
+  and preview deploys; you add layers into its slot order.
+- The traps encode real legacy failures (issues #60, #62, #64, #66, #69, #65):
+  spinners without error states, tide UTC-date rollover after 21:00 local, boat
+  schedules ignoring weekday/validity, `navigator.onLine` misused as backend
+  health, 455 type errors hidden by the build, authed responses in shared caches.
+- Port scenarios as fixtures, not test code (R15). The tide/boat pure functions
+  land in Phase 08 — your traps carry pending markers until then; pending markers
+  are honest, skips are not.
+- Native Maestro runs nightly/on RC per the review — not per PR.
+
+## Ordered tasks
+
+1. **PR 05-1** — `packages/testing`: render-with-theme, synthetic fixture loader,
+   deterministic clock pinned to America/Belem instants, network-fail harness.
+2. **PR 05-2** — component suites over Phase 03 primitives: state matrix, retry fires.
+3. **PR 05-3** — regression traps `legacy-60-spinner`, `legacy-62-tide-rollover`,
+   `legacy-64-boat-validity`, `legacy-66-offline-nav` (fixtures + pending markers
+   where logic is Phase 08).
+4. **PR 05-4** — Playwright web: smoke journeys on fixtures, JS-disabled raw-HTML
+   assertion, backend-down journey with a time-to-useful budget.
+5. **PR 05-5** — axe over key pages and the story set; zero-critical policy.
+6. **PR 05-6** — visual regression against Phase 03 baselines; update policy documented.
+7. **PR 05-7** — security: gitleaks, standing bundle secret grep, dependency
+   review on lockfile diffs, no-credential-prompt check on public pages (D-13b).
+8. **PR 05-8** — `.maestro/` smoke flows wired to nightly/RC; record placement
+   decision with S12/S13 data, or record the deferral and its reason.
+9. **PR 05-9** — red/green demonstrations on a throwaway branch: broken error
+   state, type error, canary secret, stale-HTML/OG regression — each fails the
+   correct gate step; archive evidence in `docs/quality/red-green-demo.md`; human
+   reviews it.
+10. **PR 05-10** — budgets and flaky-protocol docs; the human approves both.
+11. **PR 05-11** — HTML test report artifact linked from every PR.
+
+## Acceptance criteria
+
+- Four red/green demonstrations archived: failing output at the correct gate step,
+  then green after revert.
+- Backend-down journey asserts a visible error and time-to-useful — no spinner.
+- Timezone traps use the deterministic clock; no test reads wall time.
+- No test is skipped without the quarantine label, an issue link, and an expiry.
+- Fixtures spot-checked: zero legacy data.
+- Fast gate stays within the documented time budget on a typical PR.
+- Security scans fail closed (they are gates, not warnings).
+
+## PR evidence package (every PR)
+
+- Summary and the task closed; link to it.
+- Commands run with output excerpts (suite name, counts, failures if any).
+- For the demonstrations: the exact failing step output and the green follow-up.
+- Report artifact link from the PR&#x27;s own CI run.
+- Risks and known limitations (flaky candidates named, not hidden).
+- Docs updated.
+- The next task this PR unblocks.
+
+## Stop and ask when…
+
+- A test fails for a reason you cannot diagnose in two self-correction cycles.
+- You believe a test must be skipped or deleted — that is the human&#x27;s call alone.
+- A trap would require implementing Phase 08 business logic — mark pending and stop there.
+- A security scan seems wrong (false positive) — propose a narrow exclusion with
+  evidence; never widen the scan&#x27;s ignore list silently.
+- Maestro cost or emulator flakiness (S13) exceeds the budget record — surface it
+  with numbers instead of absorbing it.
+</code></pre></details><div class="pillnav"><a href="phase-04.html">← Phase 04</a><a href="phase-06.html">Phase 06 →</a></div><div class="footer"><span>guia.la planning packet</span><span>Phase 05 · generated by planning/tools/build.py</span></div></div>
+</main>
+</div>
+<script>
+document.querySelectorAll('.copy-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    var t = document.getElementById(b.getAttribute('data-target'));
+    if (!t) return;
+    var done = function(){ b.textContent = 'Copied'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t.textContent).then(done, function(){});
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = t.textContent; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  });
+});
+</script>
+</body>
+</html>

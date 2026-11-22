@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<title>Phase 10 — Release discipline, self-service growth and agent continuity · guia.la planning</title>
+<style>
+:root { --bg:#f7f5ef; --paper:#fffefa; --ink:#172d2a; --ink2:#38534d; --mute:#5a6e66;
+  --sea:#155c60; --deep:#0c3438; --lime:#d3f08e; --lime-dark:#82b83c; --sand:#e9e4d8;
+  --line:#d9ddd3; --warm:#a5532f; --white:#ffffff;
+  --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); font-family:var(--font); color:var(--ink); line-height:1.58; }
+a { color:var(--sea); text-underline-offset:3px; }
+a:hover { color:#0b3f40; }
+:focus-visible { outline:3px solid var(--warm); outline-offset:3px; }
+.skip { position:absolute; left:-999px; top:8px; background:var(--deep); color:var(--lime);
+  padding:9px 15px; border-radius:8px; z-index:50; }
+.skip:focus { left:8px; color:var(--lime); }
+.frame { display:grid; grid-template-columns:258px minmax(0,1fr); min-height:100vh; }
+.rail { position:sticky; top:0; height:100vh; padding:28px 18px 18px 24px; border-right:1px solid var(--line);
+  display:flex; flex-direction:column; background:#f2f1e9; z-index:5; overflow-y:auto; }
+.brand { display:flex; align-items:center; gap:11px; font-weight:850; letter-spacing:-.05em;
+  font-size:21px; color:var(--deep); text-decoration:none; }
+.brandmark { width:36px; height:36px; border-radius:11px; background:var(--deep); color:var(--lime);
+  display:grid; place-items:center; font-size:19px; font-weight:800; flex:none; }
+.rail-caption { font:700 10px/1.4 var(--mono); letter-spacing:.15em; color:#5c7568; margin:26px 8px 9px;
+  text-transform:uppercase; }
+.rail nav { display:flex; flex-direction:column; gap:2px; }
+.rail nav a { display:block; padding:7px 10px; text-decoration:none; border-radius:8px;
+  color:#4d665f; font-size:13px; }
+.rail nav a:hover { color:var(--deep); background:#dce7d5; }
+.rail-bottom { margin-top:auto; padding:14px 10px 0; border-top:1px solid var(--line);
+  color:var(--mute); font-size:11px; }
+.rail-bottom strong { color:var(--sea); }
+.main { min-width:0; }
+.content { max-width:1040px; margin:auto; padding:0 48px 90px; }
+.hero { background:var(--deep); color:var(--white); padding:58px 48px 50px; }
+.hero-eyebrow { display:flex; align-items:center; gap:9px; text-transform:uppercase;
+  font:700 11px/1.5 var(--mono); letter-spacing:.16em; color:#c1e4c6; }
+.hero-dot { width:7px; height:7px; border-radius:50%; background:var(--lime); display:inline-block; }
+.hero h1 { font-weight:720; font-size:clamp(34px,4.4vw,58px); letter-spacing:-.06em;
+  line-height:1.06; margin:22px 0 16px; max-width:820px; }
+.hero-short { max-width:720px; color:#c3d6d0; font-size:clamp(16px,1.4vw,18px); line-height:1.65; }
+.hero-pills { display:flex; flex-wrap:wrap; gap:9px; margin-top:26px; }
+.pill { display:inline-flex; align-items:center; border:1px solid #42706b; border-radius:100px;
+  color:#d8e7d9; padding:7px 12px; font:600 11px var(--mono); }
+.pill.bright { background:var(--lime); color:var(--deep); border-color:var(--lime); }
+.pill a { color:inherit; }
+h2 { font-size:clamp(24px,2.8vw,34px); letter-spacing:-.045em; font-weight:720; line-height:1.15;
+  margin:52px 0 16px; scroll-margin-top:20px; }
+h3 { letter-spacing:-.025em; font-size:19px; margin:30px 0 10px; }
+h4 { font-size:15px; margin:22px 0 8px; }
+p { color:var(--ink2); margin:0 0 14px; }
+li { margin-bottom:6px; color:var(--ink2); }
+ul,ol { padding-left:24px; margin:0 0 14px; }
+li ul,li ol { margin:6px 0 2px; }
+table { border-collapse:collapse; font-size:13.5px; width:100%; margin:18px 0; }
+th,td { border-bottom:1px solid #d8dfd5; text-align:left; vertical-align:top; padding:10px 11px; }
+th { font:800 10px var(--mono); text-transform:uppercase; letter-spacing:.07em; color:#3f5f56;
+  background:#eaece3; }
+td { color:var(--ink2); }
+.tablewrap { overflow-x:auto; margin:18px 0; }
+.tablewrap table { margin:0; }
+code { font:.92em var(--mono); background:#ecefe4; border-radius:5px; padding:1px 5px; color:#26433c; }
+pre { background:#122f31; color:#d2e9e0; border-radius:13px; padding:18px; overflow:auto; margin:16px 0; }
+pre code { background:none; color:inherit; padding:0; font:12.5px/1.7 var(--mono); }
+blockquote { margin:16px 0; padding:12px 18px; border-left:4px solid #9db7ad; background:#f0f2ea;
+  border-radius:0 12px 12px 0; color:var(--ink2); }
+blockquote p:last-child { margin-bottom:0; }
+.callout { margin:18px 0; border-radius:12px; padding:14px 18px; border:1px solid var(--line);
+  border-left-width:5px; background:var(--paper); }
+.callout-label { font:800 10px var(--mono); letter-spacing:.14em; text-transform:uppercase;
+  color:var(--deep); margin:0 0 6px; }
+.callout p:last-child { margin-bottom:0; }
+.callout-gate { border-left-color:#2e624a; background:#eaf2e2; }
+.callout-gate .callout-label { color:#2e624a; }
+.callout-risk { border-left-color:var(--warm); background:#f7e9dc; }
+.callout-risk .callout-label { color:var(--warm); }
+.callout-decision { border-left-color:var(--sea); background:#e4eef0; }
+.callout-decision .callout-label { color:var(--sea); }
+.callout-note { border-left-color:#7f8a72; background:#f1f2ec; }
+.callout-note .callout-label { color:#5c6a4e; }
+ul.checklist, ol.checklist { list-style:none; padding-left:2px; }
+.checklist input { margin-right:8px; }
+.linklist { display:flex; flex-wrap:wrap; gap:8px; list-style:none; padding:0; margin:0 0 16px; }
+.linklist li { margin:0; }
+.pillnav { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:26px 0 0; }
+.pillnav a { border:1px solid #b8cbbd; color:var(--deep); background:var(--paper); font-size:12.5px;
+  border-radius:9px; font-weight:650; padding:8px 13px; text-decoration:none; }
+.pillnav a:hover { background:#e5f0dd; }
+.prompt-details summary { cursor:pointer; font:700 12px var(--mono); letter-spacing:.08em;
+  text-transform:uppercase; color:var(--sea); margin-bottom:10px; }
+.copy-btn { border:1px solid #b8cbbd; background:#f7f9ef; color:var(--deep); border-radius:9px;
+  font:650 12px var(--font); padding:8px 13px; cursor:pointer; margin-bottom:10px; }
+.copy-btn:hover { background:#e5f0dd; }
+.footer { margin-top:60px; padding-top:20px; border-top:1px solid var(--line); display:flex;
+  justify-content:space-between; gap:18px; color:var(--mute); font-size:11px; }
+@media (max-width:860px) {
+  .frame { display:block; }
+  .rail { position:relative; height:auto; padding:12px 16px; flex-direction:row; align-items:center;
+    gap:14px; overflow-x:auto; }
+  .rail nav { flex-direction:row; gap:3px; white-space:nowrap; }
+  .rail-caption,.rail-bottom { display:none; }
+  .content { padding:0 18px 60px; }
+  .hero { padding:40px 18px 34px; }
+}
+@media print {
+  @page { size:A4; margin:14mm; }
+  .frame { display:block; }
+  .rail,.copy-btn,.pillnav,.skip { display:none; }
+  .hero { color:var(--ink); background:#eff5e8; padding:14px 0; }
+  .hero-short { color:var(--ink2); }
+  .hero-eyebrow { color:var(--sea); }
+  .pill { color:var(--sea); border-color:var(--sea); }
+  .content { max-width:100%; padding:0; }
+  pre { white-space:pre-wrap; }
+  details { display:block; }
+  a[href^="http"]::after { content:" (" attr(href) ")"; font-size:11px; color:var(--mute); }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="frame">
+<aside class="rail"><a class="brand" href="../index.html"><span class="brandmark">g.</span><span>guia.la <em>/ planning</em></span></a><div class="rail-caption">On this page</div><nav aria-label="On this page"><a href="#phase-identity">Phase identity</a><a href="#why-this-stage-exists">Why this stage exists</a><a href="#inputs-and-source-references">Inputs and source references</a><a href="#task-breakdown">Task breakdown</a><a href="#architecture-choices-and-guardrails">Architecture choices and guardrails</a><a href="#deliverables">Deliverables</a><a href="#visual-and-functional-qa">Visual and functional QA</a><a href="#automated-verification">Automated verification</a><a href="#acceptance-gate">Acceptance gate</a><a href="#risks-rollback-and-handoff">Risks, rollback and handoff</a><a href="#next-phase-handoff">Next phase handoff</a></nav><div class="rail-bottom"><a href="../index.html">← Planning index</a></div></aside>
+<main class="main" id="main">
+<header class="hero">
+<div class="hero-eyebrow"><span class="hero-dot"></span> guia.la / Phase 10</div>
+<h1>Phase 10 — Release discipline, self-service growth and agent continuity</h1>
+<p class="hero-short">Operationalize launch and rollback, monitoring and budgets, store compliance, and the runbooks and handoff test that let agents keep developing the platform without a growing team.</p>
+<div class="hero-pills"><span class="pill bright">Status: draft</span><span class="pill">Medium (release-risk)</span><span class="pill">Operate</span><span class="pill">depends on: <a href="phase-04.html">04</a>, <a href="phase-08.html">08</a>, <a href="phase-09.html">09</a></span></div>
+</header><div class="content"><h2 id="phase-identity">Phase identity</h2><p>Phase <strong>10</strong> turns a working staging product into an operable platform: releases that are boring, rollbacks that are rehearsed, alerts that fire before users complain, store listings that survive review, and handoffs any competent agent can pick up.</p><ul><li><strong>Objective:</strong> production release and rollback discipline (web first, flagship native app second); monitoring, freshness alerting and cost tracking on the real domain; SEO/deep-link completion; store compliance package; reusable runbooks and a proven agent-continuity loop.</li><li><strong>Prerequisites:</strong> Phase 04 artifact pipeline with checksums and previews; Phase 08 widget verticals with provenance; Phase 09 verified content, editorial routine and go/no-go readout.</li><li><strong>Dependencies:</strong> phases 04, 08, 09. Task 6 (submission) additionally requires the user&#x27;s store accounts and D-01 identity to be settled — bundle IDs are effectively permanent after first release (<a href="../decisions.md">decisions.md</a> D-01).</li><li><strong>Expected contributors:</strong> human — product owner (submits to stores, approves spend and production promotion), editor community (content), QA reviewer (release checks on real devices); agent — release tooling, monitoring wiring, compliance drafts, runbook authoring, handoff-test implementer.</li><li><strong>Complexity/risks:</strong> Medium engineering, high consequence. Dominant risks: store review outcomes (policy, not code — mitigated by the flagship distribution model D-07); production-domain surprises the staging environment cannot reveal; monitoring/tool costs that are unknown until chosen. No hour estimates.</li></ul><div class="tablewrap"><table><thead><tr><th scope="col">Phase</th><th scope="col">What it must provide before 10 starts</th></tr></thead><tbody><tr><td>04</td><td>Artifact pipeline with checksums, preview and native build budgets</td></tr><tr><td>08</td><td>Widget verticals with provenance, offline and error behavior</td></tr><tr><td>09</td><td>Verified content, operating editorial routine, go/no-go readout, 301 map</td></tr></tbody></table></div><h2 id="why-this-stage-exists">Why this stage exists</h2><p>The legacy platform died operationally, not technically: an incident nobody could diagnose because two hosts served unknown commits (<a href="https://github.com/luandro/cotiju-app/issues/63">#63</a>), tides that expired silently (<a href="https://github.com/luandro/cotiju-app/issues/62">#62</a>), and no privacy pages before launch (<a href="https://github.com/luandro/cotiju-app/issues/68">#68</a>). Phase 10 exists so guia.la&#x27;s failure modes are <em>known in advance and rehearsed</em>: which commit is live, what breaks first, who is called, how it rolls back.</p><p>It also carries the platform&#x27;s actual promise — a small team plus agents that keeps shipping. The final gate is not &quot;launched&quot;; it is <em>a different agent, given only a spec, ships a small widget to a green PR</em>. If that fails, every runbook above it is decoration. Distribution follows the store-policy evidence: one flagship app with a destination picker (Apple 4.2.6 &quot;picker model&quot;, 4.3(a) anti-fragmentation; Google repetitive-content guidance — <a href="../research/backend-stores-starters.md">backend research §2</a>), with per-destination branding living on the web, per D-07.</p><h2 id="inputs-and-source-references">Inputs and source references</h2><p>Paths in the future <code>guia-la</code> repository are <strong>proposed</strong>.</p><ul><li>Release assets (proposed): <code>.eas/workflows/release-*.yml</code> EAS build workflows — proposed names, not <code>eas.json</code> profiles (naming per <a href="../research/expo-stack.md">expo-stack §1.8</a>); <code>docs/runbooks/release.md</code>, <code>docs/runbooks/rollback.md</code>, <code>docs/runbooks/incident.md</code>; <code>docs/ops/monitoring.md</code>; <code>docs/ops/cost-report.md</code> (monthly).</li><li>Web production surface (proposed): Cloudflare Workers Static Assets deployment of the exported site (<code>assets.directory</code> per <a href="../research/backend-stores-starters.md">backend research §1</a>); <code>public/.well-known/apple-app-site-association</code> and Android asset links — <code>public/</code> is copied into <code>dist/</code> by export (<a href="../research/expo-stack.md">expo-stack §1.3</a>); <code>docs/web/legacy-redirects.md</code> from Phase 09 activated on the real domain.</li><li>Store package (proposed): <code>docs/store/listing-*.md</code>, screenshot sets per device class, privacy-policy and data-safety answers (LGPD pages from Phase 09), review notes demonstrating offline tides/schedules and maps for Apple 4.2 minimum functionality.</li><li>Monitoring surfaces: <code>/v1/meta/build</code> and freshness fields from Phase 07; editorial SLA alerts from Phase 09; uptime checks against the real domain (tool choice open — unknown).</li><li>Authoritative references: <a href="https://developer.apple.com/app-store/review/guidelines/">Apple App Review Guidelines</a> (4.2, 4.2.6, 4.3); <a href="https://support.google.com/googleplay/android-developer/answer/15884185">Google Play white-label guidance</a> and <a href="https://support.google.com/googleplay/android-developer/answer/9899034">repetitive-content policy</a>; <a href="https://expo.dev/pricing.md">Expo pricing</a> and <a href="https://developers.cloudflare.com/workers/platform/pricing/">Cloudflare pricing</a> as verified in research.</li><li>Known unknowns: store review outcomes (flagship picker model is inferred-acceptable, not tested — research recommends an early TestFlight external build to probe); error-monitoring tool choice and cost (unknown — decide with a bounded evaluation); real traffic-driven tile and API costs (bounded in 08/09, confirmed here); whether Expo Update (OTA) is used at all — MAU limits apply (1k free, 3k Starter — <a href="../research/expo-stack.md">expo-stack §1.8</a>) and store rules are assumed to require OTA changes to stay within review scope (unverified — confirm Apple/Google OTA policy before enabling).</li><li>Credentials/tools: store accounts, EAS production credentials and the production domain exist only with the user — agents prepare everything around them and never hold billing.</li></ul><h2 id="task-breakdown">Task breakdown</h2><div class="tablewrap"><table><thead><tr><th scope="col">#</th><th scope="col">Task (goal)</th><th scope="col">Owner</th><th scope="col">PR unit</th><th scope="col">Depends on</th></tr></thead><tbody><tr><td>1</td><td>Release pipeline: tagged releases, production build profiles, artifact checksums and retention, release-notes template</td><td>agent</td><td>PR 10-1</td><td>04</td></tr><tr><td>2</td><td>Rollback rehearsal: redeploy previous web artifact; resubmit-previous native build path; OTA rollback if enabled; evidence recorded</td><td>agent + human (approves rehearsal window)</td><td>PR 10-2</td><td>1</td></tr><tr><td>3</td><td>Monitoring and alerting: uptime checks on the release hostname (the real domain after task-6 promotion), <code>/v1/meta/build</code> surfaced publicly, freshness and error alerts routed, weekly ops digest</td><td>agent + human (tool choice, contacts)</td><td>PR 10-3</td><td>09</td></tr><tr><td>4</td><td>Web production surface: deploy exported site to a production-like release hostname, activate 301 map, sitemap and canonical URLs, OG assertions in the release gate, deep links both directions</td><td>agent (production-domain deploy moves to task 6)</td><td>PR 10-4</td><td>1, 09</td></tr><tr><td>5</td><td>Store compliance package: flagship listing drafts, screenshots, privacy/data-safety answers, review notes; early TestFlight external probe</td><td>agent + human (submits probe)</td><td>PR 10-5</td><td>3, 4</td></tr><tr><td>6</td><td>Production promotion and submission: execute the human-approved checklist; deploy to the production domain (DNS cutover), promote content from staging; submit flagship app</td><td>human (approves and submits) + agent (executes approved steps)</td><td>release event</td><td>2, 4, 5</td></tr><tr><td>7</td><td>Budget tracking: monthly cost report, 80%-of-ceiling alert against the D-08 ceiling, per-service breakdown</td><td>agent</td><td>PR 10-7</td><td>3</td></tr><tr><td>8</td><td>Operational durability: weekly automated D1 restore drill (latest R2 export into a scratch DB; row counts + checksums) scheduled, plus one quarterly human-witnessed drill run; incident runbook; status page (proposed)</td><td>agent</td><td>PR 10-8</td><td>3</td></tr><tr><td>9</td><td>Reusable runbooks as skills: new-widget, new-destination, QA review, schema migration, incident, release</td><td>agent</td><td>PR 10-9</td><td>6</td></tr><tr><td>10</td><td>Agent-continuity test: a <em>different</em> agent adds a small widget from a written spec to a green PR using only repo docs</td><td>agent (fresh) + human (reviews)</td><td>PR 10-10</td><td>9</td></tr><tr><td>11</td><td>Second-destination rehearsal: onboard a fresh destination config end-to-end using the Serra demo as data, no engine changes</td><td>agent</td><td>PR 10-11</td><td>9</td></tr></tbody></table></div><p>Notes: task 6 is the only outward-facing irreversible step and is gated on the user; everything before it is rehearsal in staging or on internal tracks. Tasks 10 and 11 are the phase&#x27;s real exam — they fail loudly if the runbooks from task 9 are incomplete.</p><h2 id="architecture-choices-and-guardrails">Architecture choices and guardrails</h2><ul><li><strong>Deployed surface:</strong> web = static export on Workers Static Assets (D-03) behind the production domain; API Worker versioned and deployed independently — the web shell never hard-fails because the API is down (Phase 08 error states are the contract). Native = one flagship app per D-07; no per-destination native binaries without a partner-owned store account.</li><li><strong>Release identity:</strong> every deploy stamps the git SHA into <code>/v1/meta/build</code> and the web bundle; the runbook&#x27;s first diagnostic question is &quot;what does <code>/v1/meta/build</code> say?&quot; — the direct answer to legacy&#x27;s two-hosts confusion (<a href="https://github.com/luandro/cotiju-app/issues/63">#63</a>).</li></ul><h3 id="release-flow-web-first-native-second">Release flow (web first, native second)</h3><ol><li>Freeze — release branch cut; fast gate green; release notes drafted from PR evidence.</li><li>Build — web export and native production builds, checksums retained with artifacts.</li><li>Verify — release-gate script against the built artifact: OG and sitemap assertions, secret scan, sentinel checks.</li><li>Rehearse — rollback runbook executed against the previous artifact in the ops environment.</li><li>Promote — recorded human approval; deploy; <code>/v1/meta/build</code> checked against the promoted SHA.</li><li>Watch — one full digest cycle before store submission; submission itself is a separate human decision.</li></ol><h3 id="monitoring-stack-thresholds-proposed-tuned-in-staging">Monitoring stack (thresholds proposed, tuned in staging)</h3><div class="tablewrap"><table><thead><tr><th scope="col">Signal</th><th scope="col">Source</th><th scope="col">Threshold (proposed)</th><th scope="col">Route</th></tr></thead><tbody><tr><td>Uptime of the real domain</td><td>uptime checker on the home page and <code>/v1/meta/build</code></td><td>two consecutive failures</td><td>ops digest and owner alert</td></tr><tr><td>Live-commit drift</td><td><code>/v1/meta/build</code> versus promoted SHA</td><td>any mismatch</td><td>owner alert, visible page badge</td></tr><tr><td>Tide ingestion freshness</td><td>ingestion job last-success timestamp</td><td>older than 24 h</td><td>editor and ops alert</td></tr><tr><td>Boat schedule checked_at</td><td>freshness fields per destination</td><td>older than 7 days</td><td>editor alert</td></tr><tr><td>API error rate</td><td>Worker logs or the chosen monitoring tool</td><td>sustained 5xx rise</td><td>ops alert</td></tr><tr><td>Cost against ceiling</td><td>monthly cost report job</td><td>80 percent of the D-08 ceiling</td><td>owner alert</td></tr></tbody></table></div><h3 id="known-cost-figures-verified-in-research-re-check-at-adoption">Known cost figures (verified in research; re-check at adoption)</h3><div class="tablewrap"><table><thead><tr><th scope="col">Item</th><th scope="col">Figure</th><th scope="col">Source</th></tr></thead><tbody><tr><td>Workers Paid base</td><td>5 USD per month</td><td><a href="../research/backend-stores-starters.md">backend research §1</a></td></tr><tr><td>Expo Starter plan</td><td>19 USD per month</td><td><a href="../research/expo-stack.md">expo-stack §1.8</a></td></tr><tr><td>Maestro job on Workflows</td><td>0.05 USD per job</td><td><a href="../research/expo-stack.md">expo-stack §1.8</a></td></tr><tr><td>Android build overage</td><td>1 USD medium, 2 USD large</td><td><a href="../research/expo-stack.md">expo-stack §1.8</a></td></tr><tr><td>iOS build overage</td><td>2 USD medium, 4 USD large</td><td><a href="../research/expo-stack.md">expo-stack §1.8</a></td></tr><tr><td>R2 egress</td><td>free</td><td><a href="../research/backend-stores-starters.md">backend research §1</a></td></tr></tbody></table></div><ul><li><strong>SEO completion (D-03):</strong> <code>generateMetadata()</code> per route at export; sitemap generated from the same source; release gate asserts raw-HTML OG for a sample of every route class (the S1 assertion pattern); WhatsApp preview is a manual human check before each release. Deep links via <code>.well-known</code> files shipped from <code>public/</code>.</li></ul><h3 id="deep-link-matrix-each-direction-proven-once-per-release">Deep-link matrix (each direction proven once per release)</h3><div class="tablewrap"><table><thead><tr><th scope="col">Link</th><th scope="col">Direction</th><th scope="col">Expected behavior</th></tr></thead><tbody><tr><td>WhatsApp share of a place</td><td>web to web</td><td>OG card renders; opens the place page</td></tr><tr><td>Share of a place from the app</td><td>app to web</td><td>same public URL, same card</td></tr><tr><td>Place URL opened on Android with app installed</td><td>web to app</td><td>app opens on the place screen</td></tr><tr><td>Place URL opened without the app</td><td>web to web</td><td>page renders fully, store hint only if gentle</td></tr><tr><td>Legacy PT route on the production domain</td><td>old to new</td><td>301 to the equivalent new page</td></tr></tbody></table></div><ul><li><strong>OTA (Expo Update):</strong> optional, default off for v1; if enabled, OTA may ship only JS-within-reviewed-scope changes, and rollback must be rehearsed with it. Decide explicitly; do not drift into it.</li><li><strong>Forbidden:</strong> agent-driven store submission, DNS cutover, spending, or production data writes (human approval each time); OTA changes that alter app behavior beyond reviewed scope; disabling required CI checks to make a release; publishing without the rollback rehearsal having passed.</li><li><strong>Security/privacy:</strong> release bundles are secret-scanned (Phase 05 gate); privacy policy and data-safety answers must match what the app actually collects (public content, no accounts — D-13b); crash/monitoring tooling must not collect identifiers the policy denies.</li><li><strong>Acceptable alternatives:</strong> staged web rollout (deploy to a canary hostname first) over big-bang; TestFlight/Play internal tracks for the flagship before public listing; a managed monitoring service vs a Worker-based uptime checker — decide on cost and alert-routing simplicity, both currently unknown.</li></ul><h3 id="runbook-and-skill-inventory">Runbook and skill inventory</h3><div class="tablewrap"><table><thead><tr><th scope="col">Runbook or skill</th><th scope="col">Answers</th><th scope="col">First draft by</th></tr></thead><tbody><tr><td>new-widget</td><td>how a widget is scaffolded, contracted, tested and composed</td><td>agent</td></tr><tr><td>new-destination</td><td>manifest, profile, content seed, preview, launch</td><td>agent</td></tr><tr><td>qa-review</td><td>what a reviewer checks and what evidence must exist</td><td>agent with QA reviewer</td></tr><tr><td>schema-migration</td><td>additive migration, backup, restore-drill steps</td><td>agent</td></tr><tr><td>incident</td><td>detection, roles, rollback, communication</td><td>human with agent</td></tr><tr><td>release</td><td>freeze, build, verify, promote, watch</td><td>agent with human</td></tr></tbody></table></div><h3 id="agent-continuity-protocol">Agent-continuity protocol</h3><ul><li>Every task starts from a written spec small enough for one PR series; scope never lives only in a conversation.</li><li>Session state lives in repo files (goal, task log, decisions); an agent&#x27;s memory is a cache, not the store.</li><li>A picking-up agent proves orientation by reproducing the fast gate locally before pushing anything.</li><li>Handoff quality is measured by the task-10 exam: a fresh agent, a written spec, no coaching, a green PR — the same bar the planning packet set for itself.</li></ul><aside class="callout callout-decision"><p class="callout-label">Decision</p><p>D-07 (one flagship app) is <code>proposed</code> but strongly evidence-backed; the TestFlight probe in task 5 is its live test. D-08 (budget ceiling) becomes enforced, not advisory, in task 7. Neither becomes <code>approved</code> without the user.</p></aside><h2 id="deliverables">Deliverables</h2><ul class="checklist"><li><input type="checkbox" disabled> <code>docs/runbooks/{release,rollback,incident}.md</code> — each rehearsed at least once with linked evidence</li><li><input type="checkbox" disabled> Production web surface live on the real domain with sitemap, canonicals, 301 map active and OG assertions in the release gate</li><li><input type="checkbox" disabled> Monitoring wired: uptime checks, <code>/v1/meta/build</code> public, freshness and error alerts test-fired, weekly digest</li><li><input type="checkbox" disabled> Store package: listing drafts, screenshots, privacy/data-safety answers, review notes, TestFlight probe result</li><li><input type="checkbox" disabled> Executed production-promotion checklist (human-approved) and, if the user proceeds, submitted flagship app</li><li><input type="checkbox" disabled> <code>docs/ops/cost-report.md</code> (first month) with the 80% alert active</li><li><input type="checkbox" disabled> Weekly automated restore drill scheduled (latest R2 export into a scratch D1) and the first quarterly human-witnessed drill executed with a written result</li><li><input type="checkbox" disabled> Runbook/skill set: new-widget, new-destination, QA review, schema migration, incident, release</li><li><input type="checkbox" disabled> Agent-continuity test PR by a different agent, merged green with standard evidence</li><li><input type="checkbox" disabled> Second-destination rehearsal report (config-only onboarding, zero engine changes)</li></ul><h2 id="visual-and-functional-qa">Visual and functional QA</h2><p>Human and agent journeys on the <em>production</em> domain and release candidates:</p><ol><li><strong>Release rehearsal:</strong> run the release runbook end-to-end in staging-for-production; verify <code>/v1/meta/build</code> matches the promoted SHA; verify a place page&#x27;s raw HTML (view-source) carries title, description and OG tags with no JS executed.</li><li><strong>Rollback rehearsal:</strong> deploy the previous artifact; confirm the site serves the prior version within minutes and <code>/v1/meta/build</code> reports the old SHA; document the native path (previous build resubmission) even if not executed on a live listing.</li><li><strong>Monitoring truth test:</strong> deliberately expire a tide dataset in the ops environment; confirm the freshness alert fires and the status page reflects it; confirm uptime checks catch a stopped Worker.</li><li><strong>Real-device release checks:</strong> low-end Android on 3G (Phase 09 device), iPhone spot check; install the release candidate; verify deep link from a WhatsApp share opens the right place screen; verify offline first-run degrades honestly.</li><li><strong>Store-readiness review:</strong> a human who has not seen the app reads only the listing and review notes, then attempts the core journeys unaided; gaps found become listing or onboarding fixes.</li><li><strong>Agent handoff exam:</strong> the second agent receives a small widget spec and nothing else; their PR must pass the full gate (types, tests, exclusion assertions, stories, evidence) without orchestrator intervention.</li></ol><div class="tablewrap"><table><thead><tr><th scope="col">Check</th><th scope="col">Web (production)</th><th scope="col">Android (RC/device)</th><th scope="col">iOS (RC/simulator)</th></tr></thead><tbody><tr><td>OG/raw-HTML assertions</td><td>required</td><td>n/a</td><td>n/a</td></tr><tr><td>Deep link in from share</td><td>required</td><td>required</td><td>required</td></tr><tr><td>Offline first-run honesty</td><td>required</td><td>required</td><td>required</td></tr><tr><td>Release install path</td><td>n/a</td><td>required</td><td>required if submitting</td></tr></tbody></table></div><p>Expected artifacts: rehearsal recordings/logs, alert screenshots, view-source dumps attached to the release gate, the second agent&#x27;s PR with its evidence package, and the store package as reviewable files.</p><h3 id="store-package-contents">Store package contents</h3><ul><li>Listing copy per locale (pt-BR first): name, subtitle, description, keywords — no unverifiable claims, no &quot;best island guide&quot; puffery a reviewer cannot check.</li><li>Screenshots per required device class, generated from real release-candidate screens, not design mocks.</li><li>Privacy and data-safety answers that match actual behavior: public content, no accounts (D-13b), no tracking beyond aggregate, error-free consent language.</li><li>Review notes for Apple 4.2 minimum functionality: what works offline (schedules, tides, cached places), what is native (maps, deep links), and demo credentials if any gated surface existed (none planned).</li><li>The TestFlight probe result and, if a rejection arrives, the appeal or fix plan — recorded as an incident, not a surprise.</li><li>Reserve listing: what changes if the reviewer asks for differentiation (destination picker positioning, per-destination content depth).</li></ul><h2 id="automated-verification">Automated verification</h2><p>Nothing below has been run. Commands marked <strong>validated</strong> exist as verified in research; the rest are <strong>proposed</strong> until a PR or release gate links real output.</p><div class="tablewrap"><table><thead><tr><th scope="col">Command</th><th scope="col">Purpose</th><th scope="col">Status</th></tr></thead><tbody><tr><td><code>npx expo export -p web -s external</code></td><td>release web export with source maps for the secret/OG gate</td><td>validated (flag verified, <a href="../research/expo-stack.md">expo-stack §1.9</a>)</td></tr><tr><td><code>node tools/release-gate.mjs dist/</code></td><td>sitemap present, OG asserted per route class, sentinel greps, secret scan</td><td>proposed</td></tr><tr><td><code>pnpm playwright test e2e/release/ --project=chromium --project=webkit</code></td><td>release journeys incl. JS-disabled OG and 301 spot checks</td><td>proposed</td></tr><tr><td><code>pnpm exec maestro test .maestro/release.yaml</code></td><td>release-candidate native smoke on both platforms</td><td>proposed</td></tr><tr><td><code>eas build --profile production --platform all</code></td><td>production native builds (credentials and spend are human-gated)</td><td>proposed</td></tr><tr><td><code>node scripts/restore-drill.mjs --target scratch</code></td><td>restore drill: latest R2 backup into a scratch D1, compare row counts/checksums (as Phase 07) — Time Travel restores in place only and is never used as a drill</td><td>proposed</td></tr><tr><td><code>node tools/prod-parity.mjs https://&lt;domain&gt;</code></td><td>production parity: <code>/v1/meta/build</code> SHA equals promoted SHA, uptime endpoints 200</td><td>proposed</td></tr></tbody></table></div><p>Deliberate-failure demonstrations for this phase: the monitoring truth test (task 3) and the rollback rehearsal (task 2) are mandatory red drills — a release gate that has never seen a failure is untested. Both produce attached evidence, not claims.</p><h2 id="acceptance-gate">Acceptance gate</h2><aside class="callout callout-gate"><p class="callout-label">Gate</p><p>Phase 10 passes only with linked evidence. Launch without rehearsal evidence is a process failure even if nothing breaks.</p></aside><ul class="checklist"><li><input type="checkbox" disabled> Release runbook executed end-to-end once; <code>/v1/meta/build</code> matches the promoted SHA on the real domain</li><li><input type="checkbox" disabled> Rollback rehearsal passed with recorded timing; native rollback path documented</li><li><input type="checkbox" disabled> Monitoring live: uptime, freshness and error alerts each test-fired; weekly digest delivered once</li><li><input type="checkbox" disabled> OG/raw-HTML assertions and sitemap checks green in the release gate; WhatsApp preview manually verified</li><li><input type="checkbox" disabled> 301 map active on the production domain and spot-checked</li><li><input type="checkbox" disabled> Store package complete; TestFlight probe outcome recorded; submission (if made) is demonstrably user-approved</li><li><input type="checkbox" disabled> First cost report published; 80%-of-ceiling alert active; spend within the D-08 ceiling</li><li><input type="checkbox" disabled> Restore drill executed against a scratch D1 DB with a written result (no virtual tables in the primary DB — R12)</li><li><input type="checkbox" disabled> A different agent shipped the handoff-test widget PR through the full gate unaided</li><li><input type="checkbox" disabled> Second-destination rehearsal completed with configuration changes only</li></ul><p><strong>Blocks progression if:</strong> rollback is unrehearsed; monitoring alerts do not fire on real failures; the release gate can be bypassed; the handoff test fails twice (runbooks are the defect, not the agent); budget exceeds the ceiling without a user decision.</p><h3 id="pre-promotion-checklist-the-human-approved-gate-itself">Pre-promotion checklist (the human-approved gate itself)</h3><ol><li>Content: Phase 09 readout is go; no blocking field defects open.</li><li>Web: release gate green against the production-like release hostname; rollback rehearsed within the last cycle.</li><li>Native: release-candidate install checked on the real devices available.</li><li>Compliance: privacy pages live; data-safety answers match behavior; review notes ready.</li><li>Budget: current spend and projection inside the ceiling, alert verified.</li><li>People: owner available during the promotion window; incident runbook contacts current.</li></ol><h2 id="risks-rollback-and-handoff">Risks, rollback and handoff</h2><div class="tablewrap"><table><thead><tr><th scope="col">Risk</th><th scope="col">Likelihood</th><th scope="col">Impact</th><th scope="col">Mitigation</th></tr></thead><tbody><tr><td>Store rejection on policy grounds</td><td>medium</td><td>high</td><td>flagship picker model (D-07); early TestFlight probe; review notes demonstrating native value; partner-app path only with partner-owned accounts</td></tr><tr><td>SEO regression vs staging (domain, headers, caching)</td><td>medium</td><td>medium</td><td>release-gate assertions run against the production domain, not just dist</td></tr><tr><td>Monitoring tool cost or lock-in surprises</td><td>medium</td><td>low</td><td>bounded evaluation; Worker-based checker as the fallback</td></tr><tr><td>OTA misuse shipping unreviewed behavior</td><td>low</td><td>high</td><td>OTA off by default; explicit decision; rollback rehearsed if enabled</td></tr><tr><td>Launch incident with no diagnosis path</td><td>low</td><td>high</td><td><code>/v1/meta/build</code>, single host, rehearsal, incident runbook with owner contacts</td></tr><tr><td>Cost drift past ceiling (tiles, builds, jobs)</td><td>medium</td><td>medium</td><td>80% alert, monthly report, D-08 enforcement; overage rates known (<a href="../research/expo-stack.md">expo-stack §1.8</a>)</td></tr></tbody></table></div><p>Sensitive operations requiring human approval: store submission and any listing change; DNS cutover; production data promotion; spending or plan changes; enabling OTA; emergency rollback of a live listing.</p><p>Budget impact: this phase <em>is</em> the budget phase — Workers Paid $5/mo, Expo Starter $19/mo when native CI runs, Maestro $0.05/job, build overages $1–4/build, tile costs as measured in Phase 08 (all per <a href="../research/backend-stores-starters.md">research</a>, <a href="../research/expo-stack.md">expo-stack §1.8</a>). Everything must fit the user-set ceiling with alerting at 80%.</p><p>Rollback: web = redeploy previous artifact (minutes, rehearsed); API = previous Worker version; content = Phase 09 reverse-mapping plus D1 Time Travel (in-place, 30-day window); native = previous build resubmission plus OTA-within-scope if enabled. The rollback runbook names the owner, the order and the evidence to capture.</p><p>Restart instructions for an agent picking this phase up mid-flight: read <code>AGENTS.md</code>, this page and <a href="../prompts/phase-10-agent.md">../prompts/phase-10-agent.md</a>; check <code>/v1/meta/build</code> on the production domain and the latest cost report before touching anything; never execute a production deploy, submission or rollback without the recorded human approval; if monitoring is silent, treat that as an incident, not a relief.</p><h2 id="next-phase-handoff">Next phase handoff</h2><p>There is no Phase 11; the handoff is to steady-state operations:</p><ul><li>The runbook and skill set from task 9 is the operating system for everything after launch: new widgets, new destinations, migrations, incidents, releases.</li><li>The first real second destination (post-Serra rehearsal) is onboarded by configuration using the new-destination runbook, with the Serra rehearsal report as the worked example.</li><li>Feedback loops: store reviews, field corrections (Phase 09 routine) and the weekly ops digest feed the backlog; the agent-continuity protocol (state files, PR evidence template, handoff test) governs how agents pick work up.</li><li>Planning-packet maintenance: <a href="../decisions.md">decisions.md</a> statuses are updated as evidence lands (D-03, D-05, D-07, D-08 gain real outcomes); <a href="../review.md">review.md</a> assumptions are revisited at each SDK bump — expect SDK 59 around Q1 2027 with RN 0.89 dropping the deep-import opt-out (<a href="../research/expo-stack.md">expo-stack §2</a>).</li><li>Records for whoever operates next: release history with SHAs, cost reports, restore-drill results, incident log, and the standing rule that nothing is &quot;done&quot; without linked evidence.</li></ul><h3 id="steady-state-cadence-what-done-looks-like-from-here">Steady-state cadence (what &quot;done&quot; looks like from here)</h3><ul><li>Weekly: ops digest reviewed (including the automated restore-drill result); corrections triaged; one real-device spot check.</li><li>Monthly: cost report against ceiling; dependency and SDK watch (next bump expected around Q1 2027); flaky-test review.</li><li>Quarterly: human-witnessed restore drill; freshness SLA review with editors; runbook corrections from actual incidents.</li><li>Per destination: onboarding via the new-destination runbook, with the Serra rehearsal report as the worked example — engineering involvement is a bug report, not a requirement.</li></ul><h2 id="agent-execution-prompt">Agent execution prompt</h2><p>The full agent prompt lives at <a href="../prompts/phase-10-agent.md">../prompts/phase-10-agent.md</a>.</p><button type="button" class="copy-btn" data-target="agent-prompt">Copy prompt</button><details class="prompt-details" open><summary>Prompt contents</summary><pre id="agent-prompt"><code>DO NOT EXECUTE this prompt until the guia.la planning packet has been reviewed and approved by the owner. It is a draft execution brief for a future session.
+
+# Phase 10 execution agent — release discipline, monitoring, agent continuity
+
+## Role
+
+You are the Phase 10 agent for guia.la: you make releases and rollbacks boring,
+monitoring truthful, store compliance ready, and the agent handoff loop proven. Humans
+own submission, DNS, spend and production promotion; you own everything rehearsable.
+The full contract is `planning/phases/phase-10.html` in the planning packet; this
+brief is the working extract.
+
+## Hard constraints (global, non-negotiable)
+
+- No store submission, listing change, DNS cutover, production data promotion or
+  spending without recorded human approval. You prepare; the owner pulls the trigger.
+- No writes to legacy systems; production promotion follows the approved checklist only.
+- No secrets in code, config, listings, bundles or PR text; release bundles are secret-scanned.
+- Evidence over claims: a runbook that was never rehearsed is a draft, not a deliverable.
+- Small PRs; OTA updates stay off unless the owner decides otherwise, and then only
+  within reviewed scope.
+
+## Canonical docs to read first
+
+1. `AGENTS.md` and `SPEC.md` in the guia.la repository; the PR evidence template.
+2. Phase 04 pipeline docs (`.github/workflows/`, `.eas/workflows/`) and artifact checksums.
+3. Phase 07/08 API surface, `/v1/meta/build`, freshness fields; Phase 09 editorial SLAs
+   and the go/no-go readout.
+4. Planning packet: `planning/phases/phase-10.html`; `planning/decisions.md` (D-01, D-03,
+   D-05, D-07, D-08, D-13b); `planning/research/backend-stores-starters.md` §2 (store
+   policy evidence) and `planning/research/expo-stack.md` §1.8 (pricing/limits).
+5. Current ops state: `/v1/meta/build` on the production domain, latest cost report,
+   incident log (if any).
+
+## Ordered tasks
+
+1. Release pipeline (PR 10-1): tagged releases, production build profiles, checksums,
+   release-notes template.
+2. Rollback rehearsal (PR 10-2): redeploy the previous web artifact, confirm
+   `/v1/meta/build` reports the old SHA, document the native resubmission path.
+3. Monitoring and alerting (PR 10-3): uptime checks on the real domain, freshness and
+   error alerts, weekly digest; test-fire each alert deliberately.
+4. Web production surface (PR 10-4): deploy the export to a production-like release
+   hostname, activate 301s, sitemap and canonicals, OG assertions in the release
+   gate, deep links via `.well-known` files. The production-domain deploy and DNS
+   cutover happen in task 6 behind the owner&#x27;s recorded approval.
+5. Store compliance package (PR 10-5): flagship listing drafts, screenshots,
+   privacy/data-safety answers matching actual collection (public content, no accounts),
+   review notes demonstrating offline value; owner submits the early TestFlight probe.
+6. Production promotion and submission: execute only the owner-approved checklist —
+   including the production-domain deploy (DNS cutover) and content promotion;
+   record every approval against the step it authorized.
+7. Budget tracking (PR 10-7): monthly cost report, 80%-of-ceiling alert, per-service
+   breakdown against the D-08 ceiling.
+8. Operational durability (PR 10-8): schedule the weekly automated D1 restore drill
+   (latest R2 export into a scratch database, row counts + checksums) and run one
+   quarterly human-witnessed drill; incident runbook with owner contacts; status page.
+9. Runbooks as skills (PR 10-9): new-widget, new-destination, QA review, schema
+   migration, incident, release — written for an agent that has never seen the repo.
+10. Agent-continuity test (PR 10-10): a different agent ships a small widget from a
+    written spec through the full gate unaided. You audit, you do not coach mid-PR.
+11. Second-destination rehearsal (PR 10-11): onboard a fresh destination by
+    configuration only, using the Serra demo data; zero engine changes.
+
+## Acceptance criteria (per phase contract)
+
+- Release runbook executed end-to-end once; production `/v1/meta/build` equals the
+  promoted SHA.
+- Rollback rehearsal passed with recorded timing; native path documented.
+- Uptime, freshness and error alerts each proven by a deliberate failure; digest delivered.
+- OG/raw-HTML and sitemap assertions green against the production domain; WhatsApp
+  preview manually verified and recorded.
+- Store package complete; TestFlight probe outcome recorded; any submission is
+  demonstrably owner-approved.
+- First cost report published; spend within ceiling; 80% alert active.
+- Restore drill executed against a scratch DB with a written result.
+- The handoff-test PR by the other agent passed the full gate without your intervention.
+- Second-destination rehearsal done with configuration changes only.
+
+## PR evidence package (every PR, no exceptions)
+
+- Summary: what changed and why.
+- Link to the phase task and any recorded human approval it required.
+- Commands run with output excerpts: release gate, export + secret scan, playwright
+  release suite, maestro release smoke, restore drill commands.
+- Screenshots/recordings: rehearsal logs, alert screenshots, view-source OG dumps,
+  real-device checks.
+- Risks: what could break in production, what was not rehearsed and why.
+- Docs updated: runbooks, ops docs, cost report, store package.
+- Next unblocked task.
+
+## Stop conditions — stop and ask when…
+
+- Any production deploy, submission, DNS change or spend is requested without a
+  recorded approval.
+- Monitoring is silent where an alert was expected — treat as an incident, not a relief.
+- The release gate fails in a way that suggests bypassing it (never bypass; fix or escalate).
+- Store policy interpretation is ambiguous for the flagship listing (probe first, decide
+  with the owner).
+- The handoff-test agent fails twice — the runbooks are the defect; stop and rewrite them.
+- Costs trend past the ceiling or a pricing assumption from research no longer holds.
+</code></pre></details><div class="pillnav"><a href="phase-09.html">← Phase 09</a></div><div class="footer"><span>guia.la planning packet</span><span>Phase 10 · generated by planning/tools/build.py</span></div></div>
+</main>
+</div>
+<script>
+document.querySelectorAll('.copy-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    var t = document.getElementById(b.getAttribute('data-target'));
+    if (!t) return;
+    var done = function(){ b.textContent = 'Copied'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t.textContent).then(done, function(){});
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = t.textContent; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  });
+});
+</script>
+</body>
+</html>

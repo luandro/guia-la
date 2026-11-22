@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<title>Phase 02 — Bootstrap Expo universal monorepo with a walking skeleton · guia.la planning</title>
+<style>
+:root { --bg:#f7f5ef; --paper:#fffefa; --ink:#172d2a; --ink2:#38534d; --mute:#5a6e66;
+  --sea:#155c60; --deep:#0c3438; --lime:#d3f08e; --lime-dark:#82b83c; --sand:#e9e4d8;
+  --line:#d9ddd3; --warm:#a5532f; --white:#ffffff;
+  --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); font-family:var(--font); color:var(--ink); line-height:1.58; }
+a { color:var(--sea); text-underline-offset:3px; }
+a:hover { color:#0b3f40; }
+:focus-visible { outline:3px solid var(--warm); outline-offset:3px; }
+.skip { position:absolute; left:-999px; top:8px; background:var(--deep); color:var(--lime);
+  padding:9px 15px; border-radius:8px; z-index:50; }
+.skip:focus { left:8px; color:var(--lime); }
+.frame { display:grid; grid-template-columns:258px minmax(0,1fr); min-height:100vh; }
+.rail { position:sticky; top:0; height:100vh; padding:28px 18px 18px 24px; border-right:1px solid var(--line);
+  display:flex; flex-direction:column; background:#f2f1e9; z-index:5; overflow-y:auto; }
+.brand { display:flex; align-items:center; gap:11px; font-weight:850; letter-spacing:-.05em;
+  font-size:21px; color:var(--deep); text-decoration:none; }
+.brandmark { width:36px; height:36px; border-radius:11px; background:var(--deep); color:var(--lime);
+  display:grid; place-items:center; font-size:19px; font-weight:800; flex:none; }
+.rail-caption { font:700 10px/1.4 var(--mono); letter-spacing:.15em; color:#5c7568; margin:26px 8px 9px;
+  text-transform:uppercase; }
+.rail nav { display:flex; flex-direction:column; gap:2px; }
+.rail nav a { display:block; padding:7px 10px; text-decoration:none; border-radius:8px;
+  color:#4d665f; font-size:13px; }
+.rail nav a:hover { color:var(--deep); background:#dce7d5; }
+.rail-bottom { margin-top:auto; padding:14px 10px 0; border-top:1px solid var(--line);
+  color:var(--mute); font-size:11px; }
+.rail-bottom strong { color:var(--sea); }
+.main { min-width:0; }
+.content { max-width:1040px; margin:auto; padding:0 48px 90px; }
+.hero { background:var(--deep); color:var(--white); padding:58px 48px 50px; }
+.hero-eyebrow { display:flex; align-items:center; gap:9px; text-transform:uppercase;
+  font:700 11px/1.5 var(--mono); letter-spacing:.16em; color:#c1e4c6; }
+.hero-dot { width:7px; height:7px; border-radius:50%; background:var(--lime); display:inline-block; }
+.hero h1 { font-weight:720; font-size:clamp(34px,4.4vw,58px); letter-spacing:-.06em;
+  line-height:1.06; margin:22px 0 16px; max-width:820px; }
+.hero-short { max-width:720px; color:#c3d6d0; font-size:clamp(16px,1.4vw,18px); line-height:1.65; }
+.hero-pills { display:flex; flex-wrap:wrap; gap:9px; margin-top:26px; }
+.pill { display:inline-flex; align-items:center; border:1px solid #42706b; border-radius:100px;
+  color:#d8e7d9; padding:7px 12px; font:600 11px var(--mono); }
+.pill.bright { background:var(--lime); color:var(--deep); border-color:var(--lime); }
+.pill a { color:inherit; }
+h2 { font-size:clamp(24px,2.8vw,34px); letter-spacing:-.045em; font-weight:720; line-height:1.15;
+  margin:52px 0 16px; scroll-margin-top:20px; }
+h3 { letter-spacing:-.025em; font-size:19px; margin:30px 0 10px; }
+h4 { font-size:15px; margin:22px 0 8px; }
+p { color:var(--ink2); margin:0 0 14px; }
+li { margin-bottom:6px; color:var(--ink2); }
+ul,ol { padding-left:24px; margin:0 0 14px; }
+li ul,li ol { margin:6px 0 2px; }
+table { border-collapse:collapse; font-size:13.5px; width:100%; margin:18px 0; }
+th,td { border-bottom:1px solid #d8dfd5; text-align:left; vertical-align:top; padding:10px 11px; }
+th { font:800 10px var(--mono); text-transform:uppercase; letter-spacing:.07em; color:#3f5f56;
+  background:#eaece3; }
+td { color:var(--ink2); }
+.tablewrap { overflow-x:auto; margin:18px 0; }
+.tablewrap table { margin:0; }
+code { font:.92em var(--mono); background:#ecefe4; border-radius:5px; padding:1px 5px; color:#26433c; }
+pre { background:#122f31; color:#d2e9e0; border-radius:13px; padding:18px; overflow:auto; margin:16px 0; }
+pre code { background:none; color:inherit; padding:0; font:12.5px/1.7 var(--mono); }
+blockquote { margin:16px 0; padding:12px 18px; border-left:4px solid #9db7ad; background:#f0f2ea;
+  border-radius:0 12px 12px 0; color:var(--ink2); }
+blockquote p:last-child { margin-bottom:0; }
+.callout { margin:18px 0; border-radius:12px; padding:14px 18px; border:1px solid var(--line);
+  border-left-width:5px; background:var(--paper); }
+.callout-label { font:800 10px var(--mono); letter-spacing:.14em; text-transform:uppercase;
+  color:var(--deep); margin:0 0 6px; }
+.callout p:last-child { margin-bottom:0; }
+.callout-gate { border-left-color:#2e624a; background:#eaf2e2; }
+.callout-gate .callout-label { color:#2e624a; }
+.callout-risk { border-left-color:var(--warm); background:#f7e9dc; }
+.callout-risk .callout-label { color:var(--warm); }
+.callout-decision { border-left-color:var(--sea); background:#e4eef0; }
+.callout-decision .callout-label { color:var(--sea); }
+.callout-note { border-left-color:#7f8a72; background:#f1f2ec; }
+.callout-note .callout-label { color:#5c6a4e; }
+ul.checklist, ol.checklist { list-style:none; padding-left:2px; }
+.checklist input { margin-right:8px; }
+.linklist { display:flex; flex-wrap:wrap; gap:8px; list-style:none; padding:0; margin:0 0 16px; }
+.linklist li { margin:0; }
+.pillnav { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:26px 0 0; }
+.pillnav a { border:1px solid #b8cbbd; color:var(--deep); background:var(--paper); font-size:12.5px;
+  border-radius:9px; font-weight:650; padding:8px 13px; text-decoration:none; }
+.pillnav a:hover { background:#e5f0dd; }
+.prompt-details summary { cursor:pointer; font:700 12px var(--mono); letter-spacing:.08em;
+  text-transform:uppercase; color:var(--sea); margin-bottom:10px; }
+.copy-btn { border:1px solid #b8cbbd; background:#f7f9ef; color:var(--deep); border-radius:9px;
+  font:650 12px var(--font); padding:8px 13px; cursor:pointer; margin-bottom:10px; }
+.copy-btn:hover { background:#e5f0dd; }
+.footer { margin-top:60px; padding-top:20px; border-top:1px solid var(--line); display:flex;
+  justify-content:space-between; gap:18px; color:var(--mute); font-size:11px; }
+@media (max-width:860px) {
+  .frame { display:block; }
+  .rail { position:relative; height:auto; padding:12px 16px; flex-direction:row; align-items:center;
+    gap:14px; overflow-x:auto; }
+  .rail nav { flex-direction:row; gap:3px; white-space:nowrap; }
+  .rail-caption,.rail-bottom { display:none; }
+  .content { padding:0 18px 60px; }
+  .hero { padding:40px 18px 34px; }
+}
+@media print {
+  @page { size:A4; margin:14mm; }
+  .frame { display:block; }
+  .rail,.copy-btn,.pillnav,.skip { display:none; }
+  .hero { color:var(--ink); background:#eff5e8; padding:14px 0; }
+  .hero-short { color:var(--ink2); }
+  .hero-eyebrow { color:var(--sea); }
+  .pill { color:var(--sea); border-color:var(--sea); }
+  .content { max-width:100%; padding:0; }
+  pre { white-space:pre-wrap; }
+  details { display:block; }
+  a[href^="http"]::after { content:" (" attr(href) ")"; font-size:11px; color:var(--mute); }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="frame">
+<aside class="rail"><a class="brand" href="../index.html"><span class="brandmark">g.</span><span>guia.la <em>/ planning</em></span></a><div class="rail-caption">On this page</div><nav aria-label="On this page"><a href="#phase-identity">Phase identity</a><a href="#why-this-stage-exists">Why this stage exists</a><a href="#inputs-and-source-references">Inputs and source references</a><a href="#task-breakdown">Task breakdown</a><a href="#architecture-choices-and-guardrails">Architecture choices and guardrails</a><a href="#deliverables">Deliverables</a><a href="#visual-and-functional-qa">Visual and functional QA</a><a href="#automated-verification">Automated verification</a><a href="#acceptance-gate">Acceptance gate</a><a href="#risks-rollback-and-handoff">Risks, rollback and handoff</a><a href="#next-phase-handoff">Next phase handoff</a></nav><div class="rail-bottom"><a href="../index.html">← Planning index</a></div></aside>
+<main class="main" id="main">
+<header class="hero">
+<div class="hero-eyebrow"><span class="hero-dot"></span> guia.la / Phase 02</div>
+<h1>Phase 02 — Bootstrap Expo universal monorepo with a walking skeleton</h1>
+<p class="hero-short">Create the pinned SDK 58 Expo Router workspace that builds one reference Places journey from fixtures on web, Android and iOS — and prove raw-HTML SEO on the static web export (spike S1).</p>
+<div class="hero-pills"><span class="pill bright">Status: draft</span><span class="pill">High (foundational)</span><span class="pill">Build</span><span class="pill">depends on: <a href="phase-00.html">00</a></span></div>
+</header><div class="content"><p>Phase 02 turns the guia.la platform from documents into a building repo. Per the review&#x27;s proposal (§8 edit 1, <a href="../review.md">review.md</a>), this phase absorbs two things the master plan originally deferred: the <strong>SEO spike S1</strong> (the riskiest web assumption) and a <strong>walking skeleton</strong> — one real Places list/detail journey over fixture data — so the first end-to-end slice exists before infrastructure phases 03–06 deepen.</p><p>Everything here runs <strong>free and local first</strong>: no paid cloud builds (that is Phase 04b), no backend (Phase 07), no store submission (Phase 10). Native verification is honest about hardware: if no Apple hardware or EAS account is available, the gate records the exact blocker instead of pretending.</p><aside class="callout callout-note"><p class="callout-label">Note</p><p>Versions below were verified against npm and Expo docs on</p><p>2026-11-21 (<a href="../research/expo-stack.md">expo-stack research</a>). Re-verify with <code>npx expo-doctor</code> at execution time; pin what is current then unless an SDK 59 exists and a fresh compatibility check says otherwise.</p></aside><h2 id="phase-identity">Phase identity</h2><ul><li><strong>Number:</strong> 02 — third phase. The S1 spike may start in parallel with</li></ul><p><a href="phase-01.html">01</a> per <a href="../review.md">review §10</a>; only the fixture wiring (task 02-5) truly needs 01&#x27;s outputs.</p><ul><li><strong>Objective:</strong> a pnpm monorepo whose Expo Router app renders one Places</li></ul><p>list and detail journey from synthetic fixtures on web (static export with per-route OG in raw HTML) and boots on Android (and iOS where hardware allows), with versions pinned and every command documented.</p><ul><li><strong>Prerequisites:</strong> Phase <a href="phase-00.html">00</a> decisions recorded — D-01</li></ul><p>names before identifiers are pinned; D-02/D-03 carry <code>proposed</code> status and this phase produces their evidence.</p><ul><li><strong>Dependencies:</strong> 00. Phase 01 runs in parallel; only the fixture wiring</li></ul><p>(task 02-5) consumes 01&#x27;s outputs, and a temporary seed covers 01 lagging.</p><ul><li><strong>Expected contributors:</strong></li></ul><div class="tablewrap"><table><thead><tr><th scope="col">Role</th><th scope="col">Human or agent</th><th scope="col">Responsibility</th></tr></thead><tbody><tr><td>Product owner</td><td>Human</td><td>Approves stack pin (D-02) and reacts to the S1 result (D-03); provides hardware/accounts if native boot needs them</td></tr><tr><td>Implementation agent</td><td>Agent</td><td>Monorepo setup, app config, walking skeleton, spike, docs</td></tr><tr><td>Orchestrator agent</td><td>Agent</td><td>Reviews diffs, keeps scope at one journey, guards the forbidden list</td></tr><tr><td>Junior implementation agent</td><td>Agent</td><td>Mechanical pieces (package skeletons, config plumbing) via the ladder</td></tr></tbody></table></div><ul><li><strong>Complexity/risks:</strong> High; risk note <strong>foundational</strong> — every later phase</li></ul><p>inherits these pins and layout, and the two known traps (Router static output semantics; env handling) both bite here first.</p><h2 id="why-this-stage-exists">Why this stage exists</h2><p>The stack choice — one Expo/React Native codebase for web, Android and iOS — is still a <strong>hypothesis</strong> until it builds and boots from this repo (<a href="../decisions.md">decisions D-02</a>). The review verified versions and documentation (<a href="../research/expo-stack.md">expo-stack §1</a>) but nothing was run; that is precisely what this phase is for.</p><p>The riskiest single assumption is SEO: Expo Router&#x27;s <code>static</code> output promises per-route HTML with OG tags emitted by <code>generateMetadata()</code>, but dynamic routes need <code>generateStaticParams</code> (so every published place requires a re-export), the SDK 58 docs contradict themselves on the default <code>web.output</code>, and <code>&lt;Head&gt;</code>-based patterns from older tutorials silently stop working in static HTML (<a href="../research/expo-stack.md">expo-stack §1.3</a>). Moving S1 here — proposed in <a href="../review.md">review §8</a> — means the go/no-go evidence for D-03 exists before any content architecture is built on top of it.</p><p>The walking skeleton exists because of the legacy lesson: Cotiju&#x27;s home page waited on empty database tables and spun forever (<a href="../research/legacy-cotiju-audit.md">legacy #60</a>). guia.la&#x27;s first screen is therefore fed by local fixtures with explicit loading/empty/error states wired from day one — the failure modes are part of the skeleton, not an afterthought.</p><h2 id="inputs-and-source-references">Inputs and source references</h2><ul><li>Decision inputs: <a href="../decisions.md">decisions D-02, D-03</a>; red-team rows</li></ul><p><a href="../review.md">R3 (SEO)</a> and the compatibility table in <a href="../review.md">review §3</a>.</p><ul><li>Verified version baseline (<a href="../research/expo-stack.md">expo-stack §1.1</a>):</li></ul><p>expo 58.0.26, react-native 0.88.1, react/react-dom 19.3.x (SDK pin), react-native-web 0.21.4, expo-router 58.0.32; Node 22.13+/24.3+ (24 LTS chosen, <code>.nvmrc</code>); New Architecture is mandatory and not disableable on SDK 55+.</p><ul><li>Authoritative docs used as the source for each mechanism:</li></ul><p><a href="https://docs.expo.dev/router/web/static-rendering/">static rendering</a>, <a href="https://expo.dev/changelog/sdk-58">SDK 58 changelog</a>, <a href="https://docs.expo.dev/router/migrate/sdk-57-to-58/">SDK 57→58 migration</a>, <a href="https://docs.expo.dev/guides/environment-variables/">environment variables</a>, <a href="https://docs.expo.dev/guides/analyzing-bundles/">bundle analysis</a>.</p><ul><li>Fixtures and domain shapes from Phase <a href="phase-01.html">01</a></li></ul><p>(<code>packages/fixtures/cotijuba/</code> with <code>packages/fixtures/serra/</code> alongside, Place verdict rows). If 01 lags, a minimal built-in seed of five synthetic places stands in and is swapped later.</p><ul><li>Legacy contrast cases (why states matter): issues</li></ul><p><a href="https://github.com/luandro/cotiju-app/issues/60">#60</a> and <a href="https://github.com/luandro/cotiju-app/issues/66">#66</a> — spinner and offline-gating failures the skeleton must visibly not reproduce.</p><ul><li><strong>Known unknowns:</strong> whether the SDK 58 default template alias is still</li></ul><p><code>default@sdk-58</code> at execution time (<a href="../research/expo-stack.md">expo-stack S11</a>); whether <code>web.output</code> unset behaves as <code>single</code> or <code>server</code> (S2 — made irrelevant by setting it explicitly); real OG output of our build (S1 — this phase answers it); Android SDK/emulator availability on the working machine; iOS tooling (needs macOS hardware — EAS deferred to Phase 04b).</p><ul><li><strong>Credentials/tools needed:</strong> Node 24, pnpm, git; optionally Android SDK +</li></ul><p>emulator for local boot; optionally Xcode on macOS. <strong>No cloud accounts, no API keys, no secrets</strong> — there is no backend yet, so nothing has business being in <code>EXPO_PUBLIC_</code> variables.</p><h2 id="task-breakdown">Task breakdown</h2><div class="tablewrap"><table><thead><tr><th scope="col">#</th><th scope="col">Task and goal</th><th scope="col">Owner</th><th scope="col">PR unit</th><th scope="col">Depends on</th></tr></thead><tbody><tr><td>1</td><td>Starter spike A1: scaffold with the official create-expo-app template, confirm it boots web, and record what the template ships (<a href="../review.md">review §7 A1</a>)</td><td>Agent</td><td>PR 02-1</td><td>Phase 00</td></tr><tr><td>2</td><td>pnpm workspace + package skeleton per the canonical layout below: Phase 02 creates apps/app plus packages/core, ui, fixtures, widget-sdk (empty but compiling) and tools/; the remaining tree names are reserved for their owning phases</td><td>Agent</td><td>PR 02-2</td><td>02-1</td></tr><tr><td>3</td><td>Version pinning and toolchain: lockfile committed, <code>.nvmrc</code> Node 24, <code>expo install --check</code> and <code>expo-doctor</code> scripts, <code>tsc --noEmit</code> typecheck script</td><td>Agent</td><td>PR 02-3</td><td>02-2</td></tr><tr><td>4</td><td>App config: app.config.ts with explicit <code>web.output: &quot;static&quot;</code>, async-routes decision recorded, <code>APP_ENV</code> (environment: development/preview/staging/production) and <code>APP_VARIANT</code> (build profile: flagship, cotijuba-web, serra-web) — both zod-validated, build fails on a missing var (pattern credited to Obytes, <a href="../research/backend-stores-starters.md">starters §3</a>)</td><td>Agent</td><td>PR 02-4</td><td>02-3</td></tr><tr><td>5</td><td>Domain core + fixtures wiring: Place and Category types in packages/core, fixture loader in packages/fixtures (from Phase 01, or the temporary seed)</td><td>Agent</td><td>PR 02-5</td><td>02-2, Phase 01</td></tr><tr><td>6</td><td>Walking skeleton routes: places list at a stable URL and <code>places/[slug]</code> detail with <code>generateStaticParams</code> + <code>generateMetadata</code>, plus visible loading, empty, error and offline-hint states</td><td>Agent</td><td>PR 02-6</td><td>02-4, 02-5</td></tr><tr><td>7</td><td>S1 spike: static web export, then raw-HTML assertions (curl/grep and a JS-disabled check) that list and every detail page carry title, description and <code>og:</code> tags; record result against D-03</td><td>Agent</td><td>PR 02-7</td><td>02-6</td></tr><tr><td>8</td><td>Deliberate-failure demonstrations: remove <code>generateStaticParams</code> and show the detail page vanishes from dist while the assertion fails; unset a required env var and show the build fails fast</td><td>Agent</td><td>PR 02-8</td><td>02-7</td></tr><tr><td>9</td><td>Local native boot: Android emulator run of the skeleton with screenshots; iOS simulator if macOS hardware exists; otherwise record the exact credential/hardware blocker per the honesty rule</td><td>Agent (+ human if hardware)</td><td>PR 02-9</td><td>02-6</td></tr><tr><td>10</td><td>EAS configuration files: eas.json with dev/preview/production variants and APP_ENV/APP_VARIANT wiring — files only, no builds, no accounts (builds are Phase 04b)</td><td>Agent</td><td>PR 02-10</td><td>02-4</td></tr><tr><td>11</td><td>Docs: README clean-clone reproduction commands, getting-started notes, ADR updates recording D-02 pin and the D-03 spike result</td><td>Agent</td><td>PR 02-11</td><td>02-7, 02-9</td></tr></tbody></table></div><p>The one journey rule: if a change is not needed by the Places list/detail slice, the pins, or the states, it does not belong in Phase 02. Maps, Storybook, CI pipelines, theming and the widget compiler are phases 03–06.</p><h2 id="architecture-choices-and-guardrails">Architecture choices and guardrails</h2><ul><li>**Workspace layout (proposed; canonical — defined once here, referenced by</li></ul><p>every later phase):**</p><pre><code class="language-text">guia-la/
+  apps/app/                  Expo Router application (the only runnable app)
+    app.config.ts            static web output, variants, env validation
+    src/app/                 route tree (places list + [slug] detail first)
+    src/app/(widgets)/       widget route stubs (created in Phase 06)
+    src/generated/           reserved for the Phase 06 composer output
+  apps/api/                  Hono Worker (created in Phase 07)
+  packages/core/             domain types (Place, Category, Destination)
+  packages/ui/               shared primitives (starts nearly empty)
+  packages/widget-sdk/       widget contract types (empty until Phase 06)
+  packages/widgets/&lt;id&gt;/     one package per widget (Phase 06+)
+  packages/map/              map layer (Phase 08)
+  packages/contracts/        zod schemas + OpenAPI (Phase 07)
+  packages/api-client/       generated typed client (Phase 07)
+  packages/db/               D1 access only (Phase 07)
+  packages/fixtures/
+    cotijuba/                synthetic Cotijuba-shaped datasets (Phase 01)
+    serra/                   synthetic Serra-demo datasets (Phase 01)
+  packages/testing/          test helpers only, never fixtures (Phase 05)
+  destinations/&lt;id&gt;/         destination manifests (Phase 06)
+  profiles/                  build profiles (Phase 06)
+  tools/compose              widget composer script (Phase 06)
+  eas.json                   dev/preview/production variants (files only)
+  .nvmrc                     node 24
+  pnpm-workspace.yaml</code></pre><p>Phase 02 creates only what it needs (task 02-2); every other entry is a reserved canonical name created by its owning phase, so no later phase renames a directory.</p><ul><li><strong>Route and metadata contract (illustrative):</strong></li></ul><pre><code class="language-tsx">// illustrative — apps/app/src/app/places/[slug].tsx
+import type { Metadata } from &quot;expo-router/server&quot;;
+
+export function generateStaticParams() {
+  return allFixtures().places.map((p) =&gt; ({ slug: p.slug }));
+}
+
+export function generateMetadata({ params }): Metadata {
+  const place = placeBySlug(params.slug);
+  return {
+    title: `${place.name} — guia.la pilot`,
+    description: place.summary,
+    openGraph: { title: place.name, description: place.summary },
+  };
+}</code></pre><ul><li><strong>Patterns adopted deliberately:</strong> explicit <code>web.output: &quot;static&quot;</code> (never</li></ul><p>rely on the contradictory default, <a href="../research/expo-stack.md">expo-stack §1.3</a>); <code>generateMetadata()</code> for OG and <strong>never</strong> the SDK 58-broken <code>&lt;Head&gt;</code> pattern (<a href="https://docs.expo.dev/router/migrate/sdk-57-to-58/">migration notes</a>); env access only through a zod-validated config module; states-first data loading (every async view renders loading, empty, error).</p><ul><li><strong>Forbidden in this phase:</strong> cloud accounts, CI credentials, paid builds,</li></ul><p>real Cotijuba content (fixtures only), any second journey (tides, boats, maps), native config plugins beyond the template set, secrets or API keys anywhere (there is no consumer yet), adopting Ignite/Obytes/T3 templates (<a href="../review.md">review R13</a>) — patterns are hand-ported, not inherited.</p><ul><li><strong>Security/privacy implications:</strong> nothing secret exists to leak yet, which</li></ul><p>is the point of doing this phase before a backend: the secret-handling habits (no values in configs, no keys in client env) are set while the cost of enforcing them is zero. Atlas/source-map outputs from bundle analysis contain inlined env values and are treated as secret artifacts, never committed (<a href="../research/expo-stack.md">expo-stack §1.9</a>).</p><ul><li><strong>Acceptable alternatives:</strong> Next.js web + separate RN app (fallback per</li></ul><p><a href="../review.md">review §1</a> <strong>only if S1 fails</strong> — two rendering stacks, the thing this platform exists to avoid); <code>web.output: &quot;server&quot;</code> via the undocumented workerd adapter (rejected — &quot;no continuous tests&quot; warning in the Expo docs); Expo Hosting free tier instead of Cloudflare (possible, but custom domains are paid and the review recommends Workers Static Assets).</p><h2 id="deliverables">Deliverables</h2><ul class="checklist"><li><input type="checkbox" disabled> Monorepo with the layout above, lockfile committed, <code>.nvmrc</code> set (PR 02-2/02-3)</li><li><input type="checkbox" disabled> <code>pnpm typecheck</code> (tsc --noEmit) script passing on the skeleton — first run is the evidence (PR 02-3)</li><li><input type="checkbox" disabled> <code>app.config.ts</code> with explicit static web output and env validation that fails on missing vars (PR 02-4)</li><li><input type="checkbox" disabled> Places list + detail routes rendering fixtures with all four states reachable (PR 02-6)</li><li><input type="checkbox" disabled> <code>dist/</code> static export where list and every detail page carry OG tags in raw HTML (PR 02-7)</li><li><input type="checkbox" disabled> S1 spike result recorded in the ADR for D-03 with go/fallback recommendation (PR 02-7/02-11)</li><li><input type="checkbox" disabled> Deliberate-failure demos evidenced in PR 02-8 (route vanishes; env guard trips)</li><li><input type="checkbox" disabled> Android boot screenshots or the exact recorded blocker; iOS same (PR 02-9)</li><li><input type="checkbox" disabled> <code>eas.json</code> variants present, untouched by any build run (PR 02-10)</li><li><input type="checkbox" disabled> README documents the full clean-clone reproduction sequence (PR 02-11)</li></ul><h2 id="visual-and-functional-qa">Visual and functional QA</h2><p>Preview patterns that are real in this phase: local only — <code>http://localhost:8081</code> via <code>npx expo start</code>, and the exported <code>dist/</code> served locally (for example <code>npx serve dist</code>). Remote preview patterns are TBD in Phase 04.</p><ul><li><strong>Human journey (web):</strong> clean clone, run the README commands, open the</li></ul><p>local preview, walk list → detail → back; force each state (empty fixture set, malformed fixture, offline via devtools) and confirm a visible, labeled state — never a spinner with no deadline (<a href="../research/legacy-cotiju-audit.md">legacy #60</a> is the anti-example).</p><ul><li><strong>Human journey (share preview):</strong> paste a detail page URL into a</li></ul><p>link-preview tool (or WhatsApp draft) from the locally served export and confirm the card shows title/description — this is the human version of S1.</p><ul><li><strong>Agent journey:</strong> from a clean clone, reproduce the export and re-run the</li></ul><p>OG assertions; then delete one fixture place, re-export, and confirm the detail page for it is gone while others remain.</p><ul><li><strong>Platform matrix:</strong></li></ul><div class="tablewrap"><table><thead><tr><th scope="col">Target</th><th scope="col">Expected in this phase</th><th scope="col">Evidence</th></tr></thead><tbody><tr><td>Web (static export)</td><td>Full journey + raw-HTML OG</td><td>curl output, screenshots</td></tr><tr><td>Android (local emulator/dev client)</td><td>Skeleton boots, list/detail navigable</td><td>Screenshots or recording</td></tr><tr><td>iOS (simulator on macOS, if available)</td><td>Same as Android</td><td>Screenshots, or recorded blocker</td></tr><tr><td>Native cloud builds</td><td>Not attempted</td><td>Deferred to Phase 04b per review §8.3 (proposal)</td></tr></tbody></table></div><ul><li><strong>If the owner rejects §8.3 (the 04a/04b split):</strong> the master-plan baseline</li></ul><p>is restored — native cloud builds become a required part of Phase 04&#x27;s own exit gate instead of a deferrable 04b (still budget-capped by D-08); record the ruling in an ADR before relying on the deferral.</p><ul><li><strong>Error states required:</strong> fixture load failure (error state with retry),</li></ul><p>empty fixture set (empty state with explanation), unknown slug (branded not-found), missing env at build time (hard failure with a named variable). Any unbounded spinner anywhere fails QA.</p><h2 id="automated-verification">Automated verification</h2><p>Markers: <strong>validated</strong> = the command/mechanism is verified in the research files (still to be run on guia.la code); <strong>proposed</strong> = invented for this repo, flags may need adjusting at first run.</p><pre><code class="language-bash"># proposed — scaffold (template alias re-check is part of the task; S11)
+npx create-expo-app@latest apps/app --template default@sdk-58</code></pre><pre><code class="language-bash"># proposed (inference) — doctor and pin checks follow the recommended CI
+# pattern ([expo-stack §2.7](../research/expo-stack.md)); not run in research
+npx expo-doctor
+npx expo install --check</code></pre><pre><code class="language-bash"># validated — static export is the documented mechanism; source-map mode&#x27;s
+# flags were verified via --help ([expo-stack §1.9](../research/expo-stack.md))
+npx expo export -p web
+npx expo export -p web -s external</code></pre><pre><code class="language-bash"># validated — Atlas bundle listing exists and writes .expo/atlas.jsonl;
+# the artifact is SECRET (inlined env values) — never commit it
+EXPO_ATLAS=true npx expo export -p web</code></pre><pre><code class="language-bash"># proposed — S1 raw-HTML assertions (the spike&#x27;s core check). Expected:
+# every grep finds its tag; a miss prints the file and exits 1.
+test -f dist/index.html || exit 1
+for f in dist/places/index.html dist/places/*.html; do
+  grep -q &#x27;og:title&#x27; &quot;$f&quot; || { echo &quot;$f&quot;; exit 1; }
+  grep -q &#x27;&lt;title&gt;&#x27; &quot;$f&quot; || { echo &quot;$f&quot;; exit 1; }
+done</code></pre><ul><li><strong>Deliberate-failure demonstration 1 (evidence in PR 02-8):</strong> remove <code>generateStaticParams</code> from the detail route and re-export — the expected observable is <code>dist/places/&lt;slug&gt;.html</code> missing from dist (or the assertion failing), proving the S1 check can actually fail.</li><li><strong>Deliberate-failure demonstration 2 (evidence in PR 02-8):</strong> unset a required env var and run the build — the expected observable is an immediate, named-variable failure from the zod guard, not a runtime surprise later (a pattern legacy PR #52 proved valuable).</li><li><strong>Positive + negative pairing:</strong> every assertion above has a demonstrated</li></ul><p>failure mode or is paired with one in PR 02-8; a check that has never failed is not yet evidence.</p><h2 id="acceptance-gate">Acceptance gate</h2><aside class="callout callout-gate"><p class="callout-label">Gate</p><p>Phase 02 passes when a clean clone reproduces the web export and</p><p>its raw-HTML OG assertions, the skeleton shows all four states on the one journey, and native boot is either evidenced or blocked with the exact requirement recorded. S1&#x27;s result must exist as a recorded ADR note — &quot;seemed fine&quot; is not a result.</p></aside><ul class="checklist"><li><input type="checkbox" disabled> Clean clone + README commands produce the export on a second machine (or a fresh container) — recorded in PR evidence</li><li><input type="checkbox" disabled> OG assertions pass for list and all detail pages; deliberate-failure demo shows them failing when the route is removed</li><li><input type="checkbox" disabled> Env guard fails fast on a missing variable (demo evidenced)</li><li><input type="checkbox" disabled> <code>pnpm typecheck</code> runs and reports zero errors on the skeleton (first real run = the evidence; no prior run is claimed)</li><li><input type="checkbox" disabled> Android boot evidenced, or blocker recorded with exact setup steps; iOS likewise</li><li><input type="checkbox" disabled> D-02 and D-03 ADRs updated with execution-time evidence and honest statuses (<code>validated</code> at most — never <code>approved</code> without the user)</li><li><input type="checkbox" disabled> No cloud accounts, no secrets, no real content, one journey only</li></ul><p><strong>Blocks progression if:</strong> S1 fails and no fallback decision is recorded (blocks Phase 03+ web assumptions and forces the D-03 alternative discussion now — by design); typecheck is not wired (every later phase inherits the legacy 455-hidden-errors failure mode, <a href="../review.md">review §3</a>); the states are missing (Phase 08&#x27;s reliability work would build on a spinning foundation).</p><h2 id="risks-rollback-and-handoff">Risks, rollback and handoff</h2><div class="tablewrap"><table><thead><tr><th scope="col">Risk</th><th scope="col">Likelihood</th><th scope="col">Impact</th><th scope="col">Mitigation</th></tr></thead><tbody><tr><td>S1 fails: no OG in raw HTML or unusable rebuild semantics</td><td>Medium</td><td>High</td><td>This is why the spike is here; fallback (Hono share pages) is pre-written in <a href="../decisions.md">D-03</a>; owner decides with spike data</td></tr><tr><td>Template/SDK drift since 2026-11-21 research</td><td>Medium</td><td>Medium</td><td>Task 02-1 re-verifies; expo-doctor gate; pins follow whatever is current-and-compatible, recorded in the ADR</td></tr><tr><td>Metro/env traps (NODE_ENV forcing, staging loading prod env)</td><td>Medium</td><td>Medium</td><td>Explicit APP_ENV/APP_VARIANT + zod guard; documented SDK 58 behavior in <a href="../research/expo-stack.md">expo-stack §1.1</a></td></tr><tr><td>Native hardware unavailable</td><td>Medium</td><td>Low-Medium</td><td>Local emulator or recorded blocker; cloud builds already deferred to 04b with budget gate D-08</td></tr><tr><td>Scope creep beyond one journey</td><td>High</td><td>Medium</td><td>One-journey rule in the task table; orchestrator rejects additions to this phase&#x27;s PRs</td></tr><tr><td>Monorepo layout churn later</td><td>Low-Medium</td><td>Medium</td><td>Layout matches the Phase 06 composer plan (<a href="../review.md">review §4</a>); changes go through ADRs</td></tr></tbody></table></div><ul><li><strong>Sensitive operations needing human approval:</strong> none inherent — no</li></ul><p>accounts, spend or publication exist here. If native boot turns out to require an EAS account or Android SDK license acceptance, that is a human decision recorded as a blocker, not something the agent creates alone.</p><ul><li><strong>Budget impact:</strong> zero required. Optional local emulator usage is free;</li></ul><p>anything billable is out of scope by the forbidden list.</p><ul><li><strong>Rollback:</strong> the phase is a repo state — revert PRs. The export and Atlas</li></ul><p>artifacts are disposable. If S1 fails catastrophically, the repo remains useful for the native track while the D-03 fallback is decided.</p><ul><li><strong>Restart instructions for an agent picking up mid-phase:</strong> read the README</li></ul><p>and this page; check merged <code>PR 02-*</code> units and <code>docs/evidence/</code> artifacts; run <code>pnpm install &amp;&amp; pnpm typecheck</code> first — a typecheck that does not reproduce the last recorded state means someone changed pins without a PR; then resume the lowest unfinished task. If mid-spike (02-7), re-run the export before touching assertions — never trust a stale <code>dist/</code>.</p><h2 id="next-phase-handoff">Next phase handoff</h2><ul><li>To Phase 03 (design system/Storybook): the compiling <code>packages/ui</code> shell,</li></ul><p>the skeleton screens as first story candidates, and the S9 compatibility spike warning (<a href="../review.md">review R10</a>) — Storybook setup starts with a spike and a fallback, not an assumption.</p><ul><li>To Phase 04 (pipeline): the exact reproduction commands from the README</li></ul><p>become the fast-gate script; the recorded native blockers become 04b&#x27;s credential setup list; nothing in 02 may have assumed CI.</p><ul><li>To Phase 06 (widget composer): the reserved <code>src/app/(widgets)/</code> and</li></ul><p><code>src/generated/</code> directories, and the fixture-loader seam (fixtures are consumed, not imported ad hoc).</p><ul><li>Records required by all later phases: D-02/D-03 ADR notes with execution</li></ul><p>evidence; the pinned dependency set as committed lockfile; the states inventory (which views implement which states) so Phase 05 can test them.</p><ul><li>Open items handed forward explicitly: iOS evidence if blocked; async-routes</li></ul><p>decision note; any pins that had to deviate from the research baseline and why.</p><h2 id="agent-execution-prompt">Agent execution prompt</h2><p>The full agent prompt lives at <a href="../prompts/phase-02-agent.md">../prompts/phase-02-agent.md</a>.</p><button type="button" class="copy-btn" data-target="agent-prompt">Copy prompt</button><details class="prompt-details" open><summary>Prompt contents</summary><pre id="agent-prompt"><code># Phase 02 agent execution brief — Expo universal monorepo with walking skeleton
+
+NOT FOR EXECUTION — this is a planning artifact. Do not act on it until the
+owner has approved the planning packet (`planning/index.html`). It is the
+execution prompt embedded in `planning/phases/phase-02.html`.
+
+## Role
+
+You are the Phase 02 build agent for guia.la: you create the pinned Expo SDK
+58 / Expo Router / React Native Web monorepo whose one real journey — Places
+list and detail over fixtures — builds on web with raw-HTML OG tags and boots
+on Android/iOS locally. One journey, honestly verified.
+
+## Hard constraints (global essentials)
+
+- No production data writes (no backend exists yet — keep it that way);
+  fixtures only, never real Cotijuba content.
+- No secrets: no API keys, no cloud accounts, nothing in client env — there
+  is no consumer yet; treat Atlas/source-map outputs as secret artifacts and
+  never commit them.
+- No store, DNS or spend actions; no cloud builds (Phase 04b owns them);
+  creating an EAS/Expo account is a human decision, recorded as a blocker if
+  needed.
+- Evidence over claims: every &quot;works&quot; statement in a PR quotes a command and
+  its output; if native boot is impossible on your hardware, record the exact
+  blocker instead of describing what would happen.
+- Small PRs per the task table; anything outside the one journey, the pins,
+  or the four states is rejected.
+
+## Canonical docs to read first
+
+1. `planning/phases/phase-02.html` — the full playbook (task table, gate,
+   forbidden list).
+2. `planning/research/expo-stack.md` — verified versions and the traps:
+   static output semantics, `&lt;Head&gt;` broken in static HTML on SDK 58,
+   NODE_ENV forcing, env inlining rules.
+3. `planning/review.md` §3 (compatibility) and R3; `planning/decisions.md`
+   D-02, D-03.
+4. Expo docs (current at execution time): static rendering, SDK 58
+   changelog, SDK 57→58 migration, environment variables, bundle analysis —
+   URLs collected in the phase page.
+5. From Phase 01: `packages/fixtures/cotijuba/` (with `serra/` alongside)
+   and the Place verdict rows (a minimal five-place seed is acceptable
+   if 01 lags; swap later).
+6. From Phase 00 in the future repo: `AGENTS.md`, evidence template.
+
+## Ordered tasks
+
+1. PR 02-1 — starter spike: official create-expo-app template; confirm web
+   boot; re-check the template alias (it may have drifted since the
+   research); record what the template ships.
+2. PR 02-2 — pnpm workspace: apps/app + packages/core, ui, fixtures,
+   widget-sdk (compiling but near-empty) + tools/.
+3. PR 02-3 — pins and toolchain: lockfile committed, `.nvmrc` (Node 24),
+   `expo-doctor` and `expo install --check` scripts, `tsc --noEmit`
+   typecheck script.
+4. PR 02-4 — `app.config.ts`: explicit `web.output: &quot;static&quot;`, async-routes
+   decision recorded, `APP_ENV` (environment: development/preview/staging/
+   production) and `APP_VARIANT` (build profile: flagship, cotijuba-web,
+   serra-web), zod-validated env that fails the build naming the missing
+   variable.
+5. PR 02-5 — core types (Place, Category) + fixture loader in
+   packages/fixtures.
+6. PR 02-6 — walking skeleton routes: places list and `places/[slug]` detail
+   with `generateStaticParams` + `generateMetadata` (never the SDK 58-broken
+   `&lt;Head&gt;` pattern); loading, empty, error and offline-hint states all
+   reachable.
+7. PR 02-7 — S1 spike: `npx expo export -p web`, then raw-HTML assertions
+   (curl/grep; JS-disabled check) for list and every detail page: title,
+   description, og tags; record the result in the D-03 ADR note.
+8. PR 02-8 — deliberate-failure demos: (a) remove `generateStaticParams`,
+   show the detail page vanishes from dist and the assertion fails;
+   (b) unset a required env var, show the build fails fast.
+9. PR 02-9 — local native boot: Android emulator screenshots (iOS simulator
+   if macOS hardware); otherwise record the exact credential/hardware
+   blocker.
+10. PR 02-10 — `eas.json` dev/preview/production variants, files only, no
+    builds, no accounts.
+11. PR 02-11 — README clean-clone reproduction sequence; ADR notes for the
+    D-02 pin and the D-03 spike result.
+
+## Acceptance criteria
+
+- Clean clone on a second machine reproduces the web export using only
+  README commands (quoted evidence).
+- OG assertions pass for list and all detail pages — and their failure demo
+  is evidenced.
+- Env guard fails fast with a named variable (evidenced).
+- `pnpm typecheck` reports zero errors (first real run quoted as evidence).
+- All four states visible and labeled on the one journey; no unbounded
+  spinner anywhere.
+- Android/iOS boot evidenced or blocker recorded with exact setup steps.
+- D-02/D-03 ADR notes updated; statuses at most `validated`, never
+  `approved` (that is the user&#x27;s word).
+
+## PR evidence package (every PR)
+
+1. Summary: what and why.
+2. Linked phase task: &quot;PR 02-N — &lt;task&gt;&quot;.
+3. Commands run with verbatim output excerpts (export logs, grep results,
+  typecheck output).
+4. Screenshots/recordings: web journey, each state, emulator screen — attach
+   or link under docs/evidence/.
+5. Risks: what could still be wrong (esp. pins that deviated from research).
+6. Docs updated: list.
+7. Next unblocked task: name it.
+
+## Stop and ask when…
+
+- S1 fails (OG tags missing from raw HTML or export semantics unusable) —
+  stop and present evidence; the D-03 fallback (Hono share pages) is an owner
+  decision, not yours to adopt silently.
+- A required tool is unavailable (Android SDK license, macOS hardware, node
+  version) — record the blocker, do not improvise installs that need
+  licenses or accounts.
+- A dependency must deviate from the research-verified pins — ADR the reason
+  first.
+- You catch yourself adding a second journey, a map, theming, Storybook or a
+  pipeline — those are Phases 03–06; cut it and note it as next-unblocked.
+- Any output temptingly contains a real place&#x27;s data instead of fixtures —
+  replace with synthetic values before committing.
+</code></pre></details><div class="pillnav"><a href="phase-01.html">← Phase 01</a><a href="phase-03.html">Phase 03 →</a></div><div class="footer"><span>guia.la planning packet</span><span>Phase 02 · generated by planning/tools/build.py</span></div></div>
+</main>
+</div>
+<script>
+document.querySelectorAll('.copy-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    var t = document.getElementById(b.getAttribute('data-target'));
+    if (!t) return;
+    var done = function(){ b.textContent = 'Copied'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t.textContent).then(done, function(){});
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = t.textContent; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  });
+});
+</script>
+</body>
+</html>
