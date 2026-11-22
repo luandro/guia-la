@@ -232,7 +232,7 @@ Deliberate-failure demonstrations for this phase: the monitoring truth test (tas
 
 Sensitive operations requiring human approval: store submission and any listing change; DNS cutover; production data promotion; spending or plan changes; enabling OTA; emergency rollback of a live listing.
 
-Budget impact: this phase *is* the budget phase — Workers Paid $5/mo, Expo Starter $19/mo when native CI runs, Maestro $0.05/job, build overages $1–4/build, tile costs as measured in Phase 08 (all per [research](../research/backend-stores-starters.md), [expo-stack §1.8](../research/expo-stack.md)). Everything must fit the user-set ceiling with alerting at 80%.
+Budget impact: this phase *is* the budget phase — D-08 keeps everything on free tiers today; any upgrade (Workers Paid $5/mo, Expo Starter $19/mo when native CI runs) is a new owner decision. Reference prices: Maestro $0.05/job, build overages $1–4/build, tile costs as measured in Phase 08 (all per [research](../research/backend-stores-starters.md), [expo-stack §1.8](../research/expo-stack.md)). Everything must fit the user-set ceiling with alerting at 80%.
 
 Rollback: web = redeploy previous artifact (minutes, rehearsed); API = previous Worker version; content = Phase 09 reverse-mapping plus D1 Time Travel (in-place, 30-day window); native = previous build resubmission plus OTA-within-scope if enabled. The rollback runbook names the owner, the order and the evidence to capture.
 

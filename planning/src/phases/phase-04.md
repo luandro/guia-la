@@ -76,7 +76,7 @@ Credentials and tools needed (names only, values never in repo): `EXPO_TOKEN`, G
 | 5 | Secret hygiene on the built bundle: grep the exported web dist for secret-shaped strings; fail on hits | Agent | PR 04-5 | 2 |
 | 6 | `eas.json` profiles and first Workflows definitions; document required credentials and account linkage | Agent | PR 04-6 | 1 |
 | 7 | Native trigger policy: builds on `native` label or path filter (native config, native deps, `apps/app/**` platform files) plus a nightly schedule; never per-PR | Agent | PR 04-7 | 6 |
-| 8 | Budget record: ceiling (proposed initial: Expo Starter $19/month plus Workers Paid $5/month per D-08), alert at 80%, failure alerts; first actuals appended when available | Agent, human approves ceiling | PR 04-8 | 6 |
+| 8 | Budget record: free tiers only per D-08 (approved 2026-11-21) — track EAS build count against 15 Android + 15 iOS/month, Workers/D1 free daily limits, alert at 80% of each; first actuals appended when available | Agent, human approves any upgrade | PR 04-8 | 6 |
 | 9 | Simulator strategy note: options are Expo cloud simulators ($0.10/min, 60 min/month included on paid plans until 2027) versus GH Actions emulator (S13); decision deferred to Phase 05 with 04b measurements attached | Agent | PR 04-9 | 7 |
 | 10 | Evidence packaging: workflows upload logs, screenshots where produced, artifact checksums; retention policy documented | Agent | PR 04-10 | 7 |
 
@@ -228,7 +228,7 @@ Blocks progression if:
 
 Sensitive operations needing human approval: activating any paid plan (Expo Starter, Workers Paid beyond free); creating/linking accounts or credentials; anything touching DNS or stores (none is planned in this phase).
 
-Budget impact: intended zero on free tiers; proposed ceiling per D-08 is $19/month (Expo Starter) plus $5/month (Workers Paid) — both only after user approval. GitHub Actions cost depends on repo visibility and plan (verify).
+Budget impact: zero — all free tiers per D-08 (approved 2026-11-21). Expo Starter ($19/month) or Workers Paid ($5/month) need a new owner decision. GitHub Actions cost depends on repo visibility and plan (verify).
 
 Rollback: workflows are declarative; reverting the PR disables the pipeline. 04a and 04b revert independently — disabling native builds never touches the web gate. Preview targets are ephemeral; deleting them destroys nothing tracked.
 

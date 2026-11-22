@@ -66,7 +66,10 @@ once, record it, and proceed.
 The full cycle below is for hard PRs only: production code paths, security,
 money, concurrency, data handling, or wide/risky diffs. Do not spend codex or
 ohmybug reviews on setup, docs, config, or scaffolding PRs — self-review
-those, note the skip in `.state/goal.md`, and merge. Every hard PR goes
+those, note the skip in `.state/goal.md`, and merge. The OhMyBug pre-PR gate
+hook refuses `gh pr merge` until a hunt has run; for these PRs use its
+documented escape hatch: `SKIP_BUGHUNT=1 gh pr merge <n> --merge --delete-branch`.
+Never use it on a hard PR. Every hard PR goes
 through, in order:
 
 1. **codex review** — `codex review` (config already pins `gpt-6.2-sol`,
