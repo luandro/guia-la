@@ -58,6 +58,8 @@ jobs:
         run: bash scripts/hooks/test-hooks.sh
       - name: Workspace checks (format, lint, typecheck, test)
         run: pnpm check
+      - name: S1 static export + raw-HTML OG/hreflang assertions (clean-clone reproduction)
+        run: pnpm s1
       - name: Expo dependency pin check
         run: pnpm deps:check
       - name: Dependency audit (prod, high and above)
