@@ -70,14 +70,14 @@ Three more constraints shape the design. First, D1 has no PostgreSQL-style RLS (
 
 | # | Task | Owner | PR unit | Depends on |
 |---|---|---|---|---|
-| 1 | Minimal D1 schema with Drizzle (pinned): `destinations` (slug, locale, timezone, flag set), `places` (+ categories), `media` (license, attribution, rights note), `boat_schedules` (valid_from, valid_until, days_of_week, exceptions), `tide_observations` (series with source and validity window), `local_services` (business contact fields carrying `contact_consent`/`publish_contact` flags), `guides`, `trails` (Serra fixtures), `content_audit` (source, source_url, checked_at, editor), `migrations_log` | Agent | PR 07-1 | Phase 01 matrix |
+| 1 | Minimal D1 schema with Drizzle (pinned): `destinations` (slug, default locale — Cotijuba: pt-BR — timezone, flag set), localized content fields on text-bearing tables with per-locale values and a `machineTranslated` flag (D-14), `places` (+ categories), `media` (license, attribution, rights note), `boat_schedules` (valid_from, valid_until, days_of_week, exceptions), `tide_observations` (series with source and validity window), `local_services` (business contact fields carrying `contact_consent`/`publish_contact` flags), `guides`, `trails` (Serra fixtures), `content_audit` (source, source_url, checked_at, editor), `migrations_log` | Agent | PR 07-1 | Phase 01 matrix |
 | 2 | Tenant-scoped repository layer in `packages/db`: every exported query takes a branded `DestinationId`; app code cannot construct one without the request context; ESLint rule bans `drizzle-orm/d1` and raw `env.DB` outside `packages/db` | Agent | PR 07-2 | 07-1 |
 | 3 | Hono skeleton: `/v1/*` route mounting, zod-validated handlers, one error envelope shape, `Cache-Control` and freshness headers per route class, request ids, and `/v1/meta/build` returning the deployed commit, build time and migration hash injected at deploy | Agent | PR 07-3 | 07-2 |
-| 4 | Public read routes (no auth): destination info, places list/detail, boat "next departures" computed **server-side** in the destination timezone (`America/Belem` for Cotijuba), tides with explicit validity window and an honest unavailable state; per-route OpenAPI annotations into `packages/contracts` | Agent | PR 07-4 | 07-3 |
+| 4 | Public read routes (no auth): destination info, places list/detail, boat "next departures" computed **server-side** in the destination timezone (`America/Belem` for Cotijuba), tides with explicit validity window and an honest unavailable state; every response carries the requested locale plus fallback info — a missing translation serves the destination's default locale marked untranslated, never a silent fallback, and machineTranslated text stays flagged until reviewed (D-14); per-route OpenAPI annotations into `packages/contracts` | Agent | PR 07-4 | 07-3 |
 | 5 | Editor auth behind the A5 spike decision: Cloudflare Access JWT verification in front of the Worker (recommended in [review R9](../review.md)) or magic-link sessions in D1; roles `editor`/`admin` scoped to one `destinationId`; sessions/roles tested | Agent, human approves the D-09 choice | PR 07-5 | 07-3 |
 | 6 | Editorial write routes: place create/update with draft and published states, publish/unpublish, media registration (license and attribution required, enforced), audit rows on every write | Agent | PR 07-6 | 07-5 |
 | 7 | Media handling: R2 presigned PUT issuance for editors (per [presigned URL docs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/)), bucket CORS, public reads only through Worker-issued URLs for media that carry license metadata | Junior agent | PR 07-7 | 07-6 |
-| 8 | Minimal editorial console: login/session, place list, place edit form with provenance fields, media upload, publish action — implemented per the A5 outcome as a web-only route group or minimal Hono-served pages; no native-specific UI | Agent | PR 07-8 | 07-6, 07-7 |
+| 8 | Minimal editorial console: login/session, place list, place edit form with provenance fields, media upload, publish action, translation review queue (editors clear `machineTranslated` flags field by field, D-14) — implemented per the A5 outcome as a web-only route group or minimal Hono-served pages; no native-specific UI | Agent | PR 07-8 | 07-6, 07-7 |
 | 9 | Scheduled ingestion pipeline: cron-triggered fetch job with a pluggable `TideProvider`/`WeatherProvider` interface and a fixture provider; writes series rows with source, fetched_at, validity window and failure status; no fabricated fallback data on failure, ever (legacy #62 rule) | Agent | PR 07-9 | 07-4 |
 | 10 | Backup and restore: nightly D1 export Workflow to R2 (modeled on the [documented example](https://developers.cloudflare.com/workflows/examples/backup-d1/)), 30-day retention; restore drill script that restores into a scratch D1 and compares row counts and checksums — run as a weekly automated drill plus a quarterly human-witnessed drill (Time Travel is never the drill; it is in-place only); CI guard rejecting `CREATE VIRTUAL TABLE` in migrations (it breaks `d1 export` per [import/export docs](https://developers.cloudflare.com/d1/best-practices/import-export-data/)) | Agent | PR 07-10 | 07-1 |
 | 11 | Publish-to-rebuild hook: editorial publish emits a GitHub `repository_dispatch` (or Workers Builds hook — chosen with D-03) that triggers the destination web export redeploy; failure of the hook is visible in the console | Agent | PR 07-11 | 07-8, D-03 outcome |
@@ -116,6 +116,8 @@ export function forDestination(db: DrizzleD1, slug: string) {
   "data": { "items": [] },
   "meta": {
     "destination": "cotijuba",
+    "locale": "pt-BR",
+    "fallback": false,
     "generated_at": "2026-11-21T12:00:00-03:00",
     "source": "fixture",
     "valid_until": null,
@@ -125,6 +127,8 @@ export function forDestination(db: DrizzleD1, slug: string) {
 ```
 
 Tide and boat endpoints add `data_available: false` with a reason when upstream is stale or down — an explicit unavailable payload, never yesterday's data relabeled as fresh (the exact failure in legacy [#62](https://github.com/luandro/cotiju-app/issues/62)).
+
+**Locale semantics (D-14):** localized fields serve the requested locale; a missing translation returns the destination's default locale value with `fallback: true` and an untranslated marker, and machine-translated text carries `machineTranslated` until an editor reviews it — visible, never silent.
 
 **Timezone rule:** store UTC; compute "today", "next departure" and tide-day boundaries on the server in the destination's timezone from `destinations.timezone` (Cotijuba: `America/Belem`). Property tests cover 21:00 local crossings and validity-window edges — the two bugs legacy shipped ([#64](https://github.com/luandro/cotiju-app/issues/64)). Crons run in UTC ([cron docs](https://developers.cloudflare.com/workers/configuration/cron-triggers/)); schedules are defined with that offset encoded and tested.
 
@@ -146,6 +150,7 @@ Tide and boat endpoints add `data_available: false` with a reason when upstream 
 ## Deliverables
 
 - `packages/db/` schema and migrations; pinned Drizzle versions recorded in the lockfile and decision note.
+- Localized content fields with a declared default locale per destination (Cotijuba: pt-BR), untranslated markers, `machineTranslated` flags and the editor translation-review queue (D-14).
 - `apps/api/` Hono Worker deployed to **staging** with `/v1/meta/build` live.
 - `packages/contracts/` zod schemas and generated OpenAPI document; `packages/api-client/` generated typed client consumed by the app.
 - Editorial console (web) with login, place editing including provenance fields, media upload with license requirement, publish action.
@@ -210,6 +215,7 @@ Statuses: **validated** means the command or behavior is verified in a research 
 - [ ] Cross-tenant denial demonstrated live in the QA journeys with screenshots.
 - [ ] Nightly backup Workflow has produced at least one R2 object; the restore drill restored it into a scratch D1 with matching row counts and checksums; drill evidence attached.
 - [ ] Ingestion outage produces explicit unavailability with reason — no fabricated or silently stale data (demonstration 2).
+- [ ] Locale semantics hold (D-14): responses carry locale + fallback info; missing translations serve the default locale marked untranslated; `machineTranslated` cleared only by editor review.
 - [ ] Timezone property tests (21:00 crossing, validity edges) pass.
 - [ ] `/v1/meta/build` reports the actual deployed commit; publish-to-rebuild hook fires or its blocker is documented against D-03.
 - [ ] No `CREATE VIRTUAL TABLE` in migrations; DB-boundary lint active and red-tested.

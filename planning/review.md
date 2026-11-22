@@ -91,7 +91,8 @@ Versions verified 2026-11-21 against npm/changelogs in [expo-stack.md](research/
 
 | Gate | Runs | Contents | Cost driver |
 |---|---|---|---|
-| **Fast PR gate** (every PR, < 10 min target) | GitHub Actions | `tsc --noEmit`, ESLint + boundary rules, Vitest unit/contract, zod schema checks, `compose` for each profile + exclusion assertions, `expo export -p web`, Playwright smoke (Chromium) incl. JS-disabled OG/HTML checks, API tests on Miniflare/local D1 incl. tenant A/B, gitleaks + built-bundle secret grep | GH Actions minutes (free for public repos; private repo has a monthly allowance — verify plan) |
+| **Pre-commit** (local, staged changes — D-15) | Developer/agent machine | trufflehog on staged changes, formatter, ESLint on staged files, fast typecheck; mirrors the CI fast subset | Local time only |
+| **Fast PR gate** (every PR, < 10 min target) | GitHub Actions | `tsc --noEmit`, ESLint + boundary rules, Vitest unit/contract, zod schema checks, `compose` for each profile + exclusion assertions, `expo export -p web`, Playwright smoke (Chromium) incl. JS-disabled OG/HTML checks, API tests on Miniflare/local D1 incl. tenant A/B, gitleaks + built-bundle secret grep, i18n key completeness across all six locales (D-14) | GH Actions minutes (free for public repos; private repo has a monthly allowance — verify plan) |
 | **Visual** (PRs touching `packages/ui`, widgets) | GH Actions | Storybook web build + Playwright screenshot diff of stories; axe accessibility on stories and key pages | Minutes; baseline storage |
 | **Native PR gate** (label `native` or path filter on native config/deps) | Expo Workflows or GH Actions emulator [S12/S13] | Android dev/preview build + Maestro smoke; iOS build only when iOS-specific files change | Expo credits; Maestro $0.05/job |
 | **Nightly / RC** | Expo Workflows | Android + iOS builds per profile, Maestro suite on both, WebKit Playwright, automated restore drill (weekly; human-witnessed quarterly) | Starter plan likely needed |
@@ -136,6 +137,8 @@ Flaky-test protocol: quarantine label with an issue link and 7-day expiry; never
 7. **Phase 08** order: places/map → transport → tides/weather → local services → Serra trails/guides demo; each widget is its own PR series.
 8. **Phase 09** may start content verification (not import) in parallel with 07/08 because it is human-paced.
 9. No phases removed or merged.
+10. **Phase 02** also lands the i18n layer from D-14 (approved 2026-11-22): all six locales (en, pt-BR, es, fr, nl, de) from the walking skeleton on — locale-prefixed routes with hreflang and per-locale OG, CI failing on a missing key in any locale, and a library spike (expo-localization + i18next/react-i18next vs Lingui) deciding the stack.
+11. **Every phase** plans and lands its guardrails before or with its first feature PR (pre-commit, CI gates, hooks), and TDD red-green-refactor with quoted red/green evidence applies to every behavior change and bug fix (D-15, approved 2026-11-22).
 
 ---
 
@@ -144,6 +147,8 @@ Flaky-test protocol: quarantine label with an issue link and 7-day expiry; never
 See [decisions.md](decisions.md) for full ADR candidates.
 
 > **Update 2026-11-21:** the owner decided D-01, D-03, D-05, D-06, D-08 (all free tiers — supersedes item 5), D-09 and D-11 (MIT for code); D-12 is an owner TODO. The list below is the original ranking.
+
+> **Update 2026-11-22:** the owner approved D-14 (internationalization from day one; UI locales en, pt-BR, es, fr, nl, de) and D-15 (guardrails first, TDD, AI-native SDLC). Roadmap edits 10–11 above fold them in.
 
 1. **D-03 SEO rendering** — static export + rebuild-on-publish (recommended) vs Worker SSR share pages. Evidence: S1 result.
 2. **D-06 Native exclusion scope** — defer general mechanism (recommended).

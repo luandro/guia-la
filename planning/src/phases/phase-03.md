@@ -75,7 +75,7 @@ Credentials and tools needed: none. Everything in this phase runs locally; no ac
 | 4 | Theme engine: `ThemeProvider`, `useTheme`, runtime switching; presets `cotijuba` and `serra` (synthetic palettes, no real-branding claims) | Agent | PR 03-4 | 3 |
 | 5 | Primitives batch 1 with stories: Text/Heading, Button, Card, Chip/Badge, ListRow | Agent | PR 03-5 | 4 |
 | 6 | Primitives batch 2 with stories: TextInput + field scaffolding, Skeleton, EmptyState, ErrorState with retry, OfflineBanner, MapPlaceholder | Agent | PR 03-6 | 4 |
-| 7 | State matrix stories: each primitive rendered in loading, empty, error, offline, light, dark; themes switchable per story | Agent | PR 03-7 | 5, 6 |
+| 7 | State matrix stories: each primitive rendered in loading, empty, error, offline, light, dark; themes switchable per story; stories render in at least en, pt-BR and de (the long-text locale, D-14) to catch overflow | Agent | PR 03-7 | 5, 6 |
 | 8 | Accessibility pass: labels not color alone, minimum target sizes, focus order stories; axe checks wired on web stories | Agent | PR 03-8 | 7 |
 | 9 | Visual diff baseline: screenshot the story set on Chromium; store baselines; threshold policy documented | Agent | PR 03-9 | 7 |
 | 10 | Usage docs and guardrails: how a widget consumes tokens, what is forbidden, how to add a primitive | Agent | PR 03-10 | 8, 9 |
@@ -110,6 +110,7 @@ export type DestinationTheme = {
 
 Patterns:
 
+- Primitives take strings via the i18n layer only (D-14): text arrives as translated strings from the caller or resolved translation keys; no literal user-facing strings inside `packages/ui`
 - StyleSheet at module scope, tokens resolved at render via context — avoids per-render style creation without introducing a CSS-in-RN runtime
 - On-device Storybook via entry-point swap (`STORYBOOK_ENABLED=true`), which keeps Storybook code out of production bundles per the RN setup docs ([../research/expo-stack.md](../research/expo-stack.md) §1.7)
 - Web stories run on `@storybook/react-native-web-vite`; both runtimes consume the same CSF files
@@ -118,6 +119,7 @@ Forbidden:
 
 - Porting shadcn/Radix primitives (DOM-only; the lesson is the state matrix, not the code)
 - Hardcoded hex colors, font sizes, or the strings `cotijuba`/`serra` inside `packages/ui/src/components/**`
+- Hardcoded user-facing strings anywhere in `packages/ui` — strings go through the i18n layer (D-14); an ESLint rule flags literals
 - Widget-to-widget or app-to-widget imports from `packages/ui`
 - Storybook 11 (beta) or any beta-tagged peer
 - `Platform.OS` styling forks without a comment justifying why tokens cannot express it
@@ -137,6 +139,7 @@ Acceptable alternatives if the primary path fails:
 - [ ] Storybook configuration for the runtime(s) the S9 verdict selected (`.rnstorybook/` and/or `.storybook/`)
 - [ ] If fallback chosen: `/gallery` dev route in `apps/app` rendering the same component set
 - [ ] Visual baselines stored in-repo with a README stating how to update them deliberately
+- [ ] Stories render in at least en, pt-BR and de (overflow caught on the long-text locale); primitives take strings via the i18n layer only (D-14)
 - [ ] `docs/ui/usage.md` (proposed) — consumption rules, forbidden list, addition checklist
 - [ ] Spike note `docs/spikes/S9-storybook.md` (proposed) — versions pinned, errors hit, verdict, decision reference
 - [ ] Decision-register update: S9 outcome recorded against D-02's evidence list (status stays proposed unless the user decides)
@@ -206,8 +209,8 @@ Checklist (observable pass/fail):
 - [ ] S9 spike note exists with pinned versions and a verdict; fallback chosen only if the spike failed
 - [ ] Every primitive has stories covering loading, empty, error, offline, light, dark
 - [ ] Theme switch (cotijuba to serra, light to dark) works in the review URL without reload
-- [ ] Axe scan reports zero critical findings; findings list attached to the PR
-- [ ] Grep finds no hardcoded colors or destination ids under `packages/ui/src/components`
+- [ ] Axe scan reports zero critical findings across the en, pt-BR and de story renders; findings list attached to the PR
+- [ ] Grep finds no hardcoded colors, destination ids or user-facing strings under `packages/ui/src/components`
 - [ ] Visual baselines committed with an update policy
 - [ ] Human sign-off recorded on both theme presets
 

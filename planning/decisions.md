@@ -1,7 +1,7 @@
 # guia.la — decision register (ADR candidates)
 
 Statuses: `proposed` (recommendation, no user decision), `validated` (spike evidence supports it, still needs user), `approved` (explicit user decision or existing project record), `rejected`.
-Nothing here is `approved` except D-01, D-03, D-05, D-06, D-08, D-09 and D-11 (owner decisions, 2026-11-21) and D-00 and D-13a, where the master plan v0.2 / handoff states a locked user constraint; those are cited. Evidence links: [review.md](review.md), [research/](research/).
+Nothing here is `approved` except D-01, D-03, D-05, D-06, D-08, D-09 and D-11, D-14, D-15 (owner decisions, 2026-11-21/22) and D-00 and D-13a, where the master plan v0.2 / handoff states a locked user constraint; those are cited. Evidence links: [review.md](review.md), [research/](research/).
 
 | ID | Decision | Status | Phase gate |
 |---|---|---|---|
@@ -20,6 +20,8 @@ Nothing here is `approved` except D-01, D-03, D-05, D-06, D-08, D-09 and D-11 (o
 | D-12 | Legacy app: rotate leaked third-party keys; stale-data banner | proposed — owner TODO (tsk #297), outside this repo | 01 |
 | D-13a | No account required to read public destination information | approved (master plan §01 lists it as intentionally avoided) | 07 |
 | D-13b | No visitor accounts at all in v1 | proposed (master plan §08 lists "No public account at first" as needing validation) | 07 |
+| D-14 | i18n from day one: UI in en, pt-BR, es, fr, nl, de; localized content with marked fallback | approved — owner, 2026-11-22; i18n library is chosen by a Phase 02 spike | 02 |
+| D-15 | Guardrails first, TDD, AI-native SDLC artifacts (intent/spec/plan, REVIEW.md, verifier, evals) | approved — owner, 2026-11-22 | 00 |
 
 ---
 
@@ -106,3 +108,20 @@ Nothing here is `approved` except D-01, D-03, D-05, D-06, D-08, D-09 and D-11 (o
 ## D-13b — No visitor accounts at all in v1
 - **Status:** proposed — master plan §08 marks "No public account at first" as an open decision to validate against real visitor journeys
 - **Proposal:** ship v1 with editor accounts only; introduce visitor accounts only when a concrete feature needs them.
+
+## D-14 — Internationalization from day one
+- **Status:** approved — by the owner on 2026-11-22. The i18n library is chosen by a Phase 02 spike.
+- **Decision:** UI locales `en`, `pt-BR`, `es`, `fr`, `nl`, `de`, all required from Phase 02. No hardcoded user-facing strings. CI fails on a missing key in any locale.
+- **Content:** localized fields; each destination declares a default locale (Cotijuba: `pt-BR`). A missing translation falls back to the default locale and is shown as untranslated, never silently. Machine-translated text carries `machineTranslated` until a human reviews it.
+- **Web:** locale-prefixed routes (`/pt-BR/places/...`) with `hreflang` and per-locale OG tags. Static export emits one page per locale: this multiplies S1 page count and build time — measure it.
+- **Formatting:** `Intl` for dates, numbers, currency and units, in the destination timezone. No RTL locale in the set.
+- **Options for the library (proposed):** `expo-localization` + i18next/react-i18next vs Lingui.
+- **Reversal cost:** high once strings and routes ship without it — that is why it starts in Phase 02.
+
+## D-15 — Guardrails first, TDD, AI-native SDLC
+- **Status:** approved — by the owner on 2026-11-22.
+- **Guardrails first:** every phase lands its gates before or with its first feature PR: pre-commit (trufflehog, formatter, lint on staged files, fast typecheck); CI (trufflehog, ESLint + boundary rules, `tsc --noEmit`, unit/contract tests, i18n key completeness, Playwright e2e smoke, axe, bundle exclusion, docs checks); dependency audit plus Dependabot/Renovate; CodeQL (free on public repos); Claude Code hooks (deny reading `.env*`/`.dev.vars`, block edits to generated paths, block test edits during bug-fix tasks, format after edit).
+- **Quality over quantity:** each gate names the failure class it catches. A flaky gate, or one that never catches anything, is fixed or removed.
+- **TDD:** red, green, refactor. A behavior change commits its failing test first; PR evidence quotes the red and green runs. A bug fix commits a reproducing test, confirms the failure reason, then fixes without editing that test.
+- **AI-native SDLC** ([playbook](https://claude.com/resources/articles/the-ai-native-sdlc-playbook)): per feature `docs/features/<slug>/intent.md` -> `spec.md` -> `plan.md`; one check command that exits non-zero; `REVIEW.md` passes (bugs, security, compliance), at most five nits; read-only verifier subagent; the authoring agent never approves its own PR; agent evals (20–50 real tasks) in CI on changes to `CLAUDE.md`, `AGENTS.md`, `.claude/**` and skills (Phase 10); incidents become evals and lessons in `docs/lessons/`.
+- **Reversal cost:** low per gate; high for TDD discipline if skipped early.

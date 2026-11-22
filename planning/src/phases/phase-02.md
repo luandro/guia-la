@@ -1,13 +1,13 @@
 ---
 id: 02
 title: Bootstrap Expo universal monorepo with a walking skeleton
-short: Create the pinned SDK 58 Expo Router workspace that builds one reference Places journey from fixtures on web, Android and iOS — and prove raw-HTML SEO on the static web export (spike S1).
+short: Create the pinned SDK 58 Expo Router workspace that builds one reference Places journey from fixtures on web, Android and iOS — prove raw-HTML SEO on the static web export (spike S1), land the repo guardrails first (D-15) and the i18n layer for all six locales (D-14).
 tag: Build
 status: draft
 complexity: High (foundational)
 depends: 00
-inspect: The guia-la monorepo, a runnable web export with per-route OG tags, and Android or iOS boot evidence — all reproducible from a clean clone with documented commands
-exit: Clean clone reproduces the web export with raw-HTML OG assertions passing for list and detail routes; native boot evidenced or recorded as credential-blocked with exact setup steps; S1 result recorded against D-03
+inspect: The guia-la monorepo, a runnable web export with per-route OG tags per locale, and Android or iOS boot evidence — all reproducible from a clean clone with documented commands
+exit: Clean clone reproduces the web export with raw-HTML OG assertions passing for list and detail routes in every locale (hreflang + per-locale OG); native boot evidenced or recorded as credential-blocked with exact setup steps; S1 result recorded against D-03
 ---
 
 Phase 02 turns the guia.la platform from documents into a building repo. Per
@@ -22,6 +22,12 @@ Phase 04b), no backend (Phase 07), no store submission (Phase 10). Native
 verification is honest about hardware: if no Apple hardware or EAS account is
 available, the gate records the exact blocker instead of pretending.
 
+Two owner decisions of 2026-11-22 shape this phase from its first PR: **D-14**
+(internationalization from day one — the skeleton is locale-prefixed and ships
+all six locales: en, pt-BR, es, fr, nl, de) and **D-15** (guardrails land
+before or with the first feature PR; TDD red/green evidence from the first
+test).
+
 > [!NOTE] Versions below were verified against npm and Expo docs on
 > 2026-11-21 ([expo-stack research](../research/expo-stack.md)). Re-verify
 > with `npx expo-doctor` at execution time; pin what is current then unless
@@ -31,7 +37,7 @@ available, the gate records the exact blocker instead of pretending.
 
 - **Number:** 02 — third phase. The S1 spike may start in parallel with
   [01](phase-01.html) per [review §10](../review.md); only the fixture wiring
-  (task 02-5) truly needs 01's outputs.
+  (task 02-8) truly needs 01's outputs.
 - **Objective:** a pnpm monorepo whose Expo Router app renders one Places
   list and detail journey from synthetic fixtures on web (static export with
   per-route OG in raw HTML) and boots on Android (and iOS where hardware
@@ -40,7 +46,7 @@ available, the gate records the exact blocker instead of pretending.
   names before identifiers are pinned; D-02 is `proposed` and D-03 is approved
   subject to S1; this phase produces their evidence.
 - **Dependencies:** 00. Phase 01 runs in parallel; only the fixture wiring
-  (task 02-5) consumes 01's outputs, and a temporary seed covers 01 lagging.
+  (task 02-8) consumes 01's outputs, and a temporary seed covers 01 lagging.
 - **Expected contributors:**
 
 | Role | Human or agent | Responsibility |
@@ -116,21 +122,26 @@ the skeleton, not an afterthought.
 
 | # | Task and goal | Owner | PR unit | Depends on |
 |---|---|---|---|---|
-| 1 | Starter spike A1: scaffold with the official create-expo-app template, confirm it boots web, and record what the template ships ([review §7 A1](../review.md)) | Agent | PR 02-1 | Phase 00 |
-| 2 | pnpm workspace + package skeleton per the canonical layout below: Phase 02 creates apps/app plus packages/core, ui, fixtures, widget-sdk (empty but compiling) and tools/; the remaining tree names are reserved for their owning phases | Agent | PR 02-2 | 02-1 |
-| 3 | Version pinning and toolchain: lockfile committed, `.nvmrc` Node 24, `expo install --check` and `expo-doctor` scripts, `tsc --noEmit` typecheck script | Agent | PR 02-3 | 02-2 |
-| 4 | App config: app.config.ts with explicit `web.output: "static"`, async-routes decision recorded, `APP_ENV` (environment: development/preview/staging/production) and `APP_VARIANT` (build profile: flagship, cotijuba-web, serra-web) — both zod-validated, build fails on a missing var (pattern credited to Obytes, [starters §3](../research/backend-stores-starters.md)) | Agent | PR 02-4 | 02-3 |
-| 5 | Domain core + fixtures wiring: Place and Category types in packages/core, fixture loader in packages/fixtures (from Phase 01, or the temporary seed) | Agent | PR 02-5 | 02-2, Phase 01 |
-| 6 | Walking skeleton routes: places list at a stable URL and `places/[slug]` detail with `generateStaticParams` + `generateMetadata`, plus visible loading, empty, error and offline-hint states | Agent | PR 02-6 | 02-4, 02-5 |
-| 7 | S1 spike: static web export, then raw-HTML assertions (curl/grep and a JS-disabled check) that list and every detail page carry title, description and `og:` tags; record result against D-03 | Agent | PR 02-7 | 02-6 |
-| 8 | Deliberate-failure demonstrations: remove `generateStaticParams` and show the detail page vanishes from dist while the assertion fails; unset a required env var and show the build fails fast | Agent | PR 02-8 | 02-7 |
-| 9 | Local native boot: Android emulator run of the skeleton with screenshots; iOS simulator if macOS hardware exists; otherwise record the exact credential/hardware blocker per the honesty rule | Agent (+ human if hardware) | PR 02-9 | 02-6 |
-| 10 | EAS configuration files: eas.json with dev/preview/production variants and APP_ENV/APP_VARIANT wiring — files only, no builds, no accounts (builds are Phase 04b) | Agent | PR 02-10 | 02-4 |
-| 11 | Docs: README clean-clone reproduction commands, getting-started notes, ADR updates recording D-02 pin and the D-03 spike result | Agent | PR 02-11 | 02-7, 02-9 |
+| 1 | Repo guardrails first (D-15): pre-commit config — trufflehog on staged changes, formatter, ESLint on staged files, fast `tsc --noEmit` — plus the CI fast-gate skeleton in `.github/workflows/ci.yml`; merged before any feature code | Agent | PR 02-1 | Phase 00 |
+| 2 | Claude Code hooks in `.claude/settings.json` (D-15): deny reading `.env*`/`.dev.vars`, block edits to generated paths, block test-file edits during bug-fix tasks, format after edit | Agent | PR 02-2 | 02-1 |
+| 3 | Starter spike A1: scaffold with the official create-expo-app template, confirm it boots web, and record what the template ships ([review §7 A1](../review.md)) | Agent | PR 02-3 | Phase 00 |
+| 4 | pnpm workspace + package skeleton per the canonical layout below: Phase 02 creates apps/app plus packages/core, ui, fixtures, widget-sdk (empty but compiling) and tools/; the remaining tree names are reserved for their owning phases | Agent | PR 02-4 | 02-3 |
+| 5 | Version pinning and toolchain: lockfile committed, `.nvmrc` Node 24, `expo install --check` and `expo-doctor` scripts, `tsc --noEmit` typecheck script | Agent | PR 02-5 | 02-4 |
+| 6 | i18n layer + library spike (D-14): evaluate expo-localization + i18next/react-i18next vs Lingui on the skeleton and record the verdict; wire the chosen layer with all six locales (en, pt-BR, es, fr, nl, de); no hardcoded user-facing strings; the key-completeness check fails on a missing key in any locale | Agent | PR 02-6 | 02-5 |
+| 7 | App config: app.config.ts with explicit `web.output: "static"`, async-routes decision recorded, `APP_ENV` (environment: development/preview/staging/production) and `APP_VARIANT` (build profile: flagship, cotijuba-web, serra-web) — both zod-validated, build fails on a missing var (pattern credited to Obytes, [starters §3](../research/backend-stores-starters.md)) | Agent | PR 02-7 | 02-5 |
+| 8 | Domain core + fixtures wiring: Place and Category types in packages/core, fixture loader in packages/fixtures (from Phase 01, or the temporary seed) | Agent | PR 02-8 | 02-4, Phase 01 |
+| 9 | Walking skeleton routes, locale-prefixed (`/<locale>/places/...`, D-14): places list and `places/[slug]` detail with `generateStaticParams` + `generateMetadata` emitting hreflang and per-locale OG, plus visible loading, empty, error and offline-hint states | Agent | PR 02-9 | 02-7, 02-8 |
+| 10 | S1 spike: static web export, then raw-HTML assertions (curl/grep and a JS-disabled check) that list and every detail page in every locale carry title, description, `og:` tags, hreflang and per-locale OG — measure the ×6 page-count/build-time cost (D-14); record result against D-03 | Agent | PR 02-10 | 02-9 |
+| 11 | Deliberate-failure demonstrations: remove `generateStaticParams` and show the detail page vanishes from dist while the assertion fails; unset a required env var and show the build fails fast; delete one locale key and show the i18n completeness check fails naming the locale | Agent | PR 02-11 | 02-10 |
+| 12 | Local native boot: Android emulator run of the skeleton with screenshots; iOS simulator if macOS hardware exists; otherwise record the exact credential/hardware blocker per the honesty rule | Agent (+ human if hardware) | PR 02-12 | 02-9 |
+| 13 | EAS configuration files: eas.json with dev/preview/production variants and APP_ENV/APP_VARIANT wiring — files only, no builds, no accounts (builds are Phase 04b) | Agent | PR 02-13 | 02-7 |
+| 14 | Docs: README clean-clone reproduction commands, getting-started notes, ADR updates recording D-02 pin, the D-03 spike result and the D-14 library choice | Agent | PR 02-14 | 02-10, 02-12 |
 
 The one journey rule: if a change is not needed by the Places list/detail
-slice, the pins, or the states, it does not belong in Phase 02. Maps,
-Storybook, CI pipelines, theming and the widget compiler are phases 03–06.
+slice, the pins, the guardrails (D-15), the i18n layer (D-14) or the states,
+it does not belong in Phase 02. Maps, Storybook, the full CI pipeline,
+theming and the widget compiler are phases 03–06 (02 lands only the guardrail
+skeleton, not the preview/deploy pipeline).
 
 ## Architecture choices and guardrails
 
@@ -165,7 +176,7 @@ guia-la/
   pnpm-workspace.yaml
 ```
 
-Phase 02 creates only what it needs (task 02-2); every other entry is a
+Phase 02 creates only what it needs (task 02-4); every other entry is a
 reserved canonical name created by its owning phase, so no later phase renames
 a directory.
 
@@ -215,16 +226,18 @@ export function generateMetadata({ params }): Metadata {
 
 ## Deliverables
 
-- [ ] Monorepo with the layout above, lockfile committed, `.nvmrc` set (PR 02-2/02-3)
-- [ ] `pnpm typecheck` (tsc --noEmit) script passing on the skeleton — first run is the evidence (PR 02-3)
-- [ ] `app.config.ts` with explicit static web output and env validation that fails on missing vars (PR 02-4)
-- [ ] Places list + detail routes rendering fixtures with all four states reachable (PR 02-6)
-- [ ] `dist/` static export where list and every detail page carry OG tags in raw HTML (PR 02-7)
-- [ ] S1 spike result recorded in the ADR for D-03 with go/fallback recommendation (PR 02-7/02-11)
-- [ ] Deliberate-failure demos evidenced in PR 02-8 (route vanishes; env guard trips)
-- [ ] Android boot screenshots or the exact recorded blocker; iOS same (PR 02-9)
-- [ ] `eas.json` variants present, untouched by any build run (PR 02-10)
-- [ ] README documents the full clean-clone reproduction sequence (PR 02-11)
+- [ ] Repo guardrails merged first (D-15): pre-commit (trufflehog staged, formatter, lint, fast typecheck), CI fast-gate skeleton `.github/workflows/ci.yml`, Claude Code hooks in `.claude/settings.json` (PR 02-1/02-2)
+- [ ] Monorepo with the layout above, lockfile committed, `.nvmrc` set (PR 02-4/02-5)
+- [ ] `pnpm typecheck` (tsc --noEmit) script passing on the skeleton — first run is the evidence (PR 02-5)
+- [ ] `app.config.ts` with explicit static web output and env validation that fails on missing vars (PR 02-7)
+- [ ] i18n layer live with all six locales; zero hardcoded user-facing strings; key-completeness check fails on a missing key (D-14) (PR 02-6)
+- [ ] Locale-prefixed Places list + detail routes rendering fixtures with all four states reachable, hreflang and per-locale OG (PR 02-9)
+- [ ] `dist/` static export where list and every detail page, in every locale, carry OG tags in raw HTML (PR 02-10)
+- [ ] S1 spike result recorded in the ADR for D-03 with go/fallback recommendation, including the ×6 locale page-count/build-time measurement (PR 02-10/02-14)
+- [ ] Deliberate-failure demos evidenced in PR 02-11 (route vanishes; env guard trips; missing locale key fails the completeness check)
+- [ ] Android boot screenshots or the exact recorded blocker; iOS same (PR 02-12)
+- [ ] `eas.json` variants present, untouched by any build run (PR 02-13)
+- [ ] README documents the full clean-clone reproduction sequence (PR 02-14)
 
 ## Visual and functional QA
 
@@ -297,17 +310,24 @@ EXPO_ATLAS=true npx expo export -p web
 ```bash
 # proposed — S1 raw-HTML assertions (the spike's core check). Expected:
 # every grep finds its tag; a miss prints the file and exits 1.
+# D-14: routes are locale-prefixed, so the loop covers every locale's tree.
 test -f dist/index.html || exit 1
-for f in dist/places/index.html dist/places/*.html; do
+for f in dist/*/places/index.html dist/*/places/*.html; do
   grep -q 'og:title' "$f" || { echo "$f"; exit 1; }
   grep -q '<title>' "$f" || { echo "$f"; exit 1; }
+  grep -q 'hreflang' "$f" || { echo "$f"; exit 1; }
 done
 ```
 
-- **Deliberate-failure demonstration 1 (evidence in PR 02-8):** remove `generateStaticParams` from the detail route and re-export — the expected observable is `dist/places/<slug>.html` missing from dist (or the assertion failing), proving the S1 check can actually fail.
-- **Deliberate-failure demonstration 2 (evidence in PR 02-8):** unset a required env var and run the build — the expected observable is an immediate, named-variable failure from the zod guard, not a runtime surprise later (a pattern legacy PR #52 proved valuable).
+- **Deliberate-failure demonstration 1 (evidence in PR 02-11):** remove `generateStaticParams` from the detail route and re-export — the expected observable is `dist/<locale>/places/<slug>.html` missing from dist (or the assertion failing), proving the S1 check can actually fail.
+- **Deliberate-failure demonstration 2 (evidence in PR 02-11):** unset a required env var and run the build — the expected observable is an immediate, named-variable failure from the zod guard, not a runtime surprise later (a pattern legacy PR #52 proved valuable).
+- **Deliberate-failure demonstration 3 (evidence in PR 02-11, D-14):** delete one key from one locale's messages and run the key-completeness check — it fails naming the locale and key.
+- **TDD rule (D-15):** every behavior change starts with a failing test
+  committed first; PR evidence quotes the red run and the green run. A bug
+  fix commits its failing test first, confirms it fails for the expected
+  reason, then fixes without editing that test.
 - **Positive + negative pairing:** every assertion above has a demonstrated
-  failure mode or is paired with one in PR 02-8; a check that has never
+  failure mode or is paired with one in PR 02-11; a check that has never
   failed is not yet evidence.
 
 ## Acceptance gate
@@ -319,7 +339,9 @@ done
 > "seemed fine" is not a result.
 
 - [ ] Clean clone + README commands produce the export on a second machine (or a fresh container) — recorded in PR evidence
-- [ ] OG assertions pass for list and all detail pages; deliberate-failure demo shows them failing when the route is removed
+- [ ] Guardrails merged before feature code (D-15): pre-commit, CI fast-gate skeleton, Claude Code hooks — each red-tested once
+- [ ] OG assertions pass for list and all detail pages in all six locales (hreflang + per-locale OG); deliberate-failure demo shows them failing when the route is removed
+- [ ] i18n key completeness fails on a planted missing key (demo evidenced, D-14); zero hardcoded user-facing strings
 - [ ] Env guard fails fast on a missing variable (demo evidenced)
 - [ ] `pnpm typecheck` runs and reports zero errors on the skeleton (first real run = the evidence; no prior run is claimed)
 - [ ] Android boot evidenced, or blocker recorded with exact setup steps; iOS likewise
@@ -338,7 +360,7 @@ foundation).
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
 | S1 fails: no OG in raw HTML or unusable rebuild semantics | Medium | High | This is why the spike is here; fallback (Hono share pages) is pre-written in [D-03](../decisions.md); owner decides with spike data |
-| Template/SDK drift since 2026-11-21 research | Medium | Medium | Task 02-1 re-verifies; expo-doctor gate; pins follow whatever is current-and-compatible, recorded in the ADR |
+| Template/SDK drift since 2026-11-21 research | Medium | Medium | Task 02-3 re-verifies; expo-doctor gate; pins follow whatever is current-and-compatible, recorded in the ADR |
 | Metro/env traps (NODE_ENV forcing, staging loading prod env) | Medium | Medium | Explicit APP_ENV/APP_VARIANT + zod guard; documented SDK 58 behavior in [expo-stack §1.1](../research/expo-stack.md) |
 | Native hardware unavailable | Medium | Low-Medium | Local emulator or recorded blocker; cloud builds already deferred to 04b with budget gate D-08 |
 | Scope creep beyond one journey | High | Medium | One-journey rule in the task table; orchestrator rejects additions to this phase's PRs |
@@ -357,18 +379,20 @@ foundation).
   and this page; check merged `PR 02-*` units and `docs/evidence/`
   artifacts; run `pnpm install && pnpm typecheck` first — a typecheck that
   does not reproduce the last recorded state means someone changed pins
-  without a PR; then resume the lowest unfinished task. If mid-spike (02-7),
+  without a PR; then resume the lowest unfinished task. If mid-spike (02-10),
   re-run the export before touching assertions — never trust a stale `dist/`.
 
 ## Next phase handoff
 
 - To Phase 03 (design system/Storybook): the compiling `packages/ui` shell,
-  the skeleton screens as first story candidates, and the S9 compatibility
-  spike warning ([review R10](../review.md)) — Storybook setup starts with a
-  spike and a fallback, not an assumption.
+  the skeleton screens as first story candidates, the i18n layer with all six
+  locales that primitives and stories must consume (D-14), and the S9
+  compatibility spike warning ([review R10](../review.md)) — Storybook setup
+  starts with a spike and a fallback, not an assumption.
 - To Phase 04 (pipeline): the exact reproduction commands from the README
-  become the fast-gate script; the recorded native blockers become 04b's
-  credential setup list; nothing in 02 may have assumed CI.
+  become the fast-gate script; the guardrail skeleton from tasks 02-1/02-2
+  (pre-commit, CI fast-gate, hooks) is what Phase 04 extends, not replaces
+  (D-15); the recorded native blockers become 04b's credential setup list.
 - To Phase 06 (widget composer): the reserved `src/app/(widgets)/` and
   `src/generated/` directories, and the fixture-loader seam (fixtures are
   consumed, not imported ad hoc).

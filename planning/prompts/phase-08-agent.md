@@ -21,6 +21,7 @@ only extracts what you need day to day.
   checklist without artifacts is not evidence. Never state a test passed unless you ran it.
 - Small PRs: one bounded task per PR series unit (e.g. PR 08-2a), reviewable in one sitting.
 - Never fabricate or hardcode fallback data. An honest "unavailable" state always wins.
+- D-14/D-15 (approved 2026-11-22): verticals ship pt-BR content with every user-facing string translated for the six locales, untranslated/machineTranslated entries flagged — never silently missing; guardrails land with each series' first PR and TDD red/green evidence applies — see `planning/decisions.md`.
 
 ## Canonical docs to read first
 

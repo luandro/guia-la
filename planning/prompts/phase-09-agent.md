@@ -21,6 +21,7 @@ system, personal consent and licensing. The full contract is
   review tables. Consent re-collection is a human process; you build the flow, not the consent.
 - No store publication, DNS changes or spend without recorded human approval.
 - Evidence over claims; small PRs. Never mark content "verified" that a human did not verify.
+- D-14/D-15 (approved 2026-11-22): imported content ships pt-BR with translations flagged (untranslated/machineTranslated), and this phase adds the editor translation-review routine; TDD red/green evidence applies to every fix PR — see `planning/decisions.md`.
 
 ## Canonical docs to read first
 

@@ -17,6 +17,10 @@ planning packet — read it before writing code.
 - No store publication, DNS changes, or spending without explicit human approval.
 - Evidence over claims: never state a command ran or passed unless you show its output.
 - Small PRs: one task from the playbook's table per PR unit (`PR 03-1` … `PR 03-10`).
+- D-14/D-15 (approved 2026-11-22): primitives take strings via the i18n layer
+  only (no hardcoded user-facing strings), stories render in at least en,
+  pt-BR and de, and the axe gate stays zero-critical — see
+  `planning/decisions.md`.
 
 ## Read first (paths relative to the guia.la repo)
 

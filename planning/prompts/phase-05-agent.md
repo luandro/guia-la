@@ -20,6 +20,10 @@ packet — read it before writing any test.
 - Small PRs (`PR 05-1` … `PR 05-11`); never delete or skip a test yourself —
   quarantine (label + issue link + 7-day expiry) is the only sanctioned relief
   and it needs the protocol applied.
+- D-14/D-15 (approved 2026-11-22): trap the missing-translation-key and
+  hardcoded-string classes and the secret-in-diff (trufflehog) class, and
+  follow the TDD protocol — bug fixes commit the failing test first and never
+  edit it during the fix — see `planning/decisions.md`.
 
 ## Read first (paths relative to the guia.la repo)
 

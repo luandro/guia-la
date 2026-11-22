@@ -5,7 +5,7 @@
 set -euo pipefail
 
 # Structure check: every expected document exists.
-for f in AGENTS.md SPEC.md docs/roadmap.md docs/glossary.md \
+for f in AGENTS.md CLAUDE.md SPEC.md REVIEW.md docs/roadmap.md docs/glossary.md \
          docs/evidence/PR-EVIDENCE.md docs/security/APPROVAL-LIST.md \
          .github/PULL_REQUEST_TEMPLATE.md; do
   test -f "$f" || { echo "missing $f"; exit 1; }

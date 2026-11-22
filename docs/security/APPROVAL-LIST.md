@@ -15,7 +15,7 @@
 6. **Domain purchase and DNS** — buy a domain or change a DNS record. This includes `guia.la` and `cotiju.app`.
 7. **Disabling required checks** — no skip of a required CI check, branch protection rule or review gate. Never on a hard PR. (Docs/setup merges: see Standing exceptions below.)
 8. **Legacy production** — any production action on `luandro/cotiju-app`. Access is read-only. Legacy backups and exports are owner-run only, with a backup before any export. Never commit legacy personal data, or media with unverified rights, to git, fixtures, staging or PR artifacts.
-9. **Governance files** — edits to `AGENTS.md`, `SPEC.md`, `docs/security/`, `planning/decisions.md`, `docs/adr/` or `.github/workflows/` need a recorded owner approval before merge.
+9. **Governance files** — edits to `AGENTS.md`, `CLAUDE.md`, `SPEC.md`, `REVIEW.md`, `docs/security/`, `planning/decisions.md`, `docs/adr/`, `.github/workflows/` or `.claude/` need a recorded owner approval before merge.
 10. **Repository visibility** — never change the repository between private and public.
 11. **Deploys and cloud resources** — any deploy to staging or production, and creating or deleting any cloud resource (Workers, D1, R2, Access apps, backups).
 12. **Failing tests** — never delete, skip, quarantine or weaken a failing test.

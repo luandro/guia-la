@@ -107,9 +107,23 @@ export default defineDestination({
 - Never cache authenticated responses (legacy incident #65 cached them).
 - No `expo-sqlite` on web until spike S8 proves COOP/COEP is workable.
 
+## 10a. Internationalization (D-14, approved)
+
+- UI locales: `en`, `pt-BR`, `es`, `fr`, `nl`, `de` — all required from Phase 02. No hardcoded user-facing string; a missing key in any locale fails CI.
+- Each destination declares a default content locale (Cotijuba: `pt-BR`). Content fields are localized. A missing translation falls back to the default locale and is shown as untranslated — never silently.
+- Machine-translated text carries `machineTranslated` until a human reviews it.
+- Web routes are locale-prefixed (`/pt-BR/places/...`) with `hreflang` and per-locale OG tags; static export emits one page per locale.
+- Dates, numbers, currency and units use `Intl` in the destination timezone.
+- Library: `expo-localization` + i18next/react-i18next vs Lingui — a Phase 02 spike decides.
+
 ## 11. Quality gates summary
 
-- **Fast PR gate** (every PR, < 10 min target): `tsc --noEmit`, ESLint + boundary rules, Vitest unit/contract, zod schema checks, compose per profile + widget-exclusion assertions, `expo export -p web` (D-02, proposed), Playwright smoke incl. JS-disabled OG checks (D-03 depends on spike S1), API tests on local D1 incl. tenant A/B (D-04, proposed), secret scan.
+Guardrails come first (D-15, approved): each phase lands its gates before or with its first feature PR. Each gate names the failure class it catches; a flaky gate, or one that never catches anything, is fixed or removed. Development is TDD: failing test first, red and green runs quoted in PR evidence.
+
+- **Pre-commit** (every commit, seconds): trufflehog on the commit, formatter, lint on staged files, fast typecheck.
+- **Claude Code hooks**: deny reading `.env*`/`.dev.vars`; block edits to generated paths; block test edits during bug-fix tasks; format after edit.
+
+- **Fast PR gate** (every PR, < 10 min target): `tsc --noEmit`, ESLint + boundary rules, Vitest unit/contract, zod schema checks, compose per profile + widget-exclusion assertions, `expo export -p web` (D-02, proposed), Playwright smoke incl. JS-disabled OG checks (D-03 depends on spike S1), API tests on local D1 incl. tenant A/B (D-04, proposed), i18n key completeness for all six locales, trufflehog secret scan, dependency audit, CodeQL. Dependabot/Renovate keep pins current.
 - **Visual gate** (UI/widget PRs): Storybook web build + screenshot diff + axe.
 - **Native gate** (D-08, approved): label/path-filtered builds plus a weekly or manual cadence. Never one per trivial PR. Free tiers only, about 15 Android + 15 iOS EAS builds per month. Any paid upgrade is a new owner decision.
 - **Nightly/RC**: the nightly keeps web/API checks and WebKit Playwright. Native builds are flagship only — destination profiles are web-only (D-06, D-07) — on a weekly or RC/manual cadence inside the free build quota; no nightly and no per-profile native builds. Maestro runs on a GitHub Actions emulator (spike S13; the free Expo plan has no Maestro). Weekly automated restore drill (latest R2 export into a scratch D1) plus a quarterly human-witnessed drill.
@@ -120,7 +134,7 @@ export default defineDestination({
 
 As of 2026-11-21, copied verbatim from [planning/decisions.md](planning/decisions.md):
 
-- **Approved:** D-00, D-06, D-08, D-13a, and — each with its condition from the register:
+- **Approved:** D-00, D-06, D-08, D-13a, D-14 (i18n), D-15 (guardrails first, TDD, AI-native SDLC), and — each with its condition from the register:
   - D-01 — buy `guia.la` before the first store release.
   - D-03 — S1 must pass, else the fallback returns to the owner.
   - D-05 — approved for the pilot; tile source revisited later; S6 still runs.

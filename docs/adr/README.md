@@ -23,6 +23,8 @@ On any conflict, the register wins.
 | [ADR-0013](ADR-0013-d12-legacy-key-rotation.md) | D-12 | Legacy key rotation | proposed — owner TODO (tsk #297) |
 | [ADR-0014](ADR-0014-d13a-no-account-required-to-read.md) | D-13a | No account required to read | approved |
 | [ADR-0015](ADR-0015-d13b-no-visitor-accounts-v1.md) | D-13b | No visitor accounts at all in v1 | proposed |
+| [ADR-0016](ADR-0016-d14-i18n.md) | D-14 | Internationalization from day one | approved — owner, 2026-11-22; library chosen by a Phase 02 spike |
+| [ADR-0017](ADR-0017-d15-guardrails-tdd.md) | D-15 | Guardrails first, TDD, AI-native SDLC | approved — owner, 2026-11-22 |
 
 Decisions D-00..D-12 map to register sections; D-13a and D-13b are separate
 records. Phase playbooks live at `planning/src/phases/phase-00..10.md`; the
