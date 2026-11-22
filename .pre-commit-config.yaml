@@ -4,11 +4,34 @@ repos:
   - repo: local
     hooks:
       - id: trufflehog
-        name: trufflehog (secret in the commit)
+        name: trufflehog git (secret in pushed history)
         entry: trufflehog git file://. --since-commit HEAD --results=verified,unknown --fail --no-update
         language: system
         pass_filenames: false
-        stages: [pre-commit, pre-push]
+        stages: [pre-push]
+      - id: trufflehog-staged
+        name: trufflehog filesystem (secret in a staged file, unverified included)
+        entry: trufflehog filesystem --fail --no-update --results=verified,unknown,unverified
+        language: system
+        exclude: ^pnpm-lock\.yaml$
+      - id: prettier
+        name: prettier (unformatted staged file)
+        entry: pnpm exec prettier --check
+        language: system
+        files: \.(js|jsx|mjs|cjs|ts|tsx|json)$
+        exclude: ^(planning/|docs/guia-la-master-plan\.html)
+      - id: eslint
+        name: eslint (lint error in staged js/ts)
+        entry: pnpm exec eslint
+        language: system
+        files: \.(js|jsx|mjs|cjs|ts|tsx)$
+        exclude: ^(planning/|apps/app/scripts/reset-project\.js)
+      - id: typecheck
+        name: tsc --noEmit (type error in ts/tsx)
+        entry: pnpm typecheck
+        language: system
+        pass_filenames: false
+        files: \.(ts|tsx)$
       - id: check
         name: scripts/check.sh (ADR status drift, broken packet build)
         entry: ./scripts/check.sh
