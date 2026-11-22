@@ -14,7 +14,7 @@ exit: The fast gate fails correctly on each planted failure class and an agent c
 
 Phase **05** installs the regression traps. It adds the test layers the fast gate runs (unit, component, contract-shaped, web E2E, accessibility, visual, security scans), encodes the legacy app's real failure classes as fixtures and named traps, proves the gate fails when it must (red/green demonstrations), and writes the quality budgets and flaky-test protocol that govern everything after.
 
-- **Objective:** CI that cannot silently pass the failure classes guia.la has already seen: indefinite spinners on failed loads, stale or wrongly-dated tide data, boat schedules ignoring weekday/validity, type errors hidden by the build, secrets in bundles, and authenticated responses entering shared caches.
+- **Objective:** CI that cannot silently pass the failure classes guia.la has already seen: indefinite spinners on failed loads, stale or wrongly-dated tide data, boat schedules ignoring weekday/validity, type errors hidden by the build, secrets in bundles, and authenticated responses entering shared caches — plus the classes D-14/D-15 add: a missing translation key, a hardcoded user-facing string (lint rule), and a secret in the diff (trufflehog).
 - **Prerequisites:** Phase 04a exit (fast gate workflow exists and runs per PR; preview deploys work).
 - **Dependencies:** Phase 04. Native E2E (Maestro) placement uses 04b's S12/S13 measurements; per the review §8.4 proposal, native Maestro runs nightly/on release candidates, not per PR.
 - **Expected contributors:** senior coding agent (suites and traps), orchestrator agent (verifies red/green evidence honestly), human product owner (approves the flaky-test protocol and the real-device smoke list; only the human permits skipping or deleting a test).
@@ -69,7 +69,7 @@ Credentials and tools needed: none new beyond Phase 04's. Maestro runs (if any) 
 | 4 | Playwright web suite: smoke journeys on fixture data (home, places list/detail), JS-disabled raw-HTML assertion kept from the Phase 02 gate, backend-down error journey with time-to-useful budget | Agent | PR 05-4 | 1 |
 | 5 | Accessibility automation: axe on key pages and on the story set from Phase 03; zero-critical policy | Agent | PR 05-5 | 2 |
 | 6 | Visual regression: Chromium screenshots of stories and key pages against Phase 03 baselines; threshold and update policy in docs | Agent | PR 05-6 | 2 |
-| 7 | Security scans: gitleaks in CI, extend Phase 04's bundle secret grep to a standing rule, dependency review on lockfile changes, no-credential-prompt check on public pages (D-13b) | Agent | PR 05-7 | Phase 04 |
+| 7 | Security scans: gitleaks in CI, trufflehog on staged changes (pre-commit) and full history (CI, D-15), extend Phase 04's bundle secret grep to a standing rule, dependency review on lockfile changes, no-credential-prompt check on public pages (D-13b), ESLint rule flagging hardcoded user-facing strings (D-14) | Agent | PR 05-7 | Phase 04 |
 | 8 | Maestro smoke flows (`.maestro/`): app opens, destination renders, a place detail opens; wired to nightly/RC per review §8.4 — not per PR; placement decision recorded with S12/S13 data | Agent | PR 05-8 | 04b (or explicitly deferred) |
 | 9 | Red/green demonstrations: four planted failures — broken error state, type error, canary secret, stale preview/OG regression — each shown failing the correct gate step, then reverted; evidence archived | Agent, human reviews evidence | PR 05-9 | 4, 7 |
 | 10 | Quality budgets and flaky protocol docs: fast-gate time target (review §5 proposes under 10 minutes), trap coverage over vanity percentages, quarantine label with issue link and 7-day expiry, never delete or skip without human approval | Agent, human approves protocol | PR 05-10 | 9 |
@@ -100,16 +100,19 @@ Contracts and patterns:
 - Determinism first: no real network in unit/component suites; the network-fail harness simulates down/slow/hanging backends — the #60 class must be testable without a flaky proxy
 - Deterministic clock: timezone-sensitive traps pin an America/Belem instant (e.g. 21:30 local) rather than relying on wall time; legacy #62/#64 are clock bugs and must not be tested with a live clock
 - Fixtures are synthetic and versioned; importing legacy data into fixtures is forbidden (privacy and licensing unverified — D-11)
-- Trap naming convention `legacy-<issue>-<slug>` keeps each trap traceable to its documented failure
+- Trap naming convention `legacy-<issue>-<slug>` keeps each trap traceable to its documented failure; D-14/D-15 traps use the same shape with their decision id (`d14-...`, `d15-...`)
+- **TDD protocol (D-15):** red-green-refactor. A behavior change starts with a failing test committed first, and PR evidence quotes the red run and the green run. A bug fix commits its failing test first, confirms it fails for the expected reason, then fixes the bug without editing that test — a Claude Code hook blocks test-file edits during bug-fix tasks to enforce it
 
-Trap index (starter set; extend, never duplicate — each row names its legacy issue and its honest assertion):
+Trap index (starter set; extend, never duplicate — each row names its legacy issue or decision and its honest assertion):
 
-| Trap | Legacy failure it encodes | Fixture needed | Status at phase exit |
+| Trap | Failure it encodes | Fixture needed | Status at phase exit |
 | --- | --- | --- | --- |
 | `legacy-60-spinner` | async view without deadline/empty/error/retry (#60) | network-fail harness over the places page | active |
 | `legacy-62-tide-rollover` | UTC date key shows the wrong tide day after 21:00 local (#62) | tide series spanning a year boundary, clock pinned 21:30 America/Belem | pending marker until Phase 08 function exists |
 | `legacy-64-boat-validity` | next-boat ignores weekday and validity window (#64) | schedules with weekday masks and expired validity ranges | pending marker until Phase 08 function exists |
 | `legacy-66-offline-nav` | `navigator.onLine` blocked navigation (#66) | page journey with network down but shell cached | active |
+| `d14-missing-translation-key` | a locale lacks a key the UI renders (D-14) | one locale's messages with a key deleted; the completeness check fails naming locale and key | active |
+| `d14-hardcoded-string` | user-facing string outside the i18n layer (D-14) | a component fixture carrying a literal string; the lint rule fails on it | active |
 
 Forbidden:
 
@@ -131,11 +134,11 @@ Acceptable alternatives:
 
 - [ ] `packages/testing` helpers with the deterministic clock and network-fail harness
 - [ ] Synthetic fixture sets under `packages/fixtures/{cotijuba,serra}/`: places, boat schedules with validity windows and weekday masks, tide series spanning a year boundary in America/Belem
-- [ ] Regression traps `legacy-60`, `legacy-62`, `legacy-64`, `legacy-66` (pending markers where Phase 08 logic is required)
+- [ ] Regression traps `legacy-60`, `legacy-62`, `legacy-64`, `legacy-66` (pending markers where Phase 08 logic is required), plus `d14-missing-translation-key` and `d14-hardcoded-string` (D-14)
 - [ ] Playwright web suite with JS-disabled HTML assertions and the backend-down time-to-useful journey
 - [ ] Axe integration over pages and stories; zero-critical policy in docs
 - [ ] Visual regression wired to Phase 03 baselines with an update policy
-- [ ] Security layer: gitleaks, standing bundle secret grep, dependency review, no-login check
+- [ ] Security layer: gitleaks, trufflehog (staged + full history, D-15), standing bundle secret grep, dependency review, no-login check, hardcoded-string lint rule (D-14)
 - [ ] `.maestro/` smoke flows wired to nightly/RC, or a recorded deferral with reason
 - [ ] `docs/quality/red-green-demo.md` with the four demonstrations' evidence
 - [ ] `docs/quality/budgets.md` and `docs/quality/flaky-protocol.md` approved by the human
@@ -196,6 +199,8 @@ Deliberate-failure demonstrations are not extra credit here; they are the accept
 Checklist (observable pass/fail):
 
 - [ ] Four red/green demonstrations archived with failing and passing evidence
+- [ ] TDD protocol demonstrated (D-15): one behavior change and one bug fix each show red-then-green evidence, the failing test committed first and untouched by the fix
+- [ ] i18n failure classes trapped: a deleted locale key and a hardcoded string each fail the correct gate step (D-14)
 - [ ] Fast gate runs within the documented time budget on a typical PR
 - [ ] Backend-down journey asserts visible error and time-to-useful (no spinner trap regressed)
 - [ ] Timezone traps use a deterministic America/Belem clock; no test depends on wall time

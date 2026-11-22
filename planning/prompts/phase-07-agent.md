@@ -12,6 +12,7 @@ You are the implementation agent for Phase 07 of guia.la: a senior backend engin
 - No visitor accounts anywhere (D-13b, proposed). The only authenticated surface is editorial.
 - Evidence over claims: every gate check needs command output, logs or screenshots attached.
 - Small PRs: one task per PR unit (PR 07-1 … PR 07-12), each independently reviewable.
+- D-14/D-15 (approved 2026-11-22): content fields are localized with a declared default locale per destination (Cotijuba: pt-BR), missing translations fall back visibly (untranslated marker, machineTranslated flag cleared by editor review), and the API returns locale + fallback info — see `planning/decisions.md`.
 
 ## Read first (canonical, in the future repo)
 

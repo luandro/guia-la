@@ -102,6 +102,8 @@ can link against a stable format.
 | 8 | docs/roadmap.md: mirror of phases 00–10 with per-phase exit gates and links back to this packet | Agent | PR 00-8 | 00-5 |
 | 9 | Contradiction pass: enumerate every point where [review §2/§8](../review.md) proposals disagree with the master plan; owner records accept/reject/defer for D-01, D-03, D-06, D-08, D-09 | Human decides, agent records | PR 00-9 | 00-5 |
 | 10 | Phase 01 readiness: confirm read-only access to `luandro/cotiju-app`, draft the owner-run export runbook stub, state the backup-before-export policy | Agent + human | PR 00-10 | 00-7 |
+| 11 | Guardrails for this docs repo (D-15): pre-commit (trufflehog, check-docs, packet check) + CI workflow `.github/workflows/ci.yml` running the same checks | Agent | PR 00-11 | 00-6 |
+| 12 | AI-native SDLC artifacts (D-15): `REVIEW.md` defining the review passes (bugs, security, compliance with spec/plan; nits capped at five), read-only verifier subagent `.claude/agents/verifier.md`, `docs/features/` intent→spec→plan template | Agent | PR 00-12 | 00-3 |
 
 Notes on splitting: PRs 00-3/00-4/00-7 are the substantive documents and each
 gets a human read; PRs 00-5/00-6/00-8 are mechanical and can go to a junior
@@ -118,10 +120,15 @@ agent. Nothing here is one giant PR — the whole point is reviewability.
 ```text
 guia-la/                          (proposed name — D-01 unverified)
   AGENTS.md                       working agreement for humans and agents
+  CLAUDE.md                       pointer to AGENTS.md for Claude Code
   SPEC.md                         platform spec, non-goals, widget vocabulary
+  REVIEW.md                       review passes and nit cap (D-15)
+  .pre-commit-config.yaml         trufflehog, check-docs, packet check (D-15)
+  .claude/agents/verifier.md      read-only verifier subagent (D-15)
   docs/
     roadmap.md                    phase mirror 00–10 with exit gates
     glossary.md                   platform, destination, profile, widget, build profile
+    features/                     per-feature intent.md -> spec.md -> plan.md (D-15)
     adr/ADR-0000-template.md      status line "- **Status:** <status>",
                                   trailing note allowed (e.g. "— blocked on S1")
     adr/ADR-0001-platform-identity.md   (from D-00, approved)
@@ -131,6 +138,7 @@ guia-la/                          (proposed name — D-01 unverified)
     evidence/HANDOFF-STATE.md     checkpoint file convention for agent handoffs
     security/APPROVAL-LIST.md     actions that always require a human
   .github/PULL_REQUEST_TEMPLATE.md
+  .github/workflows/ci.yml        docs-repo CI: check-docs + packet check (D-15)
 ```
 
 - **Evidence contract (illustrative, not runnable here):**
@@ -175,7 +183,9 @@ next-unblocked: "PR 01-2 entity matrix"
 - [ ] `docs/roadmap.md` and `docs/glossary.md` (PR 00-8)
 - [ ] Decision responses recorded for D-01, D-03, D-06, D-08, D-09 (PR 00-9)
 - [ ] Phase 01 access confirmed + export runbook stub (PR 00-10)
-- [ ] Zero files outside `docs/`, `.github/` and the root markdown (repo stays docs-only)
+- [ ] Repo guardrails live: pre-commit (trufflehog, check-docs, packet check) + CI workflow `.github/workflows/ci.yml` (PR 00-11)
+- [ ] AI-native SDLC artifacts: `REVIEW.md`, verifier subagent `.claude/agents/verifier.md`, `docs/features/` template (PR 00-12)
+- [ ] Zero files outside `docs/`, `.github/`, `.claude/agents/verifier.md`, the root markdown (`AGENTS.md`, `CLAUDE.md`, `SPEC.md`, `REVIEW.md`, `LICENSE`), `.pre-commit-config.yaml`, `scripts/check.sh`, `scripts/check-docs.sh` and `.github/` (workflows, Dependabot) (repo stays docs-only)
 
 ## Visual and functional QA
 
@@ -200,8 +210,8 @@ beyond the repo browser are TBD in Phase 04.
 ## Automated verification
 
 All commands are **proposed** — none has run; expected outputs are stated so
-a failing run is recognizable. They belong in a tiny `scripts/check-docs.sh`
-added by PR 00-6.
+a failing run is recognizable. They are implemented in `scripts/check-docs.sh`
+(added by PR 00-6).
 
 ```bash
 # proposed — structure check: fails if any expected document is missing
@@ -214,26 +224,28 @@ done
 
 ```bash
 # proposed — ADR status lint. Expected: no output (pass).
+# Skips ADR-0000-template.md: its status line is a placeholder.
 # Matches the template's "- **Status:** …" line form as well as a plain
 # "Status:" line; a trailing note after an em dash is allowed because
 # statuses are copied verbatim (e.g. "proposed — blocked on S1").
 # Deliberate-failure demonstration: add a draft ADR with
 # "- **Status:** decided" and confirm this command prints it and exits non-zero.
-grep -E '^(Status: |- \*\*Status:\*\*)' docs/adr/*.md \
+grep -E '^(Status: |- \*\*Status:\*\*)' docs/adr/ADR-*.md --exclude='ADR-0000-template.md' \
   | grep -vE 'Status:\*{0,2} ?(proposed|validated|approved|rejected)( —.*)?$' && exit 1
 ```
 
 ```bash
-# proposed — decision consistency: every D-xx in the packet's decisions.md
-# has an ADR carrying that id in its filename or front matter/body.
+# proposed — decision consistency: every D-id in planning/decisions.md
+# (run from the repo root) has an ADR whose "Decision register" line names it.
 # Unanchored on both sides, so a heading-format drift in decisions.md cannot
 # silently empty the list and turn the check into a vacuous pass.
 # Expected: no output (pass).
-ids=$(grep -oE 'D-[0-9]{2}' ../planning/decisions.md 2>/dev/null | sort -u)
-test -n "$ids" || { echo "no D-xx parsed from ../planning/decisions.md"; exit 1; }
-missing=$(comm -23 <(printf '%s\n' "$ids") \
-  <({ ls docs/adr/; cat docs/adr/*.md; } | grep -oE 'D-[0-9]{2}' | sort -u))
-test -z "$missing" || { echo "ADR missing for: $(echo $missing)"; exit 1; }
+ids=$(grep -oE 'D-[0-9]{2}[ab]?' planning/decisions.md | sort -u)
+test -n "$ids" || { echo "no D-id parsed from planning/decisions.md"; exit 1; }
+registered=$(grep -h '^- \*\*Decision register:\*\*' docs/adr/ADR-*.md \
+  | grep -oE 'D-[0-9]{2}[ab]?' | sort -u)
+missing=$(comm -23 <(printf '%s\n' "$ids") <(printf '%s\n' "$registered"))
+test -z "$missing" || { echo "no ADR Decision register line names: $(echo $missing)"; exit 1; }
 ```
 
 Negative test worth keeping: the status lint above is itself the

@@ -67,7 +67,7 @@ Paths in the future `guia-la` repository are **proposed**.
 | 3 | Backup and owner-run export: owner confirms a Supabase backup/PITR snapshot, runs the read-only export, delivers it encrypted outside the repo, plus an admin-vs-visible row-count manifest | human (owner) | no PR — evidence artifact | 1 |
 | 4 | Import tooling: `tools/import` dry-run-by-default, mapping table `legacy_id` to new id, refusal rules (no checked_at or source means drop), idempotent re-runs, diff report | agent | PR 09-4 | 1, 3 |
 | 5 | Staging import: run approved batches into the staging destination; spot-check journeys; tenant A/B and anonymous-access regression suites green | agent + human (approval per batch) | PR 09-5 (import records, not data, in git) | 4 |
-| 6 | Editorial routine live: editors publish, correct and re-verify via the Phase 07 console; freshness SLAs per widget (boats re-verified weekly, tides ingestion monitored, places quarterly) with alerts | human (editors) + agent (alert wiring) | PR 09-6 alerts | 5 |
+| 6 | Editorial routine live: editors publish, correct and re-verify via the Phase 07 console; freshness SLAs per widget (boats re-verified weekly, tides ingestion monitored, places quarterly) with alerts; translation review routine — editors work the `machineTranslated` queue and clear or correct flags, untranslated fallbacks stay visible (D-14) | human (editors) + agent (alert wiring) | PR 09-6 alerts | 5 |
 | 7 | Consent re-collection: business contacts and photos re-collected with explicit permission via editorial flow; legacy UGC, profiles, phone numbers and review tables are not migrated | human | PR 09-7 flow docs | 5 |
 | 8 | Field pilot in Cotijuba: low-end Android on 3G, offline legs (ferry), GPS accuracy, WhatsApp share previews, readability; structured feedback log; fixes triaged | human (testers) + agent (fix PRs) | PR 09-8 fixes series | 6 |
 | 9 | Destination metadata backfill: OG images per place category, search-preview polish, QR codes linking place pages (proposed), 301 map for legacy PT routes | agent + human (artwork) | PR 09-9 | 5 |
@@ -117,7 +117,7 @@ export interface ImportableRecord {
 ### Editorial routine (draft cadence, tuned in the pilot)
 
 - Daily glance: the freshness digest — any dataset past its SLA, any correction requests waiting.
-- Weekly: boat schedules re-verified against operators; tide ingestion spot-checked against the harbour board.
+- Weekly: boat schedules re-verified against operators; tide ingestion spot-checked against the harbour board; translation review — the `machineTranslated` queue worked down, flags cleared or text corrected, untranslated fallbacks still visible (D-14).
 - Quarterly: places sweep — photos, opening hours, contacts; stale records are archived visibly, never silently kept.
 - Always: every edit records editor, source and date; corrections from the field flow through the same console, never through ad-hoc database access.
 
@@ -203,6 +203,7 @@ Negative tests that must stay red until fixed: a record with a future `checked_a
 - [ ] No personal records, UGC photos, profiles or legacy phone numbers migrated; consent artifacts exist for re-collected content
 - [ ] D-11 recorded with the user's decision; import batches referencing third-party datasets ran only after it
 - [ ] Editorial routine demonstrably operating: at least one editor completes verify, correct and publish cycles unaided; freshness alerts wired and test-fired
+- [ ] Translation review routine operating (D-14): machineTranslated backlog cleared or triaged; untranslated fallbacks visible, never silent
 - [ ] Field pilot completed on the device matrix; core journeys pass on low-end Android over 3G; offline legs pass with stale indicators
 - [ ] Tenant A/B and anonymous-access regression suites green; honest-empty states verified on at least one unpopulated category
 - [ ] 301 map covers every legacy PT route that will have an equivalent page

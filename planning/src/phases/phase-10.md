@@ -59,6 +59,7 @@ Paths in the future `guia-la` repository are **proposed**.
 | 9 | Reusable runbooks as skills: new-widget, new-destination, QA review, schema migration, incident, release | agent | PR 10-9 | 6 |
 | 10 | Agent-continuity test: a *different* agent adds a small widget from a written spec to a green PR using only repo docs | agent (fresh) + human (reviews) | PR 10-10 | 9 |
 | 11 | Second-destination rehearsal: onboard a fresh destination config end-to-end using the Serra demo as data, no engine changes | agent | PR 10-11 | 9 |
+| 12 | Agent evals in CI (D-15): a suite of 20–50 real tasks runs on changes to `CLAUDE.md`, `AGENTS.md`, `.claude/**` and skills, gated on pass rate; incidents become permanent evals plus lessons in `docs/lessons/` | agent | PR 10-12 | 9 |
 
 Notes: task 6 is the only outward-facing irreversible step and is gated on the user; everything before it is rehearsal in staging or on internal tracks. Tasks 10 and 11 are the phase's real exam — they fail loudly if the runbooks from task 9 are incomplete.
 
@@ -131,6 +132,7 @@ Notes: task 6 is the only outward-facing irreversible step and is gated on the u
 - Every task starts from a written spec small enough for one PR series; scope never lives only in a conversation.
 - Session state lives in repo files (goal, task log, decisions); an agent's memory is a cache, not the store.
 - A picking-up agent proves orientation by reproducing the fast gate locally before pushing anything.
+- A read-only verifier subagent exercises changed behavior on every PR per `REVIEW.md` passes (bugs, security, compliance with spec/plan; nits capped at five); the authoring agent never approves its own PR (D-15).
 - Handoff quality is measured by the task-10 exam: a fresh agent, a written spec, no coaching, a green PR — the same bar the planning packet set for itself.
 
 > [!DECISION] D-07 (one flagship app) is `proposed` but strongly evidence-backed; the TestFlight probe in task 5 is its live test. D-08 (budget ceiling) becomes enforced, not advisory, in task 7. Neither becomes `approved` without the user.
@@ -146,6 +148,7 @@ Notes: task 6 is the only outward-facing irreversible step and is gated on the u
 - [ ] Weekly automated restore drill scheduled (latest R2 export into a scratch D1) and the first quarterly human-witnessed drill executed with a written result
 - [ ] Runbook/skill set: new-widget, new-destination, QA review, schema migration, incident, release
 - [ ] Agent-continuity test PR by a different agent, merged green with standard evidence
+- [ ] Agent evals in CI (D-15): 20–50 real tasks gated on pass rate, running on `CLAUDE.md`/`AGENTS.md`/`.claude/**`/skills changes; at least one incident-to-eval case recorded with its lesson in `docs/lessons/`
 - [ ] Second-destination rehearsal report (config-only onboarding, zero engine changes)
 
 ## Visual and functional QA
@@ -206,6 +209,7 @@ Deliberate-failure demonstrations for this phase: the monitoring truth test (tas
 - [ ] First cost report published; 80%-of-ceiling alert active; spend within the D-08 ceiling
 - [ ] Restore drill executed against a scratch D1 DB with a written result (no virtual tables in the primary DB — R12)
 - [ ] A different agent shipped the handoff-test widget PR through the full gate unaided
+- [ ] Agent evals green in CI on an instruction/skill change; the verifier subagent and REVIEW.md passes are exercised on the gate PR (D-15)
 - [ ] Second-destination rehearsal completed with configuration changes only
 
 **Blocks progression if:** rollback is unrehearsed; monitoring alerts do not fire on real failures; the release gate can be bypassed; the handoff test fails twice (runbooks are the defect, not the agent); budget exceeds the ceiling without a user decision.
@@ -251,6 +255,6 @@ There is no Phase 11; the handoff is to steady-state operations:
 ### Steady-state cadence (what "done" looks like from here)
 
 - Weekly: ops digest reviewed (including the automated restore-drill result); corrections triaged; one real-device spot check.
-- Monthly: cost report against ceiling; dependency and SDK watch (next bump expected around Q1 2027); flaky-test review.
+- Monthly: cost report against ceiling; dependency and SDK watch (next bump expected around Q1 2027); flaky-test review; `REVIEW.md` tuning and agent-eval pass-rate review (D-15).
 - Quarterly: human-witnessed restore drill; freshness SLA review with editors; runbook corrections from actual incidents.
 - Per destination: onboarding via the new-destination runbook, with the Serra rehearsal report as the worked example — engineering involvement is a bug report, not a requirement.

@@ -68,10 +68,10 @@ Doing this now, on placeholder widgets, is deliberate: the contract, generator a
 
 | # | Task | Owner | PR unit | Depends on |
 |---|---|---|---|---|
-| 1 | Widget contract SDK: zod-validated `WidgetManifest` (id, version, capabilities, nativeDeps, configSchema, routes, cards), `defineWidget` / `defineDestination` helpers with literal-type inference, sentinel-export convention | Agent | PR 06-1 | Phase 03 |
+| 1 | Widget contract SDK: zod-validated `WidgetManifest` (id, version, capabilities, nativeDeps, configSchema, routes, cards), `defineWidget` / `defineDestination` helpers with literal-type inference, sentinel-export convention, string-key convention — every user-facing string is an i18n key the widget ships with translations for all six locales (D-14) | Agent | PR 06-1 | Phase 03 |
 | 2 | Six placeholder widget packages (places, transport, tides, local-services, trails, guides): one screen each with loading, empty, error and offline states; one Storybook story each; sentinel export; no business logic or network calls | Junior agent | PR 06-2 | 06-1 |
 | 3 | Destination manifests (Cotijuba: places, transport, tides, local-services; Serra demo: places, trails, guides) plus the three build profiles; validation fails fast on unknown widget id, duplicate route pattern or undeclared capability | Agent | PR 06-3 | 06-1 |
-| 4 | `tools/compose` generator: emits `apps/app/src/generated/registry.ts` with explicit static imports, route stubs under `apps/app/src/app/(widgets)/`, composed `app.config.ts` fragments (permissions and config plugins from selected widgets' capabilities), an input checksum stamped into output, and a human-readable manifest JSON per profile | Agent | PR 06-4 | 06-3 |
+| 4 | `tools/compose` generator: emits `apps/app/src/generated/registry.ts` with explicit static imports, route stubs under `apps/app/src/app/(widgets)/`, composed `app.config.ts` fragments (permissions and config plugins from selected widgets' capabilities), an input checksum stamped into output, and a human-readable manifest JSON per profile; compose fails fast when any shipped string lacks a translation in any of the six locales (D-14) | Agent | PR 06-4 | 06-3 |
 | 5 | Boundary enforcement: ESLint `no-restricted-imports` plus dependency-cruiser rules — widget-to-widget imports forbidden; app-to-widget imports only inside `generated/`; widgets may import only `@guia-la/widget-sdk`, `@guia-la/ui`, `@guia-la/core`, `@guia-la/map`, `@guia-la/api-client`, `@guia-la/contracts` | Junior agent | PR 06-5 | 06-2 |
 | 6 | Runtime flags client: fetch per-destination flag set from the API (fixture provider until Phase 07); registry is the closed set; unknown ids from the server are ignored and logged; flags may only hide or reorder registered widgets | Agent | PR 06-6 | 06-4 |
 | 7 | Exclusion assertion script (`tools/assert-exclusion.mjs`): per profile, grep source maps for sentinels and package paths of excluded widgets, assert excluded route HTML files do not exist, assert included sentinels do exist; emits a markdown report artifact | Agent | PR 06-7 | 06-4 |
@@ -141,6 +141,7 @@ export const __GUIA_WIDGET_TIDES__ = true;
 ## Deliverables
 
 - `packages/widget-sdk/` with schema, helpers and type tests.
+- Widget string contract enforced: every user-facing string an i18n key with translations for all six locales; compose refuses incomplete sets (D-14).
 - Six placeholder widget packages under `packages/widgets/`, each with one screen, four states, one story, sentinel export.
 - `destinations/cotijuba/destination.ts` and `destinations/serra/destination.ts`; `profiles/flagship.ts`, `profiles/cotijuba-web.ts`, `profiles/serra-web.ts`.
 - `tools/compose/` generator with unit tests and `--check` mode.
@@ -202,6 +203,7 @@ Statuses: **validated** means the command or behavior is verified in a research 
 1. Add `import "@guia-la/widgets-tides"` to the Serra app shell on a scratch branch: `pnpm lint:bounds` fails, and if forced past it the exclusion assertion fails on the sentinel — evidence the gate cannot silently pass the exact regression this phase exists to prevent.
 2. Reference a misspelled widget id in a destination manifest: compose exits non-zero with the offending id and file in the message.
 3. Serve a runtime flag set containing `{"tides": true}` to the serra-web build: the client logs the unknown id and renders nothing for it (asserted in a unit test and shown in a screenshot).
+4. Delete one locale from a placeholder widget's string set: compose exits non-zero naming the widget, the string key and the missing locale (D-14).
 
 ## Acceptance gate
 
@@ -214,6 +216,7 @@ Statuses: **validated** means the command or behavior is verified in a research 
 - [ ] Runtime flags cannot surface an excluded widget (demonstrated with a hostile flag fixture; unknown ids logged and ignored).
 - [ ] Boundary lint fails on a widget-to-widget import and on an app-to-widget import outside `generated/` (red demonstration recorded).
 - [ ] A deliberate excluded-widget import turns the fast gate red in the correct job (red/green evidence, Phase 05 protocol).
+- [ ] Compose fails on a widget string missing any of the six locales — red demonstration recorded (D-14).
 - [ ] S5 spike evidence recorded against D-06 (prebuild and autolinking diffs), or the spike is explicitly marked blocked with what is needed.
 - [ ] Widget authoring doc and flagship-versus-dedicated-build policy note merged; D-06 evidence entry updated.
 - [ ] Human reviewer signs off the side-by-side previews against the QA journeys.

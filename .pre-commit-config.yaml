@@ -1,0 +1,16 @@
+# Install once per clone: pre-commit install
+# Each hook names the failure class it catches (D-15).
+repos:
+  - repo: local
+    hooks:
+      - id: trufflehog
+        name: trufflehog (secret in the commit)
+        entry: trufflehog git file://. --since-commit HEAD --results=verified,unknown --fail --no-update
+        language: system
+        pass_filenames: false
+        stages: [pre-commit, pre-push]
+      - id: check
+        name: scripts/check.sh (ADR status drift, broken packet build)
+        entry: ./scripts/check.sh
+        language: system
+        pass_filenames: false

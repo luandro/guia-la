@@ -19,6 +19,10 @@ playbook is `planning/phases/phase-04.html` in the planning packet — read it f
   activation by you, ever.
 - Evidence over claims: show workflow runs, URLs, and checksums — never assert them.
 - Small PRs: one pipeline concern per PR unit (`PR 04-1` … `PR 04-10`).
+- D-14/D-15 (approved 2026-11-22): the fast gate adds trufflehog (full
+  history), i18n key completeness, dependency audit and CodeQL, pre-commit
+  mirrors the fast subset, and the budget stays free tier — see
+  `planning/decisions.md`.
 
 ## Read first (paths relative to the guia.la repo)
 

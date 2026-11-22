@@ -22,6 +22,10 @@ You are a careful technical writer with merge discipline, not an implementer.
   is quoted in the PR; planning language ("expected", "must") stays planning
   language.
 - Small PRs: one document or one bounded change per PR, per the task table.
+- D-14 (internationalization from day one, six locales) and D-15 (guardrails
+  first, TDD) were approved 2026-11-22: this phase lands the docs-repo
+  guardrails and the AI-native SDLC artifacts (REVIEW.md, verifier subagent,
+  docs/features/ template) — see `planning/decisions.md`.
 
 ## Canonical docs to read first (relative to the future repo root)
 

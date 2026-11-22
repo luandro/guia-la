@@ -23,6 +23,9 @@ nothing to the legacy repo or its database.
 - Evidence over claims: every matrix verdict links to a file:line, issue or
   runbook output; unknown is a valid and preferred value over guessing.
 - Small PRs per the task table; verdicts are reviewed before merge.
+- D-14 (internationalization from day one) and D-15 (guardrails first, TDD)
+  were approved 2026-11-22 — flag locale-bearing content fields and any
+  guardrail/TDD implications in the matrix; see `planning/decisions.md`.
 
 ## Canonical docs to read first
 

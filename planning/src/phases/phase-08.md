@@ -129,6 +129,7 @@ export interface MapViewProps {
 - [ ] Updated `destinations/cotijuba/destination.ts` and `destinations/serra/destination.ts`; recomposed profiles regenerate route stubs
 - [ ] CI: exclusion assertions extended to all six widget sentinels (guides included); offline and error journeys in the Playwright suite; `.maestro/places.yaml` and `.maestro/transport.yaml` flows (proposed paths)
 - [ ] Docs: `docs/widgets/*.md` set; destination-onboarding notes updated with the trails precedent
+- [ ] Widget string sets complete for all six locales; pt-BR content live with untranslated/machineTranslated flags surfaced per D-14
 - [ ] Spike artifacts: tile-cost measurement note for D-05; upstream provider comparison (license, price unknown until quoted — mark "unknown — measure in 08-1")
 
 ### Fixture data rules
@@ -146,6 +147,7 @@ export interface MapViewProps {
 3. Exclusion assertions still pass for all three profiles (a new widget means a new sentinel).
 4. The deliberate-failure run for the touched surface is part of the PR evidence.
 5. Docs updated in the same PR — contract, config schema, offline policy.
+6. Every user-facing string ships in all six locales (en, pt-BR, es, fr, nl, de); content ships pt-BR first, with other locales flagged untranslated or `machineTranslated` until reviewed — never silently missing (D-14).
 
 ## Visual and functional QA
 
@@ -218,6 +220,7 @@ Positive and negative pairs: for each widget, one green journey test and one red
 - [ ] Exclusion assertions pass for all three profiles with all six widget sentinels
 - [ ] Provenance (source, checked-at) visible in every record-bearing UI
 - [ ] No third-party key appears in any client bundle (grep over exported bundles in CI)
+- [ ] i18n holds across verticals: all widget strings translated for the six locales; fallbacks visible, never silent (D-14)
 - [ ] D-05 evidence note (tile cost measured or bounded) attached to the decision entry
 
 **Blocks progression if:** S6 is unresolved *and* no fallback chosen; any widget ships without offline/error states; exclusion or secret-scan assertions fail; the tides vertical has no approved upstream source or honest-unavailable design.

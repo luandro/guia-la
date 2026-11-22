@@ -14,7 +14,7 @@ exit: 04a is required (PR web preview plus fast gate, no secrets in bundle, prov
 
 Phase **04** builds the delivery pipeline. Split (proposed in [../review.md](../review.md) §8.3, numbering unchanged):
 
-- **04a — web previews and fast gate (required):** a GitHub Actions fast gate on every PR (typecheck, lint, unit tests, web export), a deployed web preview per PR, an automated PR comment with QA links, and build provenance on every artifact.
+- **04a — web previews and fast gate (required):** a GitHub Actions fast gate on every PR (typecheck, lint, unit tests, web export, trufflehog full-history scan, i18n key completeness, dependency audit, CodeQL — D-14/D-15), a deployed web preview per PR, an automated PR comment with QA links, and build provenance on every artifact.
 - **04b — native build and artifact pipeline (budget-capped):** Expo Android/iOS development builds triggered by path filters or labels rather than every PR, artifact retention, provenance and checksums, simulator strategy groundwork, and a recorded spend ceiling.
 
 - **Objective:** any reviewer opens a PR and inspects the change running — web by URL, Android by artifact, iOS by Expo build link — and can tell exactly which commit produced each artifact.
@@ -69,7 +69,7 @@ Credentials and tools needed (names only, values never in repo): `EXPO_TOKEN`, G
 
 | # | Task (bounded) | Owner | PR unit | Depends on |
 | --- | --- | --- | --- | --- |
-| 1 | Fast gate workflow: typecheck, lint, unit tests, `pnpm export:web` on every PR (Storybook build and snapshot slots are added when Phase 03 lands); pnpm store caching; concurrency cancel on new push | Agent | PR 04-1 | Phase 02 |
+| 1 | Fast gate workflow: typecheck, lint, unit tests, `pnpm export:web`, trufflehog full-history scan, i18n key completeness (D-14), dependency audit (osv-scanner or npm audit) and CodeQL (free on public repos) on every PR (D-15; Storybook build and snapshot slots are added when Phase 03 lands); pnpm store caching; concurrency cancel on new push | Agent | PR 04-1 | Phase 02 |
 | 2 | Web preview deploy per PR; verify the chosen mechanism actually serves the export; record the URL pattern | Agent | PR 04-2 | 1 |
 | 3 | PR comment automation listing preview URL, artifact links, commit SHA; update on re-push | Agent | PR 04-3 | 2 |
 | 4 | Provenance: artifact names embed commit SHA and profile; sha256 checksums recorded; deploy step writes a live-commit record (file plus workflow summary) | Agent | PR 04-4 | 2 |
@@ -93,7 +93,8 @@ Pipeline shape:
 ```yaml
 # Illustrative only — the implementing PR owns the real workflow syntax.
 # fast-gate.yml (every PR): pnpm install --frozen-lockfile ->
-#   typecheck -> lint -> unit -> export:web -> bundle secret grep
+#   typecheck -> lint -> unit -> export:web -> bundle secret grep ->
+#   trufflehog (full history) -> i18n key completeness -> dependency audit -> CodeQL
 # native-builds.yml (label 'native' OR paths: eas.json, app.config.*,
 #   package.json native deps; plus cron nightly):
 #   eas build --profile development --platform android (then ios)
@@ -116,6 +117,7 @@ Guardrails:
 
 - Node pinned via `.nvmrc` to a supported LTS (research: SDK 58 needs Node 22.13+/24.3+/26+; odd releases unsupported — [../research/expo-stack.md](../research/expo-stack.md) §1.1)
 - Lockfile frozen in CI; dependency bumps are explicit PRs, never side effects
+- The Phase 02 pre-commit config mirrors the fast subset of this gate (trufflehog on staged changes, formatter, lint on staged files, fast typecheck — D-15); CI stays the source of truth and the two must not drift apart
 - `EXPO_PUBLIC_*` values are the only vars allowed in client bundles; the secret grep (task 5) treats anything else found in `dist/` as a failure. Research warns the Atlas file also inlines env values and must be treated as a secret artifact, never published (§1.9)
 - Preview deploys are ephemeral and clearly labeled non-production; no production DNS, no custom domain, no store submission in this phase
 - Concurrency: one in-flight run per PR, superseded runs cancelled
@@ -137,7 +139,7 @@ Acceptable alternatives:
 
 ## Deliverables
 
-- [ ] `.github/workflows/fast-gate.yml` green on a real PR
+- [ ] `.github/workflows/fast-gate.yml` green on a real PR — including trufflehog full history, i18n key completeness, dependency audit and CodeQL (D-14/D-15)
 - [ ] Web preview deployed per PR with a documented, verified URL pattern
 - [ ] PR comment bot listing preview URL, artifacts, commit SHA, and known limitations
 - [ ] Provenance record: artifact naming scheme, checksums, live-commit record for every deploy
@@ -202,6 +204,7 @@ Checklist (observable pass/fail):
 - [ ] Preview URL pattern documented and verified to serve the PR's build (not a stale one)
 - [ ] Artifact checksums recorded and spot-verified by the human
 - [ ] Secret grep demonstrated failing on a canary, then passing after revert
+- [ ] Trufflehog, i18n key completeness, dependency audit and CodeQL steps all fail closed (each red-tested once per D-15; a gate that cannot fail is removed)
 - [ ] Native builds fire only on label/path filter or nightly — demonstrated by a UI-only PR producing none
 - [ ] Budget ceiling recorded with user approval; 80% alert configured; first actuals appended if 04b ran
 - [ ] Credentials inventory lists every secret by name and location, with zero values in repo or logs
@@ -228,7 +231,7 @@ Blocks progression if:
 
 Sensitive operations needing human approval: activating any paid plan (Expo Starter, Workers Paid beyond free); creating/linking accounts or credentials; anything touching DNS or stores (none is planned in this phase).
 
-Budget impact: zero — all free tiers per D-08 (approved 2026-11-21). Expo Starter ($19/month) or Workers Paid ($5/month) need a new owner decision. GitHub Actions cost depends on repo visibility and plan (verify).
+Budget impact: zero — all free tiers per D-08 (approved 2026-11-21). Expo Starter ($19/month) or Workers Paid ($5/month) need a new owner decision. GitHub Actions cost depends on repo visibility and plan (verify). The new D-15 gates stay free: trufflehog and osv-scanner are open source, CodeQL is free on public repos.
 
 Rollback: workflows are declarative; reverting the PR disables the pipeline. 04a and 04b revert independently — disabling native builds never touches the web gate. Preview targets are ephemeral; deleting them destroys nothing tracked.
 

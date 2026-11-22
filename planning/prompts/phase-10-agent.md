@@ -19,6 +19,10 @@ brief is the working extract.
 - Evidence over claims: a runbook that was never rehearsed is a draft, not a deliverable.
 - Small PRs; OTA updates stay off unless the owner decides otherwise, and then only
   within reviewed scope.
+- D-14/D-15 (approved 2026-11-22): agent evals (20–50 real tasks) run in CI on
+  changes to CLAUDE.md/AGENTS.md/.claude/**/skills, incidents become evals plus
+  lessons, the verifier subagent exercises changed behavior, and REVIEW.md is
+  tuned monthly — see `planning/decisions.md`.
 
 ## Canonical docs to read first
 
