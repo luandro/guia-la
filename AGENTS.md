@@ -80,6 +80,21 @@ through, in order:
    bughunter skill's own trigger: the hunt is never the first response to a
    review request and never runs before codex review. Address confirmed
    findings before merge.
+3. **RevEngine GitHub Action (`/review`)** — `.github/workflows/review.yml`
+   runs `laude-institute/rev-engine` on the Claude subscription
+   (`CLAUDE_CODE_OAUTH_TOKEN` repository secret) when a collaborator with write
+   access comments `/review` (or `/review agent`) on a PR, or triggers the
+   workflow manually via `workflow_dispatch`.
+
+Use the `.claude/skills/pr-cycle/SKILL.md` (`pr-cycle` skill) to drive the PR
+review loop: triage findings, push fixes, reply using RevEngine's decision
+prefixes (`Fixed in <sha>:`, `Partly fixed in <sha>:`, `Won't fix:`,
+`Deferred:`, `Wrong:`) and resolve handled threads, re-run `/review` until
+nothing is pending at the current head commit (clean recommendation, zero
+unresolved threads, green checks), and conclude with either `auto-merge` (only
+when explicitly authorized and no human-review gates apply) or
+`needs-human-review` (default, and mandatory on RevEngine fit concerns or
+human-approval boundaries).
 
 ## Task tracking
 
