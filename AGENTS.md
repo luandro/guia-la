@@ -75,7 +75,7 @@ and reason in the PR and `.state/goal.md`).** This applies to **every PR**,
 including setup, docs, config, and scaffolding PRs.
 
 Local pre-PR reviews depend on scope:
-- **Setup, docs, config, or scaffolding PRs** (excluding workflows/CI security):
+- **Setup, docs, config, or scaffolding PRs** (excluding workflows/CI):
   skip local `codex` and `ohmybug` reviews, self-review the diff, and note the
   skip in `.state/goal.md` before opening the PR for RevEngine `/review`.
   OhMyBug's `pre-pr-gate.sh` (`diff-id.sh`) exempts pure docs/skills diffs
@@ -90,12 +90,12 @@ Local pre-PR reviews depend on scope:
 - **Hard PRs** (production code paths, security, workflows/CI, money, concurrency,
   data handling, or wide/risky diffs): run steps 1–2 locally before opening or
   updating the PR, then complete step 3 on GitHub. Hard PRs where OhMyBug was
-  **not** triggered (clean `codex review` and `<300` changed lines touching
-  auth/payments/concurrency) cannot `auto-merge` without a recorded hunt —
-  either run the `ohmybug` (`lite`) hunt first or hand off via
-  `needs-human-review` so the owner merges as operator (optionally with
-  `SKIP_BUGHUNT=1`, only after RevEngine passes). Never use `SKIP_BUGHUNT=1` as
-  an agent, and never skip OhMyBug when its trigger conditions fired:
+  **not** triggered (neither a critical/high codex finding nor >300 changed
+  lines touching auth, payments, or concurrency) do not run a paid hunt and
+  cannot `auto-merge` — hand off via `needs-human-review` so the owner merges
+  as operator (with `SKIP_BUGHUNT=1` from the main worktree, only after
+  RevEngine passes). Never use `SKIP_BUGHUNT=1` as an agent, and never skip
+  OhMyBug when its trigger conditions fired:
 
 1. **codex review** — `codex review` (config already pins `gpt-6.2-sol`,
    effort `low`). If usage or quota is unavailable, note the skip in
