@@ -192,3 +192,20 @@ Verdict and Outstanding checks). Rebuild-on-publish remains the accepted
 trade-off — now measured at ~30 s warm for 1k pages, not extrapolated; the
 fallback (Hono share pages) stays parked unless a later phase breaks these
 assumptions.
+
+## curl raw-HTML check (orchestrator, 2026-11-22, Node 24.13.0)
+
+`npx serve apps/app/dist -l 4173`, then:
+
+```text
+$ curl -s http://localhost:4173/de/places/praia-da-ponta-norte | grep -oE '<html lang=…|<title>…|og:(title|locale)|hreflang=…'
+<html lang="de"
+<title>Strand Ponta Norte — Cotijuba</title>
+hreflang="en" hreflang="pt-BR" hreflang="es" hreflang="fr" hreflang="nl" hreflang="de" hreflang="x-default"
+property="og:title" content="Strand Ponta Norte — Cotijuba"
+property="og:locale" content="de_DE"
+$ curl -s -o /dev/null -w 'status=%{http_code}' http://localhost:4173/pt-BR/places
+status=200
+```
+
+No JavaScript ran; this is the raw HTML a link-preview crawler receives. The owner's WhatsApp link-preview check is still outstanding.
