@@ -1,23 +1,28 @@
 #!/usr/bin/env bash
 # Phase 01 legacy-audit checks. Run from the repository root
 # (scripts/check.sh calls this after check-docs).
-# Usage: scripts/check-legacy.sh [fixtures-dir]   (default: packages/fixtures)
+# Usage: scripts/check-legacy.sh [fixtures-dir] [matrix]
+#   fixtures-dir default: packages/fixtures
+#   matrix default: docs/legacy/extraction-matrix.md
 #
 # (a) Privacy scan: fixtures must contain no personal data (Brazilian phone
 #     patterns, provider or generic emails) and no URLs to real images.
 #     Failure class it catches: a real phone, address or hotlinked photo
 #     copied "because it was useful" into synthetic fixtures.
 # (b) Matrix completeness lint (phase-01.md "Automated verification"): every
-#     legacy table name must have a matrix row carrying exactly one verdict.
-#     Catches: a table silently left without a recorded verdict.
-# (c) Fixture JSON validity plus the shared fixture contract: pt-BR content
-#     on every place, unique ids, kebab-case ascii slugs, source "synthetic".
+#     legacy table name must have exactly one matrix row carrying a valid
+#     verdict. Catches: a table silently left without a recorded verdict, or
+#     two contradictory rows for one table (the lint must not pick either).
+# (c) Fixture JSON validity plus the shared fixture contract: top-level
+#     JSON must have the right type (object/array, never null), pt-BR content
+#     on every place, ids unique across all destinations and matching their
+#     own destination's prefix, kebab-case ascii slugs, source "synthetic".
 #     Catches: fixture drift away from the contract phases 02-08 consume.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 FIXTURES_DIR="${1:-packages/fixtures}"
-MATRIX="docs/legacy/extraction-matrix.md"
+MATRIX="${2:-docs/legacy/extraction-matrix.md}"
 
 fail() { echo "check-legacy: FAIL - $*" >&2; exit 1; }
 
@@ -36,15 +41,18 @@ if [ -n "$privacy_hits" ]; then
 fi
 
 # (b) Matrix completeness lint: each of the 23 legacy table names must
-# appear as a row carrying a verdict; a table absent from the matrix fails.
+# appear as exactly one row carrying a valid verdict; a table absent from
+# the matrix or listed twice fails.
 for t in places beach_locations boat_schedules tide_data weather_data \
          moto_taxi_drivers events profiles user_photos business_photos \
          location_reviews place_reviews review_comments photo_likes \
          place_suggestions place_edit_suggestions owner_requests admin_users \
          admin_audit_log audit_log business_edit_audit rate_limits event_updates; do
+  n=$(grep -cE "^\| $t \|" "$MATRIX" || true)
+  [ "$n" -eq 1 ] || fail "$t: expected exactly one matrix row, found $n"
   grep -E "^\| $t \|" "$MATRIX" \
     | grep -qE '\| (concept|code|data|fixture|reject) \|' \
-    || fail "$t: row missing or lacks a verdict"
+    || fail "$t: matrix row lacks a valid verdict"
 done
 
 # (c) JSON validity and shared fixture contract.
@@ -65,24 +73,34 @@ dest_dirs = sorted(
 if not dest_dirs:
     errors.append(f"{fixtures}: no destination directories found")
 
+seen_ids = {}  # place id -> first destination that used it
+
 for dest in dest_dirs:
     d = os.path.join(fixtures, dest)
 
-    def load(name):
+    def load(name, expect):
         path = os.path.join(d, name)
         if not os.path.isfile(path):
             errors.append(f"{dest}/{name}: missing")
             return None
         try:
             with open(path, encoding="utf-8") as fh:
-                return json.load(fh)
+                doc = json.load(fh)
         except ValueError as e:
             errors.append(f"{dest}/{name}: invalid JSON: {e}")
             return None
+        if doc is None or not isinstance(doc, expect):
+            want = "object" if expect is dict else "array"
+            errors.append(
+                f"{dest}/{name}: top level must be a JSON {want}, "
+                "not null or another type"
+            )
+            return None
+        return doc
 
-    destination = load("destination.json")
-    categories = load("categories.json")
-    places = load("places.json")
+    destination = load("destination.json", dict)
+    categories = load("categories.json", list)
+    places = load("places.json", list)
 
     if destination is not None:
         if destination.get("id") != dest:
@@ -117,7 +135,6 @@ for dest in dest_dirs:
                     f"{dest}/categories.json: label for {cid!r} must carry all six locales"
                 )
 
-    seen_ids = set()
     all_locales_seen = False
     pt_only_seen = False
     if places is not None:
@@ -126,11 +143,19 @@ for dest in dest_dirs:
             places = []
         for p in places:
             pid = p.get("id")
-            if pid in seen_ids:
-                errors.append(f"{dest}/places.json: duplicate place id {pid!r}")
-            seen_ids.add(pid)
-            if not re.fullmatch(r"fx-[a-z]+-\d{3}", pid or ""):
-                errors.append(f"{dest}/places.json: bad id {pid!r} (expected fx-<dest>-NNN)")
+            if not isinstance(pid, str) or not re.fullmatch(
+                rf"fx-{re.escape(dest)}-\d{{3}}", pid
+            ):
+                errors.append(
+                    f"{dest}/places.json: bad id {pid!r} (expected fx-{dest}-NNN)"
+                )
+            elif pid in seen_ids:
+                errors.append(
+                    f"{dest}/places.json: duplicate place id {pid!r} "
+                    f"(already used in {seen_ids[pid]})"
+                )
+            else:
+                seen_ids[pid] = dest
             slug = p.get("slug")
             if not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", slug or ""):
                 errors.append(f"{dest}/places.json: slug {slug!r} is not kebab-case ascii")

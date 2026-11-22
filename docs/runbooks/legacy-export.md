@@ -38,23 +38,35 @@ project):
 
 ```sql
 -- unverified until the owner runs it
-create role cotiju_export readonly nologin;
+create role cotiju_export login;
+alter role cotiju_export set default_transaction_read_only = on;
 grant usage on schema public to cotiju_export;
 grant select on all tables in schema public to cotiju_export;
 ```
 
-Then connect with a session-pooler connection string bound to that role
-(the owner obtains it from the dashboard; agents never see it):
+`login` is required for the role to connect (the connection below uses
+it); `default_transaction_read_only = on` makes its sessions read-only
+even if a write statement is ever pasted in. Before connecting, set the
+role's
+password in psql — never in this file, a shell history or a shared
+command: the owner runs `\password cotiju_export` in a psql session, which
+prompts for it and transmits only the hash. Then connect with a
+session-pooler connection string bound to that role (the owner obtains it
+from the dashboard; agents never see it):
 
 ```bash
 export COTIJU_RO='postgresql://cotiju_export:<password>@<pooler-host>:5432/postgres'
 ```
 
 The role password is created and held by the owner, stored in the owner's
-password manager, and dropped after the export:
+password manager. After the export, revoke the grants before dropping the
+role — PostgreSQL refuses `drop role` while the role still holds
+privileges:
 
 ```sql
 -- unverified until the owner runs it
+revoke select on all tables in schema public from cotiju_export;
+revoke usage on schema public from cotiju_export;
 drop role cotiju_export;
 ```
 
@@ -108,37 +120,78 @@ repository) on an encrypted volume (unverified until the owner runs it):
 
 ```bash
 mkdir -p ~/cotiju-export-2026-11 && cd ~/cotiju-export-2026-11
+set -euo pipefail
 
-for t in places boat_schedules; do
-  psql "$COTIJU_RO" -v ON_ERROR_STOP=1 -c "\copy (select * from $t) to '$t.csv' with (format csv, header true)"
-done
+# Column list for places: every live column except the personal-data ones,
+# built from information_schema so a column the audit never catalogued
+# cannot leak into the export either.
+PLACES_COLS=$(psql "$COTIJU_RO" -Atc "
+  select string_agg(quote_ident(column_name), ', ' order by ordinal_position)
+  from information_schema.columns
+  where table_schema = 'public' and table_name = 'places'
+    and column_name not in ('business_phone', 'business_email', 'owner_id', 'created_by')")
+
+psql "$COTIJU_RO" -v ON_ERROR_STOP=1 -c "\copy (select $PLACES_COLS from places) to 'places.csv' with (format csv, header true)"
+psql "$COTIJU_RO" -v ON_ERROR_STOP=1 -c "\copy (select * from boat_schedules) to 'boat_schedules.csv' with (format csv, header true)"
+
+# Both files must exist and be non-empty before step 5 touches them.
+test -s places.csv && test -s boat_schedules.csv
 ```
+
+`set -euo pipefail` stops the run at the first failed command — the export
+never continues past a failed copy — and the final `test` refuses to hand
+a missing or empty file to the checksum step.
 
 `COPY ... TO STDOUT` is the equivalent one-liner form if the owner
 prefers stdout redirection:
 
 ```bash
-psql "$COTIJU_RO" -c "copy (select * from places) to stdout with (format csv, header true)" > places.csv
+psql "$COTIJU_RO" -c "copy (select $PLACES_COLS from places) to stdout with (format csv, header true)" > places.csv
 ```
 
 Personal-data columns inside `places` (`business_phone`, `business_email`,
-`owner_id`, `created_by`) are exported to the owner-held file for
-inspection; they are never imported and never quoted into this repo
+`owner_id`, `created_by`) are **never selected into any export file**; they
+stay in the legacy database
 ([privacy-classification.md](../legacy/privacy-classification.md)).
+`boat_schedules` carries no personal-data column per the extraction
+matrix, so its full row set exports. If the live `places` schema shows
+further personal columns beyond the four excluded above, the owner adds
+them to the exclusion list and records the final exported column list in
+the manifest (step 6).
 
-## Step 5 — Checksums (owner-run, unverified)
+## Step 5 — Record counts and checksums (owner-run, unverified)
+
+Count the exported records with a CSV-aware tool (quoted fields may
+contain newlines, so counting lines is wrong), and hash exactly the two
+expected files — never a glob over whatever happens to exist:
 
 ```bash
 cd ~/cotiju-export-2026-11
-sha256sum *.csv | tee sha256sums.txt
+for t in places boat_schedules; do
+  python3 - "$t" <<'PY'
+import csv, sys
+t = sys.argv[1]
+with open(f"{t}.csv", newline="", encoding="utf-8") as fh:
+    print(f"{t}: {sum(1 for _ in csv.reader(fh)) - 1} data rows")
+PY
+done
+sha256sum places.csv boat_schedules.csv | tee sha256sums.txt
 ```
+
+The CSV record count is the manifest's row count for that table. Each
+must equal its step 3 database count; any mismatch trips the stop rule
+below. Deriving manifest counts from the exported files themselves (not
+from a second database session) is what keeps the manifest and the files
+beside it consistent even if the data moved between sessions.
 
 ## Step 6 — Manifest (owner-held)
 
 Write `manifest.txt` in the same directory: date, Supabase project ref,
 baseline commit `c0c99077593a870ba4295798f0471a66288a6c4c`, table list,
-row counts from step 3, checksums from step 5, tool versions
-(`psql --version`). Keep the manifest with the export.
+the exported `places` column list (step 4's `PLACES_COLS`), row counts
+from step 5's CSV records (each equal to its step 3 count), checksums
+from step 5, tool versions (`psql --version`, `python3 --version`).
+Keep the manifest with the export.
 
 ## Step 7 — Storage and cleanup
 
@@ -146,9 +199,32 @@ row counts from step 3, checksums from step 5, tool versions
   location. It is never committed, attached to a PR, uploaded or pasted
   into any chat or agent session.
 - Drop the `cotiju_export` role (step 2).
-- Agents receive only: the counts (step 3) and checksums (step 5). The
-  owner records the counts into the extraction matrix's "row count"
+- Agents receive only: the counts (steps 3 and 5) and checksums (step 5).
+  The owner records the counts into the extraction matrix's "row count"
   column, replacing `owner export: pending`.
+
+## Static-file counts (owner-run; no database, no export files)
+
+The extraction matrix's four static `data` rows (`locations.ts`,
+`beachLocations.ts`, `pt.json`, `en.json`) also carry `owner export:
+pending` row counts. They never pass through the export directory; the
+owner counts them once in the legacy checkout at baseline
+`c0c99077593a870ba4295798f0471a66288a6c4c` (unverified until the owner
+runs it):
+
+```bash
+cd <legacy-checkout>   # at the baseline commit above
+grep -cE '\bid[[:space:]]*:' src/data/locations.ts        # entry count (audit: 13)
+grep -cE '\bid[[:space:]]*:' src/data/beachLocations.ts   # entry count (audit: 4)
+jq '[.. | strings] | length' src/i18n/locales/pt.json     # translated string count
+jq '[.. | strings] | length' src/i18n/locales/en.json
+```
+
+Record each number in the matrix's "row count" column together with the
+command used, so the count definition stays reproducible. If a command
+matches nothing or a count disagrees with the audit's expectation
+(13 and 4 above), stop and record the discrepancy instead of switching
+commands until a nicer number appears.
 
 ## What is never exported (regardless of counts)
 
@@ -168,5 +244,6 @@ row counts from step 3, checksums from step 5, tool versions
   record what happened in the manifest, escalate to the owner's own notes.
   Never retry with elevated
   credentials (service key) — that is the one forbidden fix.
-- Counts disagree with checksums or the manifest: stop; a delta is
-  recorded and explained, never silently accepted.
+- Counts disagree — step 3 database counts vs step 5 CSV record counts,
+  or counts vs what the manifest records: stop; a delta is recorded and
+  explained, never silently accepted.

@@ -32,8 +32,13 @@
 
 1. The owner-run export
    ([legacy-export.md](../runbooks/legacy-export.md)) exports **counts** for
-   these tables and nothing else; the tables above are never in the export
-   allowlist regardless of row counts.
+   the carriers above and nothing else, with one carve-out: `places` is in
+   the export allowlist for its non-personal content, and the runbook
+   selects **only explicitly non-personal columns** there —
+   `business_phone`, `business_email`, `owner_id`, `created_by` and any
+   other personal column the live schema shows are never selected into any
+   export file. Phones, emails, owner and creator identifiers never leave
+   the legacy database.
 2. The extraction matrix marks every carrier above `reject`
    ([extraction-matrix.md](extraction-matrix.md)); no verdict upgrades
    without a recorded owner ruling (approval list).

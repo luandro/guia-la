@@ -19,7 +19,7 @@ source, owner ruling `keep` — **and** counted by the owner-run export
 |---|---|---|
 | `places` table | staging destination's place records (no photos yet) | Strip personal columns (`business_phone`, `business_email`, `owner_id`, `created_by`) unless each contact carries fresh consent per the approval-list privacy baseline; every row enters with provenance (source, verified_at) and editorial review before serving |
 | `boat_schedules` table | transport widget data | Freshness check per row: a schedule whose `valid_until` passed is imported as historical reference only, never served; each row re-verified by the editorial routine |
-| `src/data/locations.ts` + `src/data/beachLocations.ts` coordinates | merge candidate into the same place records | Treated as unverified suggestions until an editor confirms each one; image URLs are not imported (rights unknown) |
+| `src/data/locations.ts` + `src/data/beachLocations.ts` coordinates | merge candidate into the same place records | Treated as unverified suggestions until an editor confirms each one; image URLs are not imported (rights unknown); each applied merge journals the prior value of every place field it overwrites so rollback restores it (§3) |
 | `src/i18n/locales/{pt,en}.json` strings | terminology reference for translation memory | Only if the owner confirms authorship and licenses reuse; guia.la's key structure differs, so strings are a reference, not a drop-in |
 
 Everything else in the legacy repo stays not-migrated: all personal-data
@@ -61,10 +61,16 @@ review and tests of its own.
 - The import runs into a **staging destination first** (Phase 09 exit
   gate: pilot users on staging, never production).
 - Each import batch records: date, source commit, batch id, per-table row
-  counts, and the manifest checksums from the owner's export.
-- Import is additive and reversible: rollback = delete the batch's rows by
-  batch id, rebuild the static export, purge caches. The legacy repo and
-  the owner-held export are never modified by a rollback.
+  counts, the manifest checksums from the owner's export, and — for the
+  coordinate merge — the prior value of every place field the batch
+  updates.
+- Import is additive and reversible, with one updating step. Inserts
+  (`places`, `boat_schedules`) reverse by deleting the batch's rows by
+  batch id. The coordinate merge updates existing place rows instead of
+  inserting; rollback restores each merged field's recorded prior value
+  first, then deletes the batch's rows. Rollback = restore merged fields,
+  delete the batch's rows, rebuild the static export, purge caches. The
+  legacy repo and the owner-held export are never modified by a rollback.
 - If counts or checksums disagree with the manifest at any point: stop,
   record, escalate to the owner (phase-01 error-state rule; never retry
   with elevated credentials).
