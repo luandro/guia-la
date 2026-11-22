@@ -8,7 +8,9 @@
 - `anon-visible` records a known fact with its source, or `unknown` when no
   anon-read fact exists. Known facts come from legacy PR #52 (2026-11-21).
 - `row count` stays `owner export: pending` until the owner runs
-  [legacy-export.md](../runbooks/legacy-export.md) and records counts here.
+  [legacy-export.md](../runbooks/legacy-export.md) and records counts here
+  — database tables via its steps 3 and 5, static files via its
+  "Static-file counts" section.
 - Personal-data defaults and LGPD reasoning:
   [privacy-classification.md](privacy-classification.md). Rights status per
   asset: [rights-matrix.md](rights-matrix.md).
