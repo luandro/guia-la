@@ -50,6 +50,36 @@ describe("app.config.ts", () => {
     delete process.env.APP_VARIANT;
   });
 
+  it("mirrors each preset's light and dark background tokens in the splash plugin", async () => {
+    // The splash must follow the OS scheme in both directions (PR #19
+    // review round 3): light values mirror each preset's light `background`
+    // token, dark values its dark `background` token (kept in sync by
+    // test — the config loader cannot import presets.ts).
+    const splashByDestination = {
+      cotijuba: { light: "#F7F3E8", dark: "#0C1F1B" },
+      serra: { light: "#F4F2ED", dark: "#14181F" },
+    } as const;
+    for (const appVariant of appVariantSchema.options) {
+      process.env.APP_ENV = "development";
+      process.env.APP_VARIANT = appVariant;
+      const config = await loadConfig();
+      const destination = destinationForVariant(appVariant);
+      const splash = (config.plugins ?? []).find(
+        (plugin) => Array.isArray(plugin) && plugin[0] === "expo-splash-screen",
+      ) as
+        | [
+            string,
+            { backgroundColor?: string; dark?: { backgroundColor?: string } },
+          ]
+        | undefined;
+      const expected = splashByDestination[destination];
+      expect(splash?.[1]?.backgroundColor).toBe(expected.light);
+      expect(splash?.[1]?.dark?.backgroundColor).toBe(expected.dark);
+    }
+    delete process.env.APP_ENV;
+    delete process.env.APP_VARIANT;
+  });
+
   it("does not register the expo-localization config plugin", async () => {
     process.env.APP_ENV = "development";
     process.env.APP_VARIANT = "cotijuba-web";

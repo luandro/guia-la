@@ -6,18 +6,19 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import {
-  collectFindings,
-  looksLikeColor,
-  scanFile,
-} from "./brand-colors-check.mjs";
+import * as brandColors from "./brand-colors-check.mjs";
+import { collectFindings, scanFile } from "./brand-colors-check.mjs";
 
 /**
- * The brand-color gate's own contract (PR #19 review): a regex regression
- * must not silently turn the gate permanently green. Pins the hex forms
- * (valid lengths caught, invalid lengths and digit-only shorthands outside
- * color values ignored), the functional forms, CSS named colors in style
- * objects, and the CLI's exit code and output format.
+ * The brand-color gate's own contract (PR #19 review, rounds 1-3): a
+ * matcher regression must not silently turn the gate permanently green.
+ * Since round 3 the scanner parses each file with the TypeScript compiler
+ * API and reports any string literal (or no-substitution template literal)
+ * whose whole trimmed value is a color — wherever it sits: object values,
+ * JSX attributes, JSX expression containers, ternaries, multi-line values,
+ * function arguments. Pins the color forms caught (hex 3/4/6/8, rgb()/rgba
+ * ()/hsl()/hsla(), the complete CSS Color 4 named set), the module-name and
+ * non-color exemptions, and the CLI's exit code and output format.
  */
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -53,19 +54,17 @@ describe("scanFile: hex literals", () => {
     expect(scanFile(writeFixture(`href="#added"`))).toEqual([]);
   });
 
-  it("ignores all-digit 3/4-character shorthands outside color values (issue refs)", () => {
-    expect(scanFile(writeFixture(`// see #145 for the history`))).toEqual([]);
-    expect(scanFile(writeFixture(`id: "#1234"`))).toEqual([]);
-  });
-
-  it("catches digit-only shorthands used as color values (PR #19 review)", () => {
-    // hitSlop cannot help here: "#000" is a color, not an issue number.
+  it("flags all-digit shorthands as whole literals (round 3: unambiguous), keeps comments clean", () => {
+    // A literal whose whole value is "#1234" is a color wherever it sits —
+    // the key no longer matters, and "#000"/"#111" are colors too.
+    expect(scanFile(writeFixture(`id: "#1234";`))).toEqual([
+      { line: 1, literal: "#1234" },
+    ]);
     expect(scanFile(writeFixture(`backgroundColor: "#000";`))).toEqual([
       { line: 1, literal: "#000" },
     ]);
-    expect(scanFile(writeFixture(`tintColor: '#1234'`))).toEqual([
-      { line: 1, literal: "#1234" },
-    ]);
+    // Issue refs in comments are not string literals: never scanned.
+    expect(scanFile(writeFixture(`// see #145 for the history`))).toEqual([]);
   });
 
   it("reports the correct line numbers", () => {
@@ -78,7 +77,61 @@ describe("scanFile: hex literals", () => {
   });
 });
 
-describe("scanFile: JSX attribute colors (PR #19 review round 2)", () => {
+describe("scanFile: literals wherever they sit (round 3)", () => {
+  it("catches a quoted color inside a JSX expression container", () => {
+    // color={"red"} is equivalent to color="red" — both are brand leaks;
+    // the token expression color={colors.foreground} stays allowed.
+    expect(scanFile(writeFixture(`const a = <Spin color={"red"} />;`))).toEqual(
+      [{ line: 1, literal: "red" }],
+    );
+    expect(
+      scanFile(
+        writeFixture(`const b = <Input placeholderTextColor={'gray'} />;`),
+      ),
+    ).toEqual([{ line: 1, literal: "gray" }]);
+  });
+
+  it("catches both branches of a ternary", () => {
+    expect(
+      scanFile(writeFixture(`const c = dark ? "white" : "black";`)),
+    ).toEqual([
+      { line: 1, literal: "white" },
+      { line: 1, literal: "black" },
+    ]);
+  });
+
+  it("catches a value on a later line than its key", () => {
+    const path = writeFixture(
+      ["const s = {", "  backgroundColor:", '    "#DE3163",', "};"].join("\n"),
+    );
+    expect(scanFile(path)).toEqual([{ line: 3, literal: "#DE3163" }]);
+  });
+
+  it("catches named colors as function arguments", () => {
+    expect(scanFile(writeFixture(`tint("coral");`))).toEqual([
+      { line: 1, literal: "coral" },
+    ]);
+  });
+
+  it("catches no-substitution template literals", () => {
+    expect(scanFile(writeFixture("const a = `#fff`;"))).toEqual([
+      { line: 1, literal: "#fff" },
+    ]);
+  });
+
+  it("does not flag non-color strings that merely contain color words", () => {
+    expect(scanFile(writeFixture(`const action = "redirect";`))).toEqual([]);
+    expect(scanFile(writeFixture(`const place = "white house";`))).toEqual([]);
+  });
+
+  it("skips import specifiers and module names", () => {
+    expect(scanFile(writeFixture(`import "#abc";`))).toEqual([]);
+    expect(scanFile(writeFixture(`export { x } from "#123";`))).toEqual([]);
+    expect(scanFile(writeFixture(`const icon = require("#abc");`))).toEqual([]);
+  });
+});
+
+describe("scanFile: JSX attribute colors (round 2)", () => {
   it("catches named colors as JSX attribute values", () => {
     // Primitives pass colors through exactly these props (ActivityIndicator
     // color, placeholderTextColor) — a hardcoded value there is a brand leak.
@@ -130,7 +183,7 @@ describe("scanFile: functional color forms", () => {
   });
 });
 
-describe("scanFile: CSS named colors in style objects", () => {
+describe("scanFile: CSS named colors (complete Level 4 set)", () => {
   it.each(
     [
       "red",
@@ -154,16 +207,35 @@ describe("scanFile: CSS named colors in style objects", () => {
     expect(violations).toEqual([{ line: 1, literal: name }]);
   });
 
+  it("catches keywords the old partial set omitted (round 3)", () => {
+    // coral, rebeccapurple, cornflowerblue, navajowhite: standard CSS
+    // keywords that the previous hand-picked list did not include.
+    expect(scanFile(writeFixture(`backgroundColor: "coral";`))).toEqual([
+      { line: 1, literal: "coral" },
+    ]);
+    expect(scanFile(writeFixture(`color: "rebeccapurple"`))).toEqual([
+      { line: 1, literal: "rebeccapurple" },
+    ]);
+    expect(scanFile(writeFixture(`color: "cornflowerblue"`))).toEqual([
+      { line: 1, literal: "cornflowerblue" },
+    ]);
+    expect(scanFile(writeFixture(`color: "navajowhite"`))).toEqual([
+      { line: 1, literal: "navajowhite" },
+    ]);
+  });
+
   it("catches named colors in single quotes too", () => {
     expect(scanFile(writeFixture(`color: 'crimson'`))).toEqual([
       { line: 1, literal: "crimson" },
     ]);
   });
 
-  it("allows transparent (a non-color, not a brand leak)", () => {
+  it("allows transparent, currentColor and inherit (non-colors, not brand leaks)", () => {
     expect(scanFile(writeFixture(`backgroundColor: "transparent";`))).toEqual(
       [],
     );
+    expect(scanFile(writeFixture(`color: "currentColor";`))).toEqual([]);
+    expect(scanFile(writeFixture(`color: "inherit";`))).toEqual([]);
   });
 
   it("ignores word values of non-color keys and non-color-named values", () => {
@@ -187,13 +259,11 @@ describe("scanFile: token usage stays clean", () => {
   });
 });
 
-describe("looksLikeColor", () => {
-  it("keeps the digit heuristic for shorthand context decisions", () => {
-    expect(looksLikeColor("abc")).toBe(true);
-    expect(looksLikeColor("123456")).toBe(true);
-    expect(looksLikeColor("12345678")).toBe(true);
-    expect(looksLikeColor("145")).toBe(false);
-    expect(looksLikeColor("1234")).toBe(false);
+describe("NAMED_COLORS completeness (round 3)", () => {
+  it("carries the complete CSS Color Module Level 4 keyword list (148)", () => {
+    // The old hand-picked list missed standard keywords (coral, ...); a
+    // count pin makes any future trimming of the set visible.
+    expect(brandColors.NAMED_COLORS.size).toBe(148);
   });
 });
 

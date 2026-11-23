@@ -24,6 +24,7 @@ function Copy() {
         title="Trilha do Farol"
         description="Trail to the lighthouse viewpoint"
         trailing={<Chip label="verified" tone="success" />}
+        trailingAccessibilityLabel="verified"
         separator
         onPress={() => {}}
       />

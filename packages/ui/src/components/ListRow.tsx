@@ -3,6 +3,7 @@ import { Pressable, View } from "react-native";
 
 import { useTheme } from "../theme/ThemeProvider";
 import { MIN_HIT_TARGET } from "./hitSlop";
+import { listRowAccessibilityLabel } from "./listRowAccessibility";
 import { Text } from "./Text";
 
 /**
@@ -17,6 +18,14 @@ export type ListRowProps = {
   description?: string;
   /** Right-side slot (chip, chevron, counter). */
   trailing?: ReactNode;
+  /**
+   * Accessibility text for the trailing element on pressable rows: an
+   * explicit label on the Pressable hides the row's children from the
+   * composed name, so the trailing element must be spoken through this
+   * prop (e.g. the Chip's tone meaning). Ignored when accessibilityLabel
+   * is set (PR #19 review round 3).
+   */
+  trailingAccessibilityLabel?: string;
   onPress?: () => void;
   /** Draw the bottom hairline separator; default false. */
   separator?: boolean;
@@ -29,6 +38,7 @@ export function ListRow({
   title,
   description,
   trailing,
+  trailingAccessibilityLabel,
   onPress,
   separator = false,
   accessibilityLabel,
@@ -78,7 +88,17 @@ export function ListRow({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel ?? title}
+      // The default label composes title + description (+ trailing text):
+      // an explicit label replaces the name a screen reader would build
+      // from the children, so it must say everything the row shows
+      // (PR #19 review round 3). A caller-provided label wins inside the
+      // helper.
+      accessibilityLabel={listRowAccessibilityLabel({
+        title,
+        description,
+        trailingAccessibilityLabel,
+        accessibilityLabel,
+      })}
       accessibilityHint={accessibilityHint}
       onPress={onPress}
       testID={testID}

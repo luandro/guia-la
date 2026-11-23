@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Brand-color check (phase 03, task 5; tightened in PR #19 review): no
+// Brand-color check (phase 03, task 5; rounds 1-3 of PR #19 review): no
 // color literal may appear outside the token layer. Plain .mjs so `node`
 // runs it directly.
 //
@@ -12,18 +12,24 @@
 // as are *.test.* / *.spec.* files: tests legitimately pin exact hex
 // values as assertions — they are not shipped UI.
 //
-// Match heuristics (PR #19 review):
-// - hex: `#` followed by exactly 3, 4, 6 or 8 hex chars, bounded on both
-//   sides by non-hex (so the 5-char anchor "#added" and 7-char runs are
-//   not colors and are not reported);
-// - all-digit 3/4-char shorthands are ignored outside color values —
-//   issue/PR references ("see #145") are all digits, while a real color
-//   shorthand carries at least one a-f letter. Inside a color value
-//   (`color: "#000"`) a shorthand is always a color and always counts;
-// - functional forms: rgb()/rgba()/hsl()/hsla() anywhere;
-// - CSS named colors as the quoted value of a style key containing
-//   "color" (backgroundColor, tintColor, ...). "transparent" is allowed
-//   (an explicit non-color, not a brand leak).
+// How it matches (round 3: TypeScript compiler API, not line regexes —
+// the regex forms missed color={"red"}, ternary branches, values on the
+// line after their key, and all-digit shorthands outside color keys, and
+// they false-positived on import module names):
+// - every file is parsed once; every StringLiteral and
+//   NoSubstitutionTemplateLiteral is visited wherever it sits — object
+//   values, JSX attributes, JSX expression containers, ternaries,
+//   multi-line values, function arguments, enum initializers;
+// - a literal is reported when its whole trimmed value is a color:
+//   hex #rgb/#rgba/#rrggbb/#rrggbbaa (all-digit forms included — a
+//   whole-literal match is unambiguous, unlike "#145" inside prose),
+//   rgb()/rgba()/hsl()/hsla(), or a CSS named color from the complete
+//   CSS Color Module Level 4 keyword list;
+// - "transparent", "currentColor" and "inherit" are allowed (explicit
+//   non-colors, not brand leaks);
+// - never scanned: comments (not in the AST), import/export module
+//   specifiers, import()/require() module names, and property-name
+//   positions ({"red": x} names a field; only values carry colors).
 //
 // Usage: brand-colors-check.mjs [root]   (default: this repo; tests pass
 // a fixture root — main() only runs when invoked as a script).
@@ -37,6 +43,8 @@ import {
 } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+
+import ts from "typescript";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -59,71 +67,187 @@ const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx"]);
 /** Tests pin exact colors as assertions; they are not shipped UI. */
 const TEST_FILE = /\.(test|spec)\.[jt]sx?$/;
 
-const HEX_LITERAL =
-  /(?<![0-9a-fA-F])#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})(?![0-9a-fA-F])/g;
+/** Whole-value hex: 3, 4, 6 or 8 hex digits (5 and 7 are not colors). */
+const HEX_VALUE =
+  /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
 
-const FUNCTIONAL_LITERAL = /\b(rgba?|hsla?)\s*\(/gi;
+/** Whole-value functional forms; reported as the leading `name(`. */
+const FUNCTIONAL_VALUE = /^(rgba?|hsla?)\s*\(/i;
 
 /**
- * A quoted value assigned to a style key or JSX attribute that mentions
- * "color": `backgroundColor: "#fff"` and `color="#000"` alike (PR #19
- * review round 2 — a colon-only pattern let JSX attribute colors through).
+ * The complete CSS Color Module Level 4 named-color list (148 keywords —
+ * https://www.w3.org/TR/css-color-4/#named-colors). Round 3: the previous
+ * hand-picked subset missed standard keywords such as "coral".
  */
-const COLOR_VALUE = /\b\w*color\w*\s*[:=]\s*(["'])([^"']*)\1/gi;
-
-/** Common CSS named colors (case-insensitive); "transparent" is allowed. */
-const NAMED_COLORS = new Set([
+export const NAMED_COLORS = new Set([
+  "aliceblue",
+  "antiquewhite",
   "aqua",
+  "aquamarine",
+  "azure",
   "beige",
+  "bisque",
   "black",
+  "blanchedalmond",
   "blue",
+  "blueviolet",
   "brown",
+  "burlywood",
+  "cadetblue",
+  "chartreuse",
+  "chocolate",
+  "coral",
+  "cornflowerblue",
+  "cornsilk",
   "crimson",
   "cyan",
   "darkblue",
+  "darkcyan",
+  "darkgoldenrod",
   "darkgray",
-  "darkgrey",
   "darkgreen",
+  "darkgrey",
+  "darkkhaki",
+  "darkmagenta",
+  "darkolivegreen",
+  "darkorange",
+  "darkorchid",
   "darkred",
+  "darksalmon",
+  "darkseagreen",
+  "darkslateblue",
+  "darkslategray",
+  "darkslategrey",
+  "darkturquoise",
+  "darkviolet",
+  "deeppink",
+  "deepskyblue",
   "dimgray",
   "dimgrey",
+  "dodgerblue",
+  "firebrick",
+  "floralwhite",
+  "forestgreen",
   "fuchsia",
   "gainsboro",
+  "ghostwhite",
   "gold",
+  "goldenrod",
   "gray",
   "green",
+  "greenyellow",
   "grey",
+  "honeydew",
+  "hotpink",
+  "indianred",
   "indigo",
   "ivory",
   "khaki",
+  "lavender",
+  "lavenderblush",
+  "lawngreen",
+  "lemonchiffon",
   "lightblue",
+  "lightcoral",
+  "lightcyan",
+  "lightgoldenrodyellow",
   "lightgray",
-  "lightgrey",
   "lightgreen",
+  "lightgrey",
+  "lightpink",
+  "lightsalmon",
+  "lightseagreen",
+  "lightskyblue",
+  "lightslategray",
+  "lightslategrey",
+  "lightsteelblue",
+  "lightyellow",
   "lime",
+  "limegreen",
+  "linen",
   "magenta",
   "maroon",
+  "mediumaquamarine",
+  "mediumblue",
+  "mediumorchid",
+  "mediumpurple",
+  "mediumseagreen",
+  "mediumslateblue",
+  "mediumspringgreen",
+  "mediumturquoise",
+  "mediumvioletred",
+  "midnightblue",
+  "mintcream",
+  "mistyrose",
+  "moccasin",
+  "navajowhite",
   "navy",
+  "oldlace",
   "olive",
+  "olivedrab",
   "orange",
+  "orangered",
   "orchid",
+  "palegoldenrod",
+  "palegreen",
+  "paleturquoise",
+  "palevioletred",
+  "papayawhip",
+  "peachpuff",
+  "peru",
   "pink",
   "plum",
+  "powderblue",
   "purple",
+  "rebeccapurple",
   "red",
+  "rosybrown",
+  "royalblue",
+  "saddlebrown",
   "salmon",
+  "sandybrown",
+  "seagreen",
+  "seashell",
+  "sienna",
   "silver",
+  "skyblue",
+  "slateblue",
+  "slategray",
+  "slategrey",
+  "snow",
+  "springgreen",
+  "steelblue",
   "tan",
   "teal",
+  "thistle",
   "tomato",
   "turquoise",
   "violet",
+  "wheat",
   "white",
   "whitesmoke",
   "yellow",
+  "yellowgreen",
 ]);
 
-const ALLOWED_NAMED = new Set(["transparent"]);
+/** Explicit non-color keywords, allowed wherever they appear. */
+const ALLOWED_NAMED = new Set(["transparent", "currentcolor", "inherit"]);
+
+/**
+ * The reportable form of a whole-literal color, or null when the value is
+ * not a color: hex and named colors report themselves, functional forms
+ * report their leading `name(` like the line-regex version did.
+ */
+export function colorViolation(value) {
+  const trimmed = value.trim();
+  if (trimmed === "") return null;
+  if (ALLOWED_NAMED.has(trimmed.toLowerCase())) return null;
+  if (HEX_VALUE.test(trimmed)) return trimmed;
+  const functional = trimmed.match(FUNCTIONAL_VALUE);
+  if (functional) return `${functional[1]}(`;
+  if (NAMED_COLORS.has(trimmed.toLowerCase())) return trimmed;
+  return null;
+}
 
 function isExcluded(absolutePath, rootDir) {
   if (TEST_FILE.test(absolutePath)) return true;
@@ -149,43 +273,55 @@ function extname(name) {
   return dot === -1 ? "" : name.slice(dot);
 }
 
-/** True when the match is a color shorthand, not an all-digit PR ref. */
-export function looksLikeColor(digits) {
-  if (digits.length === 6 || digits.length === 8) return true;
-  return /[a-fA-F]/.test(digits);
-}
-
+/**
+ * Parse one file with the TypeScript compiler API and report every
+ * color-valued string literal (see the header comment for what counts).
+ */
 export function scanFile(path) {
   const violations = [];
-  const lines = readFileSync(path, "utf8").split("\n");
-  lines.forEach((line, index) => {
-    const lineNumber = index + 1;
-
-    for (const match of line.matchAll(FUNCTIONAL_LITERAL)) {
-      violations.push({ line: lineNumber, literal: `${match[1]}(` });
-    }
-
-    // Color-value spans: quoted values of *color* style keys. A hex inside
-    // one is a color no matter its digits ("#000" is not an issue number
-    // when it is the value of backgroundColor).
-    const valueSpans = [];
-    for (const match of line.matchAll(COLOR_VALUE)) {
-      valueSpans.push([match.index, match.index + match[0].length]);
-      const value = match[2];
-      const name = value.toLowerCase();
-      if (NAMED_COLORS.has(name) && !ALLOWED_NAMED.has(name)) {
-        violations.push({ line: lineNumber, literal: value });
-      }
-    }
-    const inColorValue = (i) =>
-      valueSpans.some(([start, end]) => i >= start && i < end);
-
-    for (const match of line.matchAll(HEX_LITERAL)) {
-      if (inColorValue(match.index) || looksLikeColor(match[1])) {
-        violations.push({ line: lineNumber, literal: match[0] });
-      }
-    }
+  const source = readFileSync(path, "utf8");
+  // scriptKind is inferred from the file name (.ts/.tsx/.js/.jsx).
+  const sourceFile = ts.createSourceFile(path, source, {
+    languageVersion: ts.ScriptTarget.Latest,
   });
+  const visit = (node) => {
+    // Module specifiers are file paths, never color values.
+    if (
+      ts.isImportDeclaration(node) ||
+      ts.isExportDeclaration(node) ||
+      ts.isImportEqualsDeclaration(node) ||
+      ts.isImportTypeNode(node)
+    ) {
+      return;
+    }
+    // import("...") and require("...") arguments are module names too.
+    if (
+      ts.isCallExpression(node) &&
+      (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
+        (ts.isIdentifier(node.expression) &&
+          node.expression.text === "require"))
+    ) {
+      return;
+    }
+    // Name positions are keys, not values: `{"red": x}` names a field.
+    if (ts.isPropertyAssignment(node) || ts.isPropertySignature(node)) {
+      const value = node.initializer ?? node.type;
+      if (value) visit(value);
+      return;
+    }
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+      const literal = colorViolation(node.text);
+      if (literal) {
+        const { line } = sourceFile.getLineAndCharacterOfPosition(
+          node.getStart(sourceFile),
+        );
+        violations.push({ line: line + 1, literal });
+      }
+      return;
+    }
+    node.forEachChild(visit);
+  };
+  visit(sourceFile);
   return violations;
 }
 

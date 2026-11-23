@@ -6,7 +6,8 @@ import { OfflineBanner } from "./OfflineBanner";
 import { ThemeStoryFrame } from "./story-frame";
 
 /**
- * OfflineBanner visible and hidden (hidden renders nothing). Fixture text
+ * OfflineBanner visible and hidden (hidden keeps an empty status region
+ * mounted, so the message is announced when it appears). Fixture text
  * only — review surfaces, not shipped UI (D-14).
  */
 
