@@ -50,7 +50,7 @@ export function ErrorState({
         </Text>
       ) : null}
       {retryLabel !== undefined && onRetry !== undefined ? (
-        <Button label={retryLabel} onPress={onRetry} />
+        <Button label={retryLabel} onPress={onRetry} alignSelf="center" />
       ) : null}
     </View>
   );

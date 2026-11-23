@@ -28,6 +28,8 @@ export type ButtonProps = {
   accessibilityLabel?: string;
   accessibilityHint?: string;
   testID?: string;
+  /** Cross-axis placement inside the parent; centered containers pass "center". */
+  alignSelf?: "flex-start" | "center" | "flex-end" | "stretch";
 };
 
 export function Button({
@@ -39,6 +41,7 @@ export function Button({
   accessibilityLabel,
   accessibilityHint,
   testID,
+  alignSelf = "flex-start",
 }: ButtonProps) {
   const { tokens } = useTheme();
   const colors = buttonVariantColors(tokens.colors, variant);
@@ -56,6 +59,7 @@ export function Button({
       style={({ pressed }) => [
         styles.base,
         {
+          alignSelf,
           minHeight: MIN_HIT_TARGET,
           backgroundColor: colors.background,
           borderColor: tokens.colors.border,

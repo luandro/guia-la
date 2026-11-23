@@ -45,7 +45,12 @@ export function EmptyState({
         </Text>
       ) : null}
       {actionLabel !== undefined && onAction !== undefined ? (
-        <Button label={actionLabel} variant="secondary" onPress={onAction} />
+        <Button
+          label={actionLabel}
+          variant="secondary"
+          onPress={onAction}
+          alignSelf="center"
+        />
       ) : null}
     </View>
   );
