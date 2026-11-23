@@ -78,6 +78,43 @@ describe("scanFile: hex literals", () => {
   });
 });
 
+describe("scanFile: JSX attribute colors (PR #19 review round 2)", () => {
+  it("catches named colors as JSX attribute values", () => {
+    // Primitives pass colors through exactly these props (ActivityIndicator
+    // color, placeholderTextColor) — a hardcoded value there is a brand leak.
+    expect(
+      scanFile(writeFixture(`const a = <ActivityIndicator color="black" />;`)),
+    ).toEqual([{ line: 1, literal: "black" }]);
+    expect(
+      scanFile(
+        writeFixture(`const b = <Input placeholderTextColor="gray" />;`),
+      ),
+    ).toEqual([{ line: 1, literal: "gray" }]);
+  });
+
+  it("catches digit-only shorthands in JSX color attributes (they are colors there)", () => {
+    expect(scanFile(writeFixture(`const a = <Spin color="#000" />;`))).toEqual([
+      { line: 1, literal: "#000" },
+    ]);
+    expect(scanFile(writeFixture(`const b = <Spin color="#111" />;`))).toEqual([
+      { line: 1, literal: "#111" },
+    ]);
+  });
+
+  it("does not flag token references or non-color JSX attributes", () => {
+    expect(
+      scanFile(
+        writeFixture(
+          `const a = <ActivityIndicator color={colors.foreground} />;`,
+        ),
+      ),
+    ).toEqual([]);
+    expect(
+      scanFile(writeFixture(`const b = <Link href="#added">x</Link>;`)),
+    ).toEqual([]);
+  });
+});
+
 describe("scanFile: functional color forms", () => {
   it.each(["rgb", "rgba", "hsl", "hsla"])("catches %s()", (form) => {
     const call =
@@ -166,6 +203,7 @@ describe("CLI entry (exit code and output format)", () => {
     mkdirSync(join(root, "packages/ui/src/components"), { recursive: true });
     mkdirSync(join(root, "apps/app/src/components"), { recursive: true });
     mkdirSync(join(root, "packages/ui/src/tokens"), { recursive: true });
+    mkdirSync(join(root, "packages/ui/src/theme"), { recursive: true });
     writeFileSync(
       join(root, "packages/ui/src/components/Clean.tsx"),
       "export const Clean = { backgroundColor: 'tokens.colors.border' };\n",
@@ -221,9 +259,17 @@ describe("CLI entry (exit code and output format)", () => {
   it("keeps excluding the token layers (they own the color values)", () => {
     const root = fixtureRoot();
     try {
+      // Both excluded segments carry hex values: with the widened scan
+      // roots the walk reaches these files, and only isExcluded keeps the
+      // gate green (PR #19 review round 2 — this test used to pass because
+      // walk() never entered the tokens directory at all).
       writeFileSync(
         join(root, "packages/ui/src/tokens/values.ts"),
         'export const background = "#0C1F1B";\n',
+      );
+      writeFileSync(
+        join(root, "packages/ui/src/theme/presets.ts"),
+        'export const primary = { light: "#0F5147", dark: "#33B594" };\n',
       );
       const run = spawnSync(
         process.execPath,
@@ -231,6 +277,11 @@ describe("CLI entry (exit code and output format)", () => {
         { encoding: "utf8" },
       );
       expect(run.status).toBe(0);
+      // Excluded files are filtered before the scanned count, not walked
+      // around: only the two clean component files count.
+      expect(run.stdout).toBe(
+        "brand-colors: OK — no color literals outside token files (2 files scanned)\n",
+      );
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

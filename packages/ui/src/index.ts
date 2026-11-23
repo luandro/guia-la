@@ -28,6 +28,7 @@ export { TextInput, type TextInputProps } from "./components/TextInput";
 export {
   fieldBorderColor,
   fieldHelperColor,
+  fieldHelperId,
   fieldInputColors,
   type FieldState,
 } from "./components/fieldStyles";

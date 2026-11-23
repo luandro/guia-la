@@ -43,6 +43,20 @@ export function fieldHelperText(
 }
 
 /**
+ * Element id for the helper text (PR #19 review round 2): set only when
+ * the helper actually renders — non-empty, the same truthiness TextInput
+ * uses to render the Text — so aria-describedby never points at an
+ * element that is not there. useId's ":r1:" colons are stripped (safe in
+ * an HTML id, ugly in selectors and native logs).
+ */
+export function fieldHelperId(
+  helper: string | undefined,
+  rawId: string,
+): string | undefined {
+  return helper ? `field-${rawId.replace(/:/g, "")}` : undefined;
+}
+
+/**
  * Web a11y wiring for the input (PR #19 review): the invalid state and the
  * helper text must reach assistive tech, not just draw in color. RN's types
  * carry no aria-invalid/aria-describedby yet (0.88); RNW 0.21 forwards both,

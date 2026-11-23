@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { cotijubaPreset, serraPreset } from "../theme/presets";
 import { selectTokens } from "../theme/resolve";
-import { WCAG_AA_TEXT, contrastRatio } from "../tokens/contrast";
+import {
+  WCAG_AA_NON_TEXT,
+  WCAG_AA_TEXT,
+  contrastRatio,
+} from "../tokens/contrast";
 import { THEME_MODES } from "../tokens/types";
 import type { ColorSet } from "../tokens/types";
 import {
@@ -10,6 +14,7 @@ import {
   fieldBorderColor,
   fieldHasError,
   fieldHelperColor,
+  fieldHelperId,
   fieldHelperText,
   fieldInputColors,
 } from "./fieldStyles";
@@ -57,6 +62,24 @@ describe("fieldBorderColor", () => {
       colors.danger,
     );
   });
+
+  it.each(COLOR_SETS)(
+    "%s: idle border meets 1.4.11 non-text contrast against surface and background (PR #19 review round 2)",
+    (_label, colors) => {
+      const idle = fieldBorderColor(colors, { focused: false, error: false });
+      // The field boundary sits between the surface fill (inside) and the
+      // page background (outside); WCAG 1.4.11 demands 3:1 against each
+      // adjacent color or the boundary is invisible until focus.
+      expect(
+        contrastRatio(idle, colors.surface),
+        `${_label} border ${idle} vs surface ${colors.surface}`,
+      ).toBeGreaterThanOrEqual(WCAG_AA_NON_TEXT);
+      expect(
+        contrastRatio(idle, colors.background),
+        `${_label} border ${idle} vs background ${colors.background}`,
+      ).toBeGreaterThanOrEqual(WCAG_AA_NON_TEXT);
+    },
+  );
 });
 
 describe("fieldHelperColor", () => {
@@ -117,6 +140,20 @@ describe("fieldHelperText (PR #19 review: a cleared error restores the hint)", (
   it("returns undefined when neither is given", () => {
     expect(fieldHelperText(undefined, undefined)).toBeUndefined();
     expect(fieldHelperText("", undefined)).toBeUndefined();
+  });
+});
+
+describe("fieldHelperId (PR #19 review round 2: no id without a rendered helper)", () => {
+  it("derives the helper element id from useId, colons stripped, when the helper renders", () => {
+    expect(fieldHelperId("We never share it", ":r1:")).toBe("field-r1");
+  });
+
+  it("returns undefined for an empty helper — the same truthiness as rendering it", () => {
+    // fieldHelperText can return "" (hint="" with no error); the helper
+    // renders nothing then, so aria-describedby must point nowhere and the
+    // announced hint must not be the empty string.
+    expect(fieldHelperId("", ":r1:")).toBeUndefined();
+    expect(fieldHelperId(undefined, ":r1:")).toBeUndefined();
   });
 });
 

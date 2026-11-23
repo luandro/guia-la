@@ -7,6 +7,7 @@ import {
   fieldBorderColor,
   fieldHasError,
   fieldHelperColor,
+  fieldHelperId,
   fieldHelperText,
   fieldInputColors,
 } from "./fieldStyles";
@@ -20,7 +21,10 @@ import { Text } from "./Text";
  * hint when present, and a cleared error (""), restores the hint (PR #19
  * review). The helper text and invalid state are exposed to assistive
  * tech: on web via aria-invalid/aria-describedby pointing at the helper
- * Text's id; on native via accessibilityHint (PR #19 review). All strings
+ * Text's id; on native via accessibilityHint (PR #19 review). The id and
+ * the announced hint exist only when the helper text actually renders —
+ * an empty helper ("" hint, no error) must leave aria-describedby unset
+ * rather than pointing at nothing (PR #19 review round 2). All strings
  * arrive translated from the caller (D-14) — packages/ui never imports an
  * i18n layer.
  */
@@ -48,12 +52,12 @@ export function TextInput({
   const input = fieldInputColors(tokens.colors);
   const helper = fieldHelperText(error, hint);
   // Stable per-instance id for the helper text so aria-describedby can
-  // point at it; useId's ":r1:" colons are stripped (safe in an HTML id,
-  // ugly in selectors and native logs). The hook runs unconditionally —
-  // helper coming and going must not change the hook order.
+  // point at it — but only when the helper renders (non-empty, the same
+  // truthiness as the render below), so the id never names an unrendered
+  // element. The useId hook itself runs unconditionally — helper coming
+  // and going must not change the hook order.
   const reactId = useId();
-  const helperId =
-    helper !== undefined ? `field-${reactId.replace(/:/g, "")}` : undefined;
+  const helperId = fieldHelperId(helper, reactId);
 
   return (
     <View style={{ gap: tokens.spacing.xs }}>
@@ -62,8 +66,10 @@ export function TextInput({
         {...rest}
         accessibilityLabel={rest.accessibilityLabel ?? label}
         // Native: the helper (hint or error) rides along as the hint so
-        // screen readers announce it with the field.
-        accessibilityHint={rest.accessibilityHint ?? helper}
+        // screen readers announce it with the field — again only when
+        // non-empty, matching the rendered helper (an empty accessibility
+        // hint announces nothing useful).
+        accessibilityHint={rest.accessibilityHint ?? (helper || undefined)}
         {...(Platform.OS === "web" ? fieldA11yProps(hasError, helperId) : {})}
         onFocus={(event) => {
           setFocused(true);

@@ -40,8 +40,13 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
-/** Scan roots: primitives and app code. */
-const SCAN_ROOTS = ["packages/ui/src/components", "apps/app/src"];
+/**
+ * Scan roots: the whole ui package source and app code (PR #19 review
+ * round 2). Walking all of packages/ui/src is what makes the token/theme
+ * exclusions real — the walk reaches those directories, isExcluded filters
+ * them — instead of never entering them at all.
+ */
+const SCAN_ROOTS = ["packages/ui/src", "apps/app/src"];
 
 /** Token layers that own color values; excluded everywhere. */
 const EXCLUDED_SEGMENTS = [
@@ -59,8 +64,12 @@ const HEX_LITERAL =
 
 const FUNCTIONAL_LITERAL = /\b(rgba?|hsla?)\s*\(/gi;
 
-/** A quoted value assigned to a style key that mentions "color". */
-const COLOR_VALUE = /\b\w*color\w*\s*:\s*(["'])([^"']*)\1/gi;
+/**
+ * A quoted value assigned to a style key or JSX attribute that mentions
+ * "color": `backgroundColor: "#fff"` and `color="#000"` alike (PR #19
+ * review round 2 — a colon-only pattern let JSX attribute colors through).
+ */
+const COLOR_VALUE = /\b\w*color\w*\s*[:=]\s*(["'])([^"']*)\1/gi;
 
 /** Common CSS named colors (case-insensitive); "transparent" is allowed. */
 const NAMED_COLORS = new Set([

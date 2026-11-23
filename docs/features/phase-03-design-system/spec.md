@@ -1,7 +1,9 @@
 # Spec: token layer + theme engine (phase 03 tasks 3–4)
 
-Scope: PRs 03-3 and 03-4. Intent: [intent.md](intent.md). Runtime verdict
-these build on: [decision-s9.md](decision-s9.md) ("Both" mode kept).
+Scope: PRs 03-3 and 03-4; the vocabulary and accessibility floor below are
+updated through the primitives PRs (tasks 5–6, PR #19 review). Intent:
+[intent.md](intent.md). Runtime verdict these build on:
+[decision-s9.md](decision-s9.md) ("Both" mode kept).
 
 ## Problem
 
@@ -35,9 +37,13 @@ the Storybook URL; Phase 04's pipeline reuses the same build commands.
 
 ## Contract details
 
-Color roles (exactly these twelve, every one present in light **and**
+Color roles (exactly these thirteen, every one present in light **and**
 dark): `background`, `surface`, `text`, `textMuted`, `primary`,
-`onPrimary`, `accent`, `border`, `danger`, `success`, `warning`, `focus`.
+`onPrimary`, `accent`, `border`, `danger`, `success`, `warning`, `focus`,
+`shadow`. `shadow` was added with the primitives (task 5) as the shadow
+color role; in the shipped presets it is mode-independent — a shadow is
+cast, not read, so it stays dark in dark mode (a light shadow gave dark
+cards a halo).
 
 - Colors are `#RGB`/`#RRGGBB` hex strings; data lives only under
   `src/tokens/` and `src/theme/` — never in `src/components/**`.
@@ -56,6 +62,14 @@ dark): `background`, `surface`, `text`, `textMuted`, `primary`,
 Accessibility floor (unit-enforced, WCAG 2.x contrast): in every preset and
 mode, `text`/`background`, `text`/`surface`, `textMuted`/`background`,
 `textMuted`/`surface` and `onPrimary`/`primary` all ratio ≥ 4.5:1.
+
+Non-text contrast (WCAG 1.4.11, added in PR #19 review round 2): the idle
+field boundary — the `border` role — must ratio ≥ 3:1 against **both**
+adjacent colors, the `surface` fill inside and the `background` outside,
+in every preset and mode. Both presets therefore carry darker light-mode
+borders and lighter dark-mode borders than a hairline would be; the tests
+in `fieldStyles.test.ts` are the guardrail and owner tuning must keep them
+green.
 
 ## Constraints
 
@@ -87,10 +101,15 @@ mode, `text`/`background`, `text`/`surface`, `textMuted`/`background`,
 
 ## Open questions
 
-- Elevation on iOS needs shadow triples (`shadowColor`/`shadowRadius`/
+- ~~Elevation on iOS needs shadow triples (`shadowColor`/`shadowRadius`/
   `shadowOffset`) beyond the Android `elevation` number; deferred to the
   primitives PRs that first render shadows (batch 1/2), where the mapping
-  can be judged on real components.
+  can be judged on real components.~~ **Resolved** by the primitives
+  (task 5, `elevation.ts`): the iOS shadow triple is derived from the same
+  token number — `shadowRadius` = elevation × 1.5, `shadowOffset.height` =
+  elevation / 2, `shadowColor` from the mode-independent `shadow` role,
+  `shadowOpacity` a rendering constant — so depth stays one datum per
+  level, judged on Card/Chip in Storybook.
 - Whether `serra`'s synthetic palette survives owner review unchanged —
   expected: values will be tuned after visual sign-off; the schema and
   tests make that a data edit.

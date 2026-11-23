@@ -2,6 +2,8 @@
 
 Spec: [spec.md](spec.md). Runs in worktree `phase-03-tokens`; two PR units
 (03-3 tokens, 03-4 theme engine) landing from this branch in order.
+Tasks 5–6 (primitives) run in worktree `phase-03-primitives` as PR #19 —
+see the section at the end.
 
 ## Files
 
@@ -72,15 +74,81 @@ Red and green runs are appended to the orchestrator scratchpad log
   screen. Batch-1 PR (03-5) migrates `Screen`, `ThemedText` and the
   journey UI to `@guia-la/ui` tokens in one cut-over, when the real
   primitives exist.
-- Elevation-on-iOS shadow triples (see spec open questions).
+- Elevation-on-iOS shadow triples (see spec open questions — resolved by
+  task 5's `elevation.ts`; the spec entry is struck through).
+
+## Tasks 5–6: primitives batches 1+2 (PR #19)
+
+Spec updates for the vocabulary and floors live in [spec.md](spec.md);
+this section records what the primitives PR changed, in what order, and
+why it landed as one unit. Worktree `phase-03-primitives`.
+
+### Files
+
+New (`packages/ui/src/components/`), batch 1 (task 5): `Button.tsx` +
+`buttonStyles(.test).ts`, `Card.tsx`, `Chip.tsx` + `chipStyles(.test).ts`,
+`Heading.tsx` + `textStyles(.test).ts`, `ListRow.tsx`, `Text.tsx`
+(token default), `elevation(.test).ts`, `hitSlop(.test).ts`,
+`story-frame.tsx`, and one `.stories.tsx` per primitive.
+
+New, batch 2 (task 6): `EmptyState.tsx`, `ErrorState.tsx`,
+`MapPlaceholder.tsx`, `OfflineBanner.tsx`, `Skeleton.tsx` +
+`useReduceMotionPreference.ts` + `reduceMotionStore(.test).ts` (added in
+review round 1), `TextInput.tsx` + `fieldStyles(.test).ts`, plus stories.
+
+Changed: `packages/ui/src/index.ts` (primitive exports),
+`packages/ui/src/tokens/types.ts` (`shadow` role — thirteenth),
+`packages/ui/src/theme/presets.ts` (shadow value; border values raised to
+the 1.4.11 floor in review round 2), `apps/app` journey UI cut over to
+`@guia-la/ui` tokens (`_layout.tsx`, `index.tsx`, places list/detail,
+`journey-ui.tsx`, `not-found-view.tsx`, `screen.tsx`; `themed-text.tsx`
+deleted; `navigation-theme(.test).ts` added), `tools/brand-colors-check/`
+(gate + its own test file), `package.json` / `scripts/` wiring.
+
+### Order
+
+1. Pure style resolution first with tests: `buttonStyles`, `chipStyles`,
+   `textStyles`, `elevation`, `hitSlop` (red → green each).
+2. Batch 1 components + stories over those pure functions.
+3. `fieldStyles` tests → batch 2 components + stories.
+4. App cut-over in one move (no half-migrated palette source).
+5. Brand-color gate last — it guards the finished surface.
+6. Review rounds: round 1 added the shared reduce-motion store,
+   navigation theme, `shadow` role; round 2 (this change) widened the
+   gate to `packages/ui/src` + JSX attribute colors, raised the idle
+   border to ≥ 3:1 (WCAG 1.4.11), and fixed Chip hitSlop, TextInput
+   helper wiring and the reduce-motion ordering — red/green runs in the
+   orchestrator's `p19c-tdd.txt`.
+
+### Tests that prove it
+
+Every style mapping is a pure function with per-preset × per-mode unit
+tests (button/chip/text/elevation/hitSlop/field styles); contrast is
+asserted with the tested `contrastRatio()` (AA text floor; idle border ≥
+3:1 against surface and background). The gate has its own contract test
+file, including a failable exclusion test and JSX attribute forms.
+
+### Why one PR for tasks 5+6
+
+Batch 2 builds directly on batch 1's scaffolding (`elevation`,
+`hitSlop`, `fieldStyles` reuse the same pure-function pattern), the app
+cut-over only makes sense once both batches exist — replacing
+`Screen`/`ThemedText`/journey UI with a half-set of primitives would
+split the palette source across two systems inside one screen (the exact
+deferral recorded above) — and the brand-color gate is only enforceable
+when the full primitive surface it scans exists.
 
 ## Pending owner sign-off
 
 - [ ] Visual sign-off of the `cotijuba` preset (light and dark).
 - [ ] Visual sign-off of the `serra` preset (light and dark) — synthetic
   palette, expected to be tuned.
-- [ ] The twelve-role semantic color vocabulary itself (renaming a role
-  later is a breaking change across all consumers).
+- [ ] The thirteen-role semantic color vocabulary itself — `background`,
+  `surface`, `text`, `textMuted`, `primary`, `onPrimary`, `accent`,
+  `border`, `danger`, `success`, `warning`, `focus`, `shadow` (the
+  `shadow` role was added with the primitives, task 5, and is
+  mode-independent in the shipped presets; renaming a role later is a
+  breaking change across all consumers).
 
 The agent reports measured contrast ratios per preset and mode; aesthetics
 remain with the owner per phase-03.md.

@@ -9,6 +9,9 @@
  *   animated first and stopped after the promise resolved).
  * - One `isReduceMotionEnabled()` call serves every subscriber.
  * - `reduceMotionChanged` events update the state live.
+ * - Ordering: once any change event has been seen, the initial query
+ *   result is ignored — a change that fired while the query was in flight
+ *   is the newer fact (PR #19 review round 2).
  * - Best-effort degradation: a missing API or a rejected query resolves to
  *   `known: true, enabled: false` (animate) rather than holding forever —
  *   motion is the platform default when the preference cannot be read.
@@ -51,19 +54,29 @@ export function createReduceMotionStore(source: ReduceMotionSource) {
   function ensureStarted(): void {
     if (started) return;
     started = true;
+    // Set by the first change event; once any event has been seen, the
+    // initial query result is older news than the event and is ignored
+    // (PR #19 review round 2: a user toggling reduce-motion while the
+    // query is in flight must not be reverted by the stale read).
+    let changeSeen = false;
     const query =
       typeof source.isReduceMotionEnabled === "function"
         ? source.isReduceMotionEnabled()
         : // No API (older RN / hostile host): animate, do not hold forever.
           Promise.resolve(false);
     query.then(
-      (enabled) => commit({ known: true, enabled }),
-      () => commit({ known: true, enabled: false }),
+      (enabled) => {
+        if (!changeSeen) commit({ known: true, enabled });
+      },
+      () => {
+        if (!changeSeen) commit({ known: true, enabled: false });
+      },
     );
     if (typeof source.addEventListener === "function") {
-      source.addEventListener("reduceMotionChanged", (enabled) =>
-        commit({ known: true, enabled }),
-      );
+      source.addEventListener("reduceMotionChanged", (enabled) => {
+        changeSeen = true;
+        commit({ known: true, enabled });
+      });
     }
   }
 

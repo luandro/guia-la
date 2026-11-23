@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { Pressable, View, type LayoutChangeEvent } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { useTheme } from "../theme/ThemeProvider";
 import { chipToneColors, type ChipTone } from "./chipStyles";
-import { hitSlop, MIN_HIT_TARGET } from "./hitSlop";
+import { MIN_HIT_TARGET } from "./hitSlop";
 import { Text } from "./Text";
 
 /**
@@ -13,9 +12,11 @@ import { Text } from "./Text";
  * pressable whose outer container is a real 44pt minimum target on every
  * platform — react-native-web ignores hitSlop, so the touch area must
  * exist in layout, with the compact pill centered inside it (PR #19
- * review). The pill's measured size still grows the native touch area
- * through hitSlop. Text arrives translated from the caller — nothing
- * user-facing lives here.
+ * review). No hitSlop on top of that container: hitSlop extends the
+ * Pressable's own bounds, so the pill's deficit (~20pt tall) would grow
+ * the already-44pt target to ~68pt and overlap neighboring controls such
+ * as adjacent chips in a row (PR #19 review round 2). Text arrives
+ * translated from the caller — nothing user-facing lives here.
  */
 export type ChipProps = {
   label: string;
@@ -37,14 +38,6 @@ export function Chip({
 }: ChipProps) {
   const { tokens } = useTheme();
   const toneColors = chipToneColors(tokens.colors, tone);
-  const [size, setSize] = useState<{ width: number; height: number } | null>(
-    null,
-  );
-
-  const onLayout = (event: LayoutChangeEvent): void => {
-    const { width, height } = event.nativeEvent.layout;
-    setSize({ width, height });
-  };
 
   const base = {
     alignSelf: "flex-start" as const,
@@ -63,7 +56,7 @@ export function Chip({
 
   if (!onPress) {
     return (
-      <View style={base} testID={testID} onLayout={onLayout}>
+      <View style={base} testID={testID}>
         {text}
       </View>
     );
@@ -76,7 +69,6 @@ export function Chip({
       accessibilityHint={accessibilityHint}
       onPress={onPress}
       testID={testID}
-      hitSlop={size ? hitSlop(size.width, size.height) : undefined}
       style={{
         alignItems: "center",
         alignSelf: "flex-start",
@@ -86,12 +78,7 @@ export function Chip({
       }}
     >
       {({ pressed }) => (
-        <View
-          onLayout={onLayout}
-          style={[base, pressed ? { opacity: 0.8 } : null]}
-        >
-          {text}
-        </View>
+        <View style={[base, pressed ? { opacity: 0.8 } : null]}>{text}</View>
       )}
     </Pressable>
   );

@@ -113,6 +113,31 @@ describe("createReduceMotionStore", () => {
     expect(listener).toHaveBeenCalledTimes(3);
   });
 
+  it("a change event seen first wins over the initial query result (PR #19 review round 2)", async () => {
+    // The query and the subscription start together; if the user toggles
+    // reduce-motion while the query promise is still in flight, the stale
+    // query value (read before the toggle) must not overwrite the change.
+    const query = deferred();
+    let changeHandler: ((enabled: boolean) => void) | undefined;
+    const store = createReduceMotionStore({
+      isReduceMotionEnabled: () => query.promise,
+      addEventListener: (_event, handler) => {
+        changeHandler = handler;
+        return { remove: () => {} };
+      },
+    });
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    changeHandler?.(true); // Toggled ON before the query settles.
+    expect(store.getSnapshot()).toEqual({ known: true, enabled: true });
+
+    query.resolve(false); // The stale read lands late — it must lose.
+    await flushMicrotasks();
+    expect(store.getSnapshot()).toEqual({ known: true, enabled: true });
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
   it("a rejected query degrades to animating (best-effort, motion is the default)", async () => {
     const query = deferred();
     const store = createReduceMotionStore({
