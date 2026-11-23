@@ -15,6 +15,7 @@ import {
   fieldHasError,
   fieldHelperColor,
   fieldHelperId,
+  fieldHelperLiveRegion,
   fieldHelperText,
   fieldInputColors,
 } from "./fieldStyles";
@@ -172,6 +173,17 @@ describe("fieldA11yProps (PR #19 review: expose the validation state)", () => {
 
   it("omits aria-describedby when there is no helper text to point at", () => {
     expect(fieldA11yProps(false, undefined)).toEqual({ "aria-invalid": false });
+  });
+});
+
+describe("fieldHelperLiveRegion (PR #19 deferred finding 03-78a)", () => {
+  it("carries the polite live region so an empty helper still announces", () => {
+    // The helper Text is always mounted; with no text it is an empty
+    // polite live region that a later error message lands inside — the
+    // first validation error is announced on Android, not silently drawn.
+    expect(fieldHelperLiveRegion()).toEqual({
+      accessibilityLiveRegion: "polite",
+    });
   });
 });
 

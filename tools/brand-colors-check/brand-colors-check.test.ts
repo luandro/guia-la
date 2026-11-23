@@ -330,6 +330,37 @@ describe("NAMED_COLORS completeness (round 3)", () => {
   });
 });
 
+describe("scanFile: source extensions beyond .ts/.tsx/.js/.jsx (deferred 03-78c)", () => {
+  // The gate previously walked only .ts/.tsx/.js/.jsx, so a brand color in
+  // an ESM/CommonJS/TS-module file under a scan root slipped through
+  // unexamined. These are the source extensions the repo ships; each must
+  // be walked by collectFindings and reported.
+  it.each(["mod.mjs", "mod.cjs", "mod.mts", "mod.cts"])(
+    "collectFindings walks %s under a scan root",
+    (name) => {
+      const root = mkdtempSync(join(tmpdir(), "brand-colors-ext-"));
+      try {
+        mkdirSync(join(root, "apps/app/src/components"), { recursive: true });
+        writeFileSync(
+          join(root, "apps/app/src/components", name),
+          'export const a = "#DE3163";\n',
+        );
+        const { findings, scanned } = collectFindings(root);
+        expect(scanned).toBe(1);
+        expect(findings).toEqual([
+          {
+            path: join("apps/app/src/components", name),
+            line: 1,
+            literal: "#DE3163",
+          },
+        ]);
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    },
+  );
+});
+
 describe("CLI entry (exit code and output format)", () => {
   function fixtureRoot(): string {
     const root = mkdtempSync(join(tmpdir(), "brand-colors-cli-"));

@@ -80,7 +80,22 @@ export function Button({
         ]}
       >
         {loading ? (
-          <ActivityIndicator size="small" color={colors.foreground} />
+          // The button already announces busy through accessibilityState,
+          // so the spinner is decorative — hide it from assistive tech. On
+          // web RNW maps accessibilityHidden → aria-hidden (otherwise axe
+          // flags a progressbar with no accessible name, task 8 a11y pass);
+          // importantForAccessibility hides it from TalkBack/VoiceOver on
+          // native. RN's ActivityIndicator types carry neither prop yet
+          // (0.88), so the spread is cast past excess-property checking,
+          // the same pattern as role="alert" in TextInput.
+          <ActivityIndicator
+            size="small"
+            color={colors.foreground}
+            {...({
+              accessibilityHidden: true,
+              importantForAccessibility: "no-hide-descendants",
+            } as Record<string, unknown>)}
+          />
         ) : null}
         <Text variant="label" style={{ color: colors.foreground }}>
           {label}

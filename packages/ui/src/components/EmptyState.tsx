@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { Button } from "./Button";
 import { Heading } from "./Heading";
+import type { HeadingLevel } from "./textStyles";
 import { Text } from "./Text";
 
 /**
@@ -10,12 +11,18 @@ import { Text } from "./Text";
  * nothing to show — never a bare blank. Title and description arrive
  * translated from the caller (D-14); the optional action is the "one
  * clear next step" the phase state matrix requires.
+ *
+ * headingLevel (PR #19 deferred finding 03-78b): the title's heading
+ * level, default 2. A page whose only heading is this state passes level 1
+ * so the document keeps exactly one h1; a state rendered under a page's
+ * own h1 stays at 2. The default keeps these components valid anywhere.
  */
 export type EmptyStateProps = {
   title: string;
   description?: string;
   actionLabel?: string;
   onAction?: () => void;
+  headingLevel?: HeadingLevel;
 };
 
 export function EmptyState({
@@ -23,6 +30,7 @@ export function EmptyState({
   description,
   actionLabel,
   onAction,
+  headingLevel = 2,
 }: EmptyStateProps) {
   const { tokens } = useTheme();
   return (
@@ -33,7 +41,7 @@ export function EmptyState({
         padding: tokens.spacing.xl,
       }}
     >
-      <Heading level={3} style={{ textAlign: "center" }}>
+      <Heading level={headingLevel} style={{ textAlign: "center" }}>
         {title}
       </Heading>
       {description ? (

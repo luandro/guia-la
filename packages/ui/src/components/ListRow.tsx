@@ -19,11 +19,13 @@ export type ListRowProps = {
   /** Right-side slot (chip, chevron, counter). */
   trailing?: ReactNode;
   /**
-   * Accessibility text for the trailing element on pressable rows: an
-   * explicit label on the Pressable hides the row's children from the
-   * composed name, so the trailing element must be spoken through this
-   * prop (e.g. the Chip's tone meaning). Ignored when accessibilityLabel
-   * is set (PR #19 review round 3).
+   * Accessibility text for an *icon-only* trailing element (no visible text
+   * of its own) on a pressable row. When the trailing has visible text (a
+   * Chip), omit it — react-native-web composes the row's name from its
+   * children, which already speaks that text, and overriding the name with a
+   * hand-built string fails WCAG 2.5.3 Label-in-Name (the ", "-joined label
+   * does not contain the rendered, space-less text). Ignored when
+   * accessibilityLabel is set (caller wins).
    */
   trailingAccessibilityLabel?: string;
   onPress?: () => void;
@@ -85,20 +87,28 @@ export function ListRow({
     );
   }
 
+  // By default the accessible name is composed by react-native-web from the
+  // row's children (title, description, and the trailing element's own text)
+  // — which matches the rendered text, so WCAG 2.5.3 Label-in-Name holds
+  // (axe's label-content-name-mismatch, task 8 a11y pass). A caller who
+  // passes an explicit accessibilityLabel owns that name. The legacy
+  // trailingAccessibilityLabel path builds an explicit label only for an
+  // icon-only trailing (no visible text of its own to mismatch).
+  const explicitLabel =
+    accessibilityLabel ??
+    (trailingAccessibilityLabel !== undefined
+      ? listRowAccessibilityLabel({
+          title,
+          description,
+          trailingAccessibilityLabel,
+          accessibilityLabel,
+        })
+      : undefined);
+
   return (
     <Pressable
       accessibilityRole="button"
-      // The default label composes title + description (+ trailing text):
-      // an explicit label replaces the name a screen reader would build
-      // from the children, so it must say everything the row shows
-      // (PR #19 review round 3). A caller-provided label wins inside the
-      // helper.
-      accessibilityLabel={listRowAccessibilityLabel({
-        title,
-        description,
-        trailingAccessibilityLabel,
-        accessibilityLabel,
-      })}
+      accessibilityLabel={explicitLabel}
       accessibilityHint={accessibilityHint}
       onPress={onPress}
       testID={testID}

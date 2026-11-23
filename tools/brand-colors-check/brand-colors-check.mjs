@@ -12,6 +12,11 @@
 // as are *.test.* / *.spec.* files: tests legitimately pin exact hex
 // values as assertions — they are not shipped UI.
 //
+// Scanned extensions (PR #19 deferred finding 03-78c): .ts/.tsx/.mts/.cts
+// and .js/.jsx/.mjs/.cjs — every source form the repo ships. An earlier
+// version walked only .ts/.tsx/.js/.jsx, so a color literal in an ESM or
+// CommonJS module slipped past the gate entirely.
+//
 // How it matches (round 3: TypeScript compiler API, not line regexes —
 // the regex forms missed color={"red"}, ternary branches, values on the
 // line after their key, and all-digit shorthands outside color keys, and
@@ -69,10 +74,19 @@ const EXCLUDED_SEGMENTS = [
   join("packages", "ui", "src", "theme") + sep,
 ];
 
-const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx"]);
+const SOURCE_EXTENSIONS = new Set([
+  ".ts",
+  ".tsx",
+  ".mts",
+  ".cts",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+]);
 
 /** Tests pin exact colors as assertions; they are not shipped UI. */
-const TEST_FILE = /\.(test|spec)\.[jt]sx?$/;
+const TEST_FILE = /\.(test|spec)\.[c|m]?[jt]sx?$/;
 
 /** Whole-value hex: 3, 4, 6 or 8 hex digits (5 and 7 are not colors). */
 const HEX_VALUE =

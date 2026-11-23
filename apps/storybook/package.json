@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "@guia-la/ui": "workspace:*",
+    "@storybook/addon-a11y": "10.6.8",
     "@storybook/react": "10.6.8",
     "@storybook/react-native-web-vite": "10.6.8",
     "@types/react": "~19.3.0",

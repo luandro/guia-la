@@ -2,20 +2,32 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { View } from "react-native";
 
 import { cotijubaPreset, serraPreset } from "../theme/presets";
+import {
+  copyFor,
+  LocaleMatrix,
+  ThemeStoryFrame,
+  type StoryLocale,
+} from "./story-frame";
 import { Button } from "./Button";
-import { ThemeStoryFrame } from "./story-frame";
 
 /**
  * Button: variants, disabled and loading. Fixture labels only — review
  * surfaces, not shipped UI (D-14).
  */
 
-function AllVariants() {
+function AllVariants({ locale = "en" }: { locale?: StoryLocale }) {
+  const c = copyFor(locale);
   return (
     <View style={{ gap: 12 }}>
-      <Button label="Continue" onPress={() => {}} />
-      <Button label="Continue" variant="secondary" onPress={() => {}} />
-      <Button label="Continue" variant="ghost" onPress={() => {}} />
+      <Button label={c.button.primary} onPress={() => {}} />
+      <Button
+        label={c.button.secondary}
+        variant="secondary"
+        onPress={() => {}}
+      />
+      <Button label={c.button.ghost} variant="ghost" onPress={() => {}} />
+      <Button label={c.button.loading} loading />
+      <Button label={c.button.disabled} disabled />
     </View>
   );
 }
@@ -39,6 +51,15 @@ export const Disabled: Story = {
 
 export const Loading: Story = {
   args: { label: "Continue", loading: true },
+};
+
+/** en, pt-BR and de side by side — de is the long-text overflow locale. */
+export const Locales: Story = {
+  render: () => (
+    <ThemeStoryFrame presetId={cotijubaPreset.id} mode="light">
+      <LocaleMatrix render={(locale) => <AllVariants locale={locale} />} />
+    </ThemeStoryFrame>
+  ),
 };
 
 export const CotijubaLight: Story = {

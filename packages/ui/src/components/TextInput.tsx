@@ -8,6 +8,7 @@ import {
   fieldHasError,
   fieldHelperColor,
   fieldHelperId,
+  fieldHelperLiveRegion,
   fieldHelperText,
   fieldInputColors,
 } from "./fieldStyles";
@@ -21,16 +22,17 @@ import { Text } from "./Text";
  * hint when present, and a cleared error (""), restores the hint (PR #19
  * review). The helper text and invalid state are exposed to assistive
  * tech: on web via aria-invalid/aria-describedby pointing at the helper
- * Text's id; on native via accessibilityHint (PR #19 review). A newly
- * appearing error is announced: the helper carries
- * accessibilityLiveRegion="polite" while it is in the error state, and
- * role="alert" on web for the error text only (PR #19 review round 7).
- * The id and
- * the announced hint exist only when the helper text actually renders —
- * an empty helper ("" hint, no error) must leave aria-describedby unset
- * rather than pointing at nothing (PR #19 review round 2). All strings
- * arrive translated from the caller (D-14) — packages/ui never imports an
- * i18n layer.
+ * Text's id; on native via accessibilityHint (PR #19 review). The helper
+ * Text is always mounted with accessibilityLiveRegion="polite" (PR #19
+ * deferred finding 03-78a, W3C ARIA22): a region that mounts together with
+ * its message is announced unreliably, so an empty polite region stays in
+ * place and the first error message lands inside an already-live region —
+ * announced on Android, not silently drawn. role="alert" on web is the
+ * error text only (a hint must not alert). The id and the announced hint
+ * still exist only when the helper text actually renders (non-empty): an
+ * empty helper leaves aria-describedby unset rather than pointing at
+ * nothing (PR #19 review round 2). All strings arrive translated from the
+ * caller (D-14) — packages/ui never imports an i18n layer.
  */
 export type TextInputProps = ComponentProps<typeof RNTextInput> & {
   /** Field label, rendered above the input. */
@@ -101,25 +103,28 @@ export function TextInput({
           style,
         ]}
       />
-      {helper ? (
-        <Text
-          nativeID={helperId}
-          variant="caption"
-          style={{ color: fieldHelperColor(tokens.colors, hasError) }}
-          {...(hasError
-            ? {
-                accessibilityLiveRegion: "polite" as const,
-                // RNW does not forward role="alert" through Text's types
-                // (0.88), same as aria-* in fieldStyles.ts; the spread is
-                // exempt from excess-property checking and RNW 0.21
-                // forwards it. Error text only — a hint must not alert.
-                ...(Platform.OS === "web" ? { role: "alert" as never } : {}),
-              }
-            : {})}
-        >
-          {helper}
-        </Text>
-      ) : null}
+      {/* Always mounted (03-78a): the polite live region must pre-exist the
+          message so the first error is announced, not just drawn. With no
+          helper it renders as an empty caption — it occupies the same
+          vertical space as a hint would, which also keeps the field from
+          shifting when an error appears. */}
+      <Text
+        nativeID={helperId}
+        variant="caption"
+        style={{ color: fieldHelperColor(tokens.colors, hasError) }}
+        {...fieldHelperLiveRegion()}
+        {...(hasError
+          ? {
+              // RNW does not forward role="alert" through Text's types
+              // (0.88), same as aria-* in fieldStyles.ts; the spread is
+              // exempt from excess-property checking and RNW 0.21
+              // forwards it. Error text only — a hint must not alert.
+              ...(Platform.OS === "web" ? { role: "alert" as never } : {}),
+            }
+          : {})}
+      >
+        {helper}
+      </Text>
     </View>
   );
 }

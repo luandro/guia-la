@@ -152,3 +152,78 @@ when the full primitive surface it scans exists.
 
 The agent reports measured contrast ratios per preset and mode; aesthetics
 remain with the owner per phase-03.md.
+
+## Tasks 7–8: state-matrix stories + accessibility pass (PR 03-7 / 03-8)
+
+Spec: [spec.md](spec.md). Runs in worktree `phase-03-states`, stacked on
+PR #19. Two task units, one branch. The S9 runtime ("Both" mode) is
+unchanged; these add the review matrix and the axe gate on top of it.
+
+### Deferred findings fixed first (TDD, from PR #19 review)
+
+- **03-78a TextInput helper live region**: the helper `Text` now stays
+  mounted even when empty (`fieldHelperLiveRegion()` → always
+  `accessibilityLiveRegion="polite"`), so a new validation error lands in a
+  region that already existed and is announced on Android (W3C ARIA22);
+  previously the region mounted with its message and was read unreliably.
+  `aria-describedby` still only points at a non-empty helper.
+- **03-78b heading level**: `EmptyState` and `ErrorState` take a
+  `headingLevel` prop (default 2); the app's list/detail empty+error
+  branches pass level 1 so each page keeps exactly one h1. Proven by
+  `pnpm s1` ("exactly one h1 per page").
+- **03-78c brand-colors-check extensions**: `SOURCE_EXTENSIONS` now also
+  scans `.mjs/.cjs/.mts/.cts` (and `TEST_FILE` covers them), so a color
+  literal in an ESM/CommonJS module no longer slips past the gate. New
+  `collectFindings` test plants a hex in each extension under a scan root.
+
+### Task 7 — state-matrix stories
+
+- `packages/ui/src/stories/fixtures.ts`: per-locale story copy (en, pt-BR,
+  de) for every primitive; de is the long-text overflow locale.
+- `story-frame.tsx` gains `LocaleMatrix` + re-exports the fixtures, so a
+  reviewer sees en/pt-BR/de side by side in every text-bearing primitive's
+  `Locales` story.
+- `StateMatrix.stories.tsx`: the loading / empty / error / offline /
+  loaded matrix, each state rendered per locale, plus a `GermanLongText`
+  story under all four preset×mode frames for overflow, and a
+  `MapPlaceholderState`.
+- `apps/storybook/.storybook/preview.tsx`: a global preset/mode switcher
+  decorator driven by a Storybook toolbar (cotijuba/serra × light/dark),
+  so a reviewer re-skins every story live without editing it. Per-preset
+  matrix stories keep their own `ThemeStoryFrame` (inner provider wins).
+
+### Task 8 — accessibility pass
+
+- `@storybook/addon-a11y` added to `apps/storybook`; axe runs in the panel
+  and `pnpm a11y` asserts over the built Storybook.
+- `tools/a11y-check/a11y-check.mjs` + root `pnpm a11y`: serves
+  `apps/storybook/dist`, drives the installed Chromium (Playwright, no
+  download — uses `~/.cache/ms-playwright`), runs axe (wcag2a/2aa/21a/21aa)
+  over every story, fails on any serious/critical. `--grep` isolates a
+  story; `--storybook <dir>` points at a build.
+- Two real violations surfaced and fixed: the Button loading spinner
+  (RNW `role="progressbar"` with no name — now `accessibilityHidden`,
+  hidden because the button already announces busy) and the pressable
+  ListRow's `label-content-name-mismatch` (a hand-built `", "`-joined label
+  did not contain the rendered, space-less text — now RNW composes the name
+  from children, WCAG 2.5.3). Deliberate red/green demonstrated with a
+  planted empty pressable (`button-name`, critical) then reverted; runs in
+  the orchestrator `p03-78-tdd.txt`.
+- `FocusOrder.stories.tsx`: TextInput + Button focus-order stories (web
+  react-native-web real DOM) for the phase QA journey 3.
+
+### Proposed CI step (not wired here — .github/ is out of scope for agents)
+
+After the existing `pnpm storybook:build` job, add a step:
+
+    pnpm a11y   # fails on any serious/critical axe violation over the build
+
+`pnpm a11y` needs the Playwright Chromium cache present (it reuses
+`~/.cache/ms-playwright`); CI should run `npx playwright install chromium`
+once (or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`) before the step.
+
+### Gates kept green
+
+`pnpm check`, `./scripts/check.sh` (ends `check: OK`), `pnpm s1`,
+`pnpm storybook:build`, `pnpm a11y` — all exit 0; red/green runs quoted in
+the orchestrator `p03-78-tdd.txt`.

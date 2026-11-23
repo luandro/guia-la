@@ -46,9 +46,13 @@ export function LoadingView() {
 export function EmptyView() {
   const { t } = useTranslation();
   return (
+    // The empty state is the page's only heading (list/detail error/empty
+    // branches render nothing else at level 1), so it carries level 1 to
+    // keep exactly one h1 per page (PR #19 deferred finding 03-78b).
     <EmptyState
       title={t("places.empty")}
       description={t("places.emptyDetail")}
+      headingLevel={1}
     />
   );
 }
@@ -69,6 +73,7 @@ export function ErrorView({
       }
       retryLabel={t("common.retry")}
       onRetry={retry}
+      headingLevel={1}
     />
   );
 }

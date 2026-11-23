@@ -2,7 +2,12 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { View } from "react-native";
 
 import { cotijubaPreset, serraPreset } from "../theme/presets";
-import { ThemeStoryFrame } from "./story-frame";
+import {
+  copyFor,
+  LocaleMatrix,
+  ThemeStoryFrame,
+  type StoryLocale,
+} from "./story-frame";
 import { Text } from "./Text";
 
 /**
@@ -17,19 +22,17 @@ import { Text } from "./Text";
  */
 
 /** Sample copy rendering every typography role via its variant. */
-function Copy() {
+function Copy({ locale = "en" }: { locale?: StoryLocale }) {
+  const c = copyFor(locale);
   return (
     <View style={{ gap: 12 }}>
-      <Text variant="display">Sphinx of black quartz, judge my vow</Text>
-      <Text variant="title">Travaillez-vous ce soir?</Text>
-      <Text variant="heading">How vexingly quick daft zebras jump</Text>
-      <Text variant="body">
-        The quick brown fox jumps over the lazy dog — 0123456789 — journeys end
-        quickly with fierce travel pace.
-      </Text>
-      <Text variant="bodySmall">Pchnąć w tę łódź jeża lub ośm skrzyń fig</Text>
-      <Text variant="label">label role</Text>
-      <Text variant="caption">Fixture copy, not shipped UI.</Text>
+      <Text variant="display">{c.text.display}</Text>
+      <Text variant="title">{c.text.title}</Text>
+      <Text variant="heading">{c.text.heading}</Text>
+      <Text variant="body">{c.text.body}</Text>
+      <Text variant="bodySmall">{c.text.bodySmall}</Text>
+      <Text variant="label">{c.text.label}</Text>
+      <Text variant="caption">{c.text.caption}</Text>
     </View>
   );
 }
@@ -45,6 +48,15 @@ type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
   args: { children: "Sphinx of black quartz, judge my vow." },
+};
+
+/** en, pt-BR and de side by side — de is the long-text overflow locale. */
+export const Locales: Story = {
+  render: () => (
+    <ThemeStoryFrame presetId={cotijubaPreset.id} mode="light">
+      <LocaleMatrix render={(locale) => <Copy locale={locale} />} />
+    </ThemeStoryFrame>
+  ),
 };
 
 export const CotijubaLight: Story = {

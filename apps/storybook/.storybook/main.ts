@@ -14,6 +14,10 @@ const config: StorybookConfig = {
   // builds of this spike.
   stories: ["../../../packages/ui/src/**/*.stories.tsx"],
   framework: "@storybook/react-native-web-vite",
+  // Accessibility (phase 03, task 8): the addon surfaces axe findings in
+  // the panel and the `a11y` test tag that `pnpm a11y` asserts over the
+  // built Storybook. react-native-web renders real DOM, so axe reads it.
+  addons: ["@storybook/addon-a11y"],
 };
 
 export default config;

@@ -3,28 +3,30 @@ import { View } from "react-native";
 
 import { cotijubaPreset, serraPreset } from "../theme/presets";
 import { Chip } from "./Chip";
-import { ThemeStoryFrame } from "./story-frame";
+import {
+  copyFor,
+  LocaleMatrix,
+  ThemeStoryFrame,
+  type StoryLocale,
+} from "./story-frame";
 
 /**
  * Chip tones, static and pressable. Fixture labels only — review
  * surfaces, not shipped UI (D-14).
  */
 
-function Copy() {
+function Copy({ locale = "en" }: { locale?: StoryLocale }) {
+  const c = copyFor(locale);
   return (
     <View style={{ gap: 12 }}>
       <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-        <Chip label="neutral" />
-        <Chip label="accent" tone="accent" />
-        <Chip label="success" tone="success" />
-        <Chip label="warning" tone="warning" />
-        <Chip label="danger" tone="danger" />
+        <Chip label={c.chip.neutral} />
+        <Chip label={c.chip.accent} tone="accent" />
+        <Chip label={c.chip.success} tone="success" />
+        <Chip label={c.chip.warning} tone="warning" />
+        <Chip label={c.chip.danger} tone="danger" />
       </View>
-      <Chip
-        label="pressable chip (44pt target)"
-        tone="accent"
-        onPress={() => {}}
-      />
+      <Chip label={c.chip.pressable} tone="accent" onPress={() => {}} />
     </View>
   );
 }
@@ -40,6 +42,15 @@ type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
   args: { label: "neutral" },
+};
+
+/** en, pt-BR and de side by side — de is the long-text overflow locale. */
+export const Locales: Story = {
+  render: () => (
+    <ThemeStoryFrame presetId={cotijubaPreset.id} mode="light">
+      <LocaleMatrix render={(locale) => <Copy locale={locale} />} />
+    </ThemeStoryFrame>
+  ),
 };
 
 export const CotijubaLight: Story = {
