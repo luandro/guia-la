@@ -2,3 +2,10 @@ packages:
   - apps/*
   - packages/*
   - tools/*
+
+# pnpm 12 refuses installs while a dependency's lifecycle script is blocked.
+# esbuild's postinstall only validates the prebuilt binary — the platform
+# binary arrives via @esbuild/<platform> optional deps (vite and vitest
+# already ran on it before this allowlist existed, spike S9).
+allowBuilds:
+  esbuild: true
