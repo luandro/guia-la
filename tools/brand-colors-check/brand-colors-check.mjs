@@ -24,10 +24,10 @@
 // - a literal is reported when its whole trimmed value is a color:
 //   hex #rgb/#rgba/#rrggbb/#rrggbbaa (all-digit forms included — a
 //   whole-literal match is unambiguous, unlike "#145" inside prose),
-//   rgb()/rgba()/hsl()/hsla(), or a CSS named color from the complete
+// *   rgb()/rgba()/hsl()/hsla()/hwb(), or a CSS named color from the complete
 //   CSS Color Module Level 4 keyword list;
 // - a TemplateExpression (round 4) is reported when its static head
-//   starts a color form: a functional rgb(/rgba(/hsl(/hsla( head, or a
+// * starts a color form: a functional rgb(/rgba(/hsl(/hsla(/hwb( head, or a
 //   `#` head followed by a substitution — `rgba(${r}, ${g}, ${b}, 0.5)`
 //   and `#${hex}` are the realistic interpolated ways to hardcode a
 //   brand color while dodging a whole-literal match. Substitution
@@ -79,7 +79,7 @@ const HEX_VALUE =
   /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
 
 /** Whole-value functional forms; reported as the leading `name(`. */
-const FUNCTIONAL_VALUE = /^(rgba?|hsla?)\s*\(/i;
+const FUNCTIONAL_VALUE = /^(rgba?|hsla?|hwb)\s*\(/i;
 
 /**
  * The complete CSS Color Module Level 4 named-color list (148 keywords —
@@ -264,12 +264,20 @@ export function colorViolation(value) {
  * digits would come from. Only the head counts: a color that appears
  * after a substitution (`abc ${v} #fff`) is not a color *started* by the
  * static text, and whole-literal matching inside prose stays out of
- * scope on purpose.
+ * scope on purpose. A `#` head counts only when its static characters
+ * after `#` are empty or hex digits: `#${hex}` is a color, while the
+ * static part of `#place-${id}` contains non-hex characters and is an
+ * anchor, not a color (round 7).
  */
 export function templateHeadViolation(headText) {
   const trimmed = headText.trim();
   if (trimmed === "") return null;
-  if (trimmed.startsWith("#")) return "#";
+  // A `#` head is a color only when its static part after `#` is empty or
+  // consists only of hex digits: `#${hex}` and `#abc${x}` continue a color,
+  // while `#place-${id}` or `#secao-${x}` are anchors (round 7).
+  if (trimmed.startsWith("#")) {
+    return /^[0-9a-fA-F]*$/.test(trimmed.slice(1)) ? "#" : null;
+  }
   const functional = trimmed.match(FUNCTIONAL_VALUE);
   if (functional) return `${functional[1]}(`;
   return null;

@@ -1,10 +1,10 @@
 import { Link, useLocalSearchParams } from "expo-router";
 import type { Metadata } from "expo-router/server";
-import { ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { resolveContent, type Locale } from "@guia-la/core";
-import { Heading, MIN_HIT_TARGET, Text, useTheme } from "@guia-la/ui";
+import { Heading, Text, useTheme } from "@guia-la/ui";
 
 import {
   ErrorView,
@@ -19,6 +19,7 @@ import { getJourneyDataset } from "@/data/destination";
 import { useDestination } from "@/hooks/use-destination";
 import { createT, isLocale, LOCALES } from "@/i18n";
 import { LocaleProvider } from "@/i18n/provider";
+import { linkTargetStyle } from "@/lib/link-target-style";
 import {
   destinationOgImage,
   languageAlternates,
@@ -182,18 +183,12 @@ function DetailContent({ slug }: { slug: string }) {
         <Text variant="caption" style={{ color: tokens.colors.textMuted }}>
           {t("places.verifiedAt", { date: verified })}
         </Text>
-        <Link
-          href={`/${locale}/places`}
-          style={{
-            paddingTop: tokens.spacing.sm,
-            alignSelf: "flex-start",
-            minHeight: MIN_HIT_TARGET,
-            justifyContent: "center",
-          }}
-        >
-          <Text variant="label" style={{ color: tokens.colors.primary }}>
-            {t("common.backToList")}
-          </Text>
+        <Link href={`/${locale}/places`} asChild>
+          <Pressable style={linkTargetStyle(tokens)}>
+            <Text variant="label" style={{ color: tokens.colors.primary }}>
+              {t("common.backToList")}
+            </Text>
+          </Pressable>
         </Link>
       </ScrollView>
     </Screen>

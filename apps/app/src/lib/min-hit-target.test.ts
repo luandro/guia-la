@@ -3,15 +3,19 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { MIN_HIT_TARGET } from "@guia-la/ui/src/components/hitSlop";
+import { linkTargetStyle } from "./link-target-style";
+
 /**
  * Touch-target floor on the app's hand-styled links (PR #19 review round
- * 4): the @guia-la/ui primitives enforce MIN_HIT_TARGET = 44 for every
- * press target, but the screens that style an expo-router Link directly
- * bypassed it. Component rendering tests arrive with Phase 05's testing
- * package, so until then this pins the fix statically: each screen that
- * hand-styles a navigation Link must set minHeight: MIN_HIT_TARGET and
- * center its content inside the grown box. It catches the regression it
- * names — someone deleting the minHeight line — not every future link.
+ * 4; rewritten round 7). The @guia-la/ui primitives enforce
+ * MIN_HIT_TARGET = 44 for every press target, but the screens that style
+ * an expo-router Link directly bypassed it. Each screen now wraps its Link
+ * label in a Pressable carrying linkTargetStyle() — the single object
+ * this test asserts against — instead of hand-typing the style, and the
+ * floor/centering checks run against that object, not substrings of whole
+ * files. Component rendering tests arrive with Phase 05's testing package;
+ * until then this pins the style object itself and that each screen uses it.
  */
 
 const SCREENS = [
@@ -23,17 +27,26 @@ const SCREENS = [
   "../components/not-found-view.tsx",
 ] as const;
 
-describe("hand-styled links meet the 44pt MIN_HIT_TARGET floor", () => {
-  it.each(SCREENS)("%s uses minHeight: MIN_HIT_TARGET", (screen) => {
-    const source = readFileSync(join(import.meta.dirname, screen), "utf8");
-    expect(source).toContain("minHeight: MIN_HIT_TARGET");
+const STYLE = linkTargetStyle({ spacing: { xs: 4 } });
+
+describe("linkTargetStyle: the hand-styled links' touch-target style", () => {
+  it("meets the 44pt MIN_HIT_TARGET floor", () => {
+    expect(STYLE).toMatchObject({ minHeight: MIN_HIT_TARGET });
   });
 
-  it.each(SCREENS)(
-    "%s centers the link content inside the grown box",
-    (screen) => {
-      const source = readFileSync(join(import.meta.dirname, screen), "utf8");
-      expect(source).toContain('justifyContent: "center"');
-    },
-  );
+  it("centers its content inside the grown box", () => {
+    expect(STYLE).toMatchObject({ justifyContent: "center" });
+  });
+});
+
+describe("screens hand-style their Links through linkTargetStyle", () => {
+  it.each(SCREENS)("%s applies linkTargetStyle", (screen) => {
+    const source = readFileSync(join(import.meta.dirname, screen), "utf8");
+    expect(source).toContain("linkTargetStyle(tokens)");
+  });
+
+  it.each(SCREENS)("%s does not hand-type the floor anymore", (screen) => {
+    const source = readFileSync(join(import.meta.dirname, screen), "utf8");
+    expect(source).not.toContain("minHeight: MIN_HIT_TARGET");
+  });
 });

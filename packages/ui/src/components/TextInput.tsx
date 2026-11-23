@@ -21,7 +21,11 @@ import { Text } from "./Text";
  * hint when present, and a cleared error (""), restores the hint (PR #19
  * review). The helper text and invalid state are exposed to assistive
  * tech: on web via aria-invalid/aria-describedby pointing at the helper
- * Text's id; on native via accessibilityHint (PR #19 review). The id and
+ * Text's id; on native via accessibilityHint (PR #19 review). A newly
+ * appearing error is announced: the helper carries
+ * accessibilityLiveRegion="polite" while it is in the error state, and
+ * role="alert" on web for the error text only (PR #19 review round 7).
+ * The id and
  * the announced hint exist only when the helper text actually renders —
  * an empty helper ("" hint, no error) must leave aria-describedby unset
  * rather than pointing at nothing (PR #19 review round 2). All strings
@@ -102,6 +106,16 @@ export function TextInput({
           nativeID={helperId}
           variant="caption"
           style={{ color: fieldHelperColor(tokens.colors, hasError) }}
+          {...(hasError
+            ? {
+                accessibilityLiveRegion: "polite" as const,
+                // RNW does not forward role="alert" through Text's types
+                // (0.88), same as aria-* in fieldStyles.ts; the spread is
+                // exempt from excess-property checking and RNW 0.21
+                // forwards it. Error text only — a hint must not alert.
+                ...(Platform.OS === "web" ? { role: "alert" as never } : {}),
+              }
+            : {})}
         >
           {helper}
         </Text>

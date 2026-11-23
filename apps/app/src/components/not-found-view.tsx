@@ -1,11 +1,12 @@
 import { Link } from "expo-router";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import type { Locale } from "@guia-la/core";
-import { Heading, MIN_HIT_TARGET, Text, useTheme } from "@guia-la/ui";
+import { Heading, Text, useTheme } from "@guia-la/ui";
 
 import { Screen } from "@/components/screen";
+import { linkTargetStyle } from "@/lib/link-target-style";
 import { LocaleProvider } from "@/i18n/provider";
 
 /**
@@ -39,18 +40,12 @@ function NotFoundContent() {
         <Text variant="display">404</Text>
         <Heading level={1}>{t("notFound.title")}</Heading>
         <Text>{t("notFound.description")}</Text>
-        <Link
-          href="/"
-          style={{
-            paddingTop: tokens.spacing.sm,
-            alignSelf: "flex-start",
-            minHeight: MIN_HIT_TARGET,
-            justifyContent: "center",
-          }}
-        >
-          <Text variant="label" style={{ color: tokens.colors.primary }}>
-            {t("notFound.back")}
-          </Text>
+        <Link href="/" asChild>
+          <Pressable style={linkTargetStyle(tokens)}>
+            <Text variant="label" style={{ color: tokens.colors.primary }}>
+              {t("notFound.back")}
+            </Text>
+          </Pressable>
         </Link>
       </View>
     </Screen>

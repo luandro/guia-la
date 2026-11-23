@@ -18,9 +18,9 @@ import { collectFindings, scanFile } from "./brand-colors-check.mjs";
  * JSX attributes, JSX expression containers, ternaries, multi-line values,
  * function arguments. Round 4 adds template expressions whose static head
  * starts a color form (`rgba(${r}, ...)`, `#${hex}`). Pins the color forms
- * caught (hex 3/4/6/8, rgb()/rgba()/hsl()/hsla(), the complete CSS Color
- * 4 named set), the module-name and non-color exemptions, and the CLI's
- * exit code and output format.
+ * caught (hex 3/4/6/8, rgb()/rgba()/hsl()/hsla()/hwb(), the complete CSS
+ * Color 4 named set), the module-name and non-color exemptions, and the
+ * CLI's exit code and output format.
  */
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -171,15 +171,18 @@ describe("scanFile: JSX attribute colors (round 2)", () => {
 });
 
 describe("scanFile: functional color forms", () => {
-  it.each(["rgb", "rgba", "hsl", "hsla"])("catches %s()", (form) => {
-    const call =
-      form === "rgb"
-        ? "rgb(222, 49, 99)"
-        : form === "rgba"
-          ? "rgba(222, 49, 99, 0.5)"
-          : form === "hsl"
-            ? "hsl(120, 50%, 50%)"
-            : "hsla(120, 50%, 50%, 0.5)";
+  const CALLS = {
+    rgb: "rgb(222, 49, 99)",
+    rgba: "rgba(222, 49, 99, 0.5)",
+    hsl: "hsl(120, 50%, 50%)",
+    hsla: "hsla(120, 50%, 50%, 0.5)",
+    // Round 7 (PR #19 review): RN's color normalizer accepts hwb() strings,
+    // so they can carry a brand color like the other functional forms.
+    hwb: "hwb(340 18% 13%)",
+  } as const;
+
+  it.each(Object.keys(CALLS))("catches %s()", (form) => {
+    const call = CALLS[form as keyof typeof CALLS];
     const violations = scanFile(writeFixture(`backgroundColor: "${call}";`));
     expect(violations).toEqual([{ line: 1, literal: `${form}(` }]);
   });
@@ -219,6 +222,13 @@ describe("scanFile: template expressions (round 4)", () => {
     expect(scanFile(writeFixture('const a = `x${"red"}y`;'))).toEqual([
       { line: 1, literal: "red" },
     ]);
+  });
+
+  it("does not flag a # head whose static text cannot be a color (round 7)", () => {
+    // `#place-${id}` is an anchor: the static part after # has non-hex
+    // characters, so it cannot continue a hex color.
+    expect(scanFile(writeFixture("const href = `#place-${id}`;"))).toEqual([]);
+    expect(scanFile(writeFixture("const a = `#secao-${x}`;"))).toEqual([]);
   });
 
   it("does not flag non-color heads", () => {

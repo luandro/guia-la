@@ -1,13 +1,14 @@
 import { Link } from "expo-router";
 import type { Metadata } from "expo-router/server";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Heading, MIN_HIT_TARGET, Text, useTheme } from "@guia-la/ui";
+import { Heading, Text, useTheme } from "@guia-la/ui";
 
 import { Screen } from "@/components/screen";
 import { createT, LOCALES } from "@/i18n";
 import { LocaleProvider } from "@/i18n/provider";
+import { linkTargetStyle } from "@/lib/link-target-style";
 import {
   destinationOgImage,
   languageAlternates,
@@ -72,18 +73,12 @@ function Content() {
           }}
         >
           {LOCALES.map((locale) => (
-            <Link
-              key={locale}
-              href={`/${locale}/places`}
-              style={{
-                paddingVertical: tokens.spacing.xs,
-                minHeight: MIN_HIT_TARGET,
-                justifyContent: "center",
-              }}
-            >
-              <Text variant="body" style={{ color: tokens.colors.primary }}>
-                {t(`locales.${locale}`)}
-              </Text>
+            <Link key={locale} href={`/${locale}/places`} asChild>
+              <Pressable style={linkTargetStyle(tokens)}>
+                <Text variant="body" style={{ color: tokens.colors.primary }}>
+                  {t(`locales.${locale}`)}
+                </Text>
+              </Pressable>
             </Link>
           ))}
         </View>
