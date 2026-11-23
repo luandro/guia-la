@@ -16,12 +16,13 @@
     "doctor": "cd apps/app && APP_ENV=development APP_VARIANT=flagship pnpm dlx expo-doctor",
     "deps:check": "APP_ENV=development APP_VARIANT=flagship pnpm --dir apps/app exec expo install --check",
     "i18n:check": "node tools/i18n-check/i18n-check.mjs",
+    "brand-colors:check": "node tools/brand-colors-check/brand-colors-check.mjs",
     "dev": "APP_ENV=development APP_VARIANT=flagship pnpm --dir apps/app exec expo start",
     "export:web": "APP_ENV=development APP_VARIANT=cotijuba-web pnpm --dir apps/app exec expo export -p web",
     "export:web:serra": "APP_ENV=development APP_VARIANT=serra-web pnpm --dir apps/app exec expo export -p web",
     "storybook:build": "pnpm --filter @guia-la/storybook storybook:build",
     "s1": "pnpm export:web && ./scripts/s1-assert.sh cotijuba",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm i18n:check && pnpm test"
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm i18n:check && pnpm brand-colors:check && pnpm test"
   },
   "devDependencies": {
     "eslint": "^9.39.5",

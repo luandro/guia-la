@@ -1,10 +1,11 @@
 import { Link } from "expo-router";
 import type { Metadata } from "expo-router/server";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { Heading, Text, useTheme } from "@guia-la/ui";
+
 import { Screen } from "@/components/screen";
-import { ThemedText } from "@/components/themed-text";
 import { createT, LOCALES } from "@/i18n";
 import { LocaleProvider } from "@/i18n/provider";
 import {
@@ -19,6 +20,9 @@ import {
  * at /<locale>/places; this page links each locale's list and carries the
  * reciprocal hreflang alternates for them (it is the cluster's x-default —
  * the language picker the list pages point at — so it declares none itself).
+ *
+ * Phase 03, task 5: colors and type come from @guia-la/ui tokens; no
+ * template theme constant or brand hex remains in this screen.
  */
 
 export function generateMetadata(): Metadata {
@@ -50,15 +54,32 @@ export default function LocaleIndex() {
 
 function Content() {
   const { t } = useTranslation();
+  const { tokens } = useTheme();
   return (
     <Screen>
-      <View style={styles.container}>
-        <ThemedText style={styles.title}>{t("index.title")}</ThemedText>
-        <ThemedText>{t("index.subtitle")}</ThemedText>
-        <View style={styles.locales}>
+      <View
+        style={{
+          gap: tokens.spacing.sm,
+          padding: tokens.spacing.xl,
+        }}
+      >
+        <Heading level={2}>{t("index.title")}</Heading>
+        <Text>{t("index.subtitle")}</Text>
+        <View
+          style={{
+            gap: tokens.spacing.sm,
+            paddingTop: tokens.spacing.lg,
+          }}
+        >
           {LOCALES.map((locale) => (
-            <Link key={locale} href={`/${locale}/places`} style={styles.link}>
-              {t(`locales.${locale}`)}
+            <Link
+              key={locale}
+              href={`/${locale}/places`}
+              style={{ paddingVertical: tokens.spacing.xs }}
+            >
+              <Text variant="body" style={{ color: tokens.colors.primary }}>
+                {t(`locales.${locale}`)}
+              </Text>
             </Link>
           ))}
         </View>
@@ -66,10 +87,3 @@ function Content() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { gap: 8, padding: 24 },
-  title: { fontSize: 24, fontWeight: "700" },
-  locales: { gap: 8, paddingTop: 16 },
-  link: { color: "#208AEF", fontSize: 18, fontWeight: "600" },
-});

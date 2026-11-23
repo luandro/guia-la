@@ -74,6 +74,14 @@ const appVariant = requireVar(
 );
 const destinationId = DESTINATION_BY_VARIANT[appVariant];
 
+// Splash background per destination, mirroring each preset's light
+// `background` token in packages/ui/src/theme/presets.ts (kept in sync by
+// comment; the config loader cannot import the module — see header note).
+const SPLASH_BACKGROUND = {
+  cotijuba: "#F7F3E8",
+  serra: "#F4F2ED",
+} as const;
+
 // D-01 candidate id (la.guia.app) — permanent after the first store release,
 // so only production uses it, and only after the owner confirms the domain.
 // Every other environment gets a suffixed id that can never collide.
@@ -112,7 +120,12 @@ const config: ExpoConfig = {
     [
       "expo-splash-screen",
       {
-        backgroundColor: "#208AEF",
+        // Mirrors each preset's light `background` token in
+        // packages/ui/src/theme/presets.ts. Literals on purpose: the
+        // Expo config loader transpiles only this file, so it cannot
+        // import the token module (see the self-contained note above).
+        backgroundColor:
+          SPLASH_BACKGROUND[destinationId] ?? SPLASH_BACKGROUND.cotijuba,
         image: "./assets/images/splash-icon.png",
         imageWidth: 76,
       },

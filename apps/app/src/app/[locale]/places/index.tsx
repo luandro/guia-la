@@ -1,9 +1,10 @@
 import { Link, useLocalSearchParams } from "expo-router";
 import type { Metadata } from "expo-router/server";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { resolveContent, type Locale, type Place } from "@guia-la/core";
+import { Heading, ListRow, Text, useTheme } from "@guia-la/ui";
 
 import {
   EmptyView,
@@ -15,7 +16,6 @@ import {
 } from "@/components/journey-ui";
 import { NotFoundView } from "@/components/not-found-view";
 import { Screen } from "@/components/screen";
-import { ThemedText } from "@/components/themed-text";
 import { getJourneyDataset } from "@/data/destination";
 import { useDestination } from "@/hooks/use-destination";
 import { createT, isLocale, LOCALES } from "@/i18n";
@@ -29,6 +29,9 @@ import {
 
 /**
  * Places list (task 02-9): /<locale>/places — one static page per locale.
+ * Phase 03, task 5 cut-over: rows are the @guia-la/ui ListRow inside the
+ * expo-router Link (the anchor must stay for raw-HTML SEO), colors and
+ * type come from useTheme tokens.
  */
 
 type Params = Record<string, string | string[]>;
@@ -85,6 +88,7 @@ export default function PlacesList() {
 function ListContent() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language as Locale;
+  const { tokens } = useTheme();
   const { state, retry } = useDestination();
   const destination = state.data?.destination;
 
@@ -101,13 +105,18 @@ function ListContent() {
         // renders only its initial window in the static export, dropping
         // detail links from the raw HTML beyond ~10 places (PR #14 review).
         <ScrollView>
-          <View style={styles.header}>
-            <ThemedText style={styles.title}>
+          <View
+            style={{
+              gap: tokens.spacing.xs,
+              padding: tokens.spacing.lg,
+            }}
+          >
+            <Heading level={2}>
               {t("places.listTitle", { destination: destination?.name })}
-            </ThemedText>
-            <ThemedText>
+            </Heading>
+            <Text variant="bodySmall">
               {t("places.count", { count: state.data.places.length })}
-            </ThemedText>
+            </Text>
           </View>
           {state.data.places.map((place) => (
             <PlaceRow
@@ -149,32 +158,37 @@ function PlaceRow({
   defaultLocale: Locale | undefined;
   categoryLabel: string | undefined;
 }) {
+  const { tokens } = useTheme();
   const content = resolveContent(place, locale, defaultLocale ?? "pt-BR");
+  const showOriginal = content.isFallback;
+  const showMachine = content.machineTranslated;
   return (
+    // Link stays the outer element: the static export needs real anchors
+    // linking every detail slug (s1-assert), so the row's visuals come
+    // from the non-pressable ListRow, not from a nested Pressable.
     <Link
       href={`/${locale}/places/${place.slug}`}
-      style={styles.row}
       accessibilityLabel={content.name}
     >
-      <View style={styles.rowText}>
-        <ThemedText style={styles.rowTitle}>{content.name}</ThemedText>
-        {label ? <ThemedText>{label}</ThemedText> : null}
-        <View style={styles.markers}>
-          {content.isFallback && (
-            <ShowingOriginalBadge locale={content.locale} />
-          )}
-          {content.machineTranslated && <MachineTranslatedBadge />}
-        </View>
-      </View>
+      <ListRow
+        title={content.name}
+        description={label}
+        separator
+        trailing={
+          showOriginal || showMachine ? (
+            <View
+              style={{
+                flexDirection: "row",
+                gap: tokens.spacing.sm,
+                alignItems: "center",
+              }}
+            >
+              {showOriginal && <ShowingOriginalBadge locale={content.locale} />}
+              {showMachine && <MachineTranslatedBadge />}
+            </View>
+          ) : undefined
+        }
+      />
     </Link>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { gap: 4, padding: 16 },
-  title: { fontSize: 24, fontWeight: "700" },
-  row: { padding: 16, borderBottomWidth: StyleSheet.hairlineWidth },
-  rowText: { gap: 4 },
-  rowTitle: { fontSize: 18, fontWeight: "600" },
-  markers: { flexDirection: "row", gap: 12 },
-});
