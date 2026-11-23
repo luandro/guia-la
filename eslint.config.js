@@ -14,6 +14,7 @@ export default defineConfig(
     ".worktrees/",
     "apps/app/assets/",
     "apps/app/scripts/reset-project.js",
+    "apps/app/.rnstorybook/storybook.requires.ts",
   ]),
   {
     files: ["apps/app/**/*.{js,jsx,mjs,cjs,ts,tsx}"],
@@ -31,6 +32,7 @@ export default defineConfig(
   {
     files: [
       "packages/**/*.{js,jsx,mjs,cjs,ts,tsx}",
+      "apps/storybook/**/*.{js,jsx,mjs,cjs,ts,tsx}",
       "tools/**/*.{js,mjs,cjs,ts}",
       "*.{js,mjs,cjs,ts}",
       "scripts/**/*.{js,mjs,cjs,ts}",

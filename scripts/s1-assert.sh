@@ -49,6 +49,14 @@ check_page() {
   done
 }
 
+# Dev-only routes must never reach the production export (PR 03-1: the
+# on-device Storybook route is Metro-blocklisted unless STORYBOOK_ENABLED).
+for devroute in storybook; do
+  if find "$DIST" -name "$devroute.html" | grep -q .; then
+    fail "dev-only route '$devroute' present in production export"
+  fi
+done
+
 check_page "$DIST/index.html"
 pages=1
 

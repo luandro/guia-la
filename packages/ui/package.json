@@ -9,6 +9,16 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@storybook/react": "10.6.8",
+    "@types/react": "~19.3.0",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-web": "0.21.4",
     "typescript": "~6.0.3"
+  },
+  "peerDependencies": {
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-web": "0.21.4"
   }
 }
