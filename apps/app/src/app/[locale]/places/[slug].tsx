@@ -4,7 +4,7 @@ import { ScrollView, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { resolveContent, type Locale } from "@guia-la/core";
-import { Heading, Text, useTheme } from "@guia-la/ui";
+import { Heading, MIN_HIT_TARGET, Text, useTheme } from "@guia-la/ui";
 
 import {
   ErrorView,
@@ -187,6 +187,8 @@ function DetailContent({ slug }: { slug: string }) {
           style={{
             paddingTop: tokens.spacing.sm,
             alignSelf: "flex-start",
+            minHeight: MIN_HIT_TARGET,
+            justifyContent: "center",
           }}
         >
           <Text variant="label" style={{ color: tokens.colors.primary }}>

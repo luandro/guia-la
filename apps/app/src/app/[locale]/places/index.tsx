@@ -20,6 +20,7 @@ import { getJourneyDataset } from "@/data/destination";
 import { useDestination } from "@/hooks/use-destination";
 import { createT, isLocale, LOCALES } from "@/i18n";
 import { LocaleProvider } from "@/i18n/provider";
+import { placeRowAccessibilityLabel } from "@/lib/place-row-accessibility";
 import {
   destinationOgImage,
   languageAlternates,
@@ -158,17 +159,33 @@ function PlaceRow({
   defaultLocale: Locale | undefined;
   categoryLabel: string | undefined;
 }) {
+  const { t } = useTranslation();
   const { tokens } = useTheme();
   const content = resolveContent(place, locale, defaultLocale ?? "pt-BR");
   const showOriginal = content.isFallback;
   const showMachine = content.machineTranslated;
+  // The same strings the visible Chips render (journey-ui), in sight
+  // order — the explicit label below replaces the name a screen reader
+  // would compose from the row's children, so it must carry them.
+  const markers: string[] = [];
+  if (showOriginal) {
+    markers.push(t("common.showingOriginal", { locale: content.locale }));
+  }
+  if (showMachine) {
+    markers.push(t("common.machineTranslated"));
+  }
   return (
     // Link stays the outer element: the static export needs real anchors
     // linking every detail slug (s1-assert), so the row's visuals come
-    // from the non-pressable ListRow, not from a nested Pressable.
+    // from the non-pressable ListRow, not from a nested Pressable (PR #19
+    // review round 4: the label speaks everything the row shows).
     <Link
       href={`/${locale}/places/${place.slug}`}
-      accessibilityLabel={content.name}
+      accessibilityLabel={placeRowAccessibilityLabel({
+        title: content.name,
+        category: label,
+        markers,
+      })}
     >
       <ListRow
         title={content.name}

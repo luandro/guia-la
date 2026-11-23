@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import type { Locale } from "@guia-la/core";
-import { Heading, Text, useTheme } from "@guia-la/ui";
+import { Heading, MIN_HIT_TARGET, Text, useTheme } from "@guia-la/ui";
 
 import { Screen } from "@/components/screen";
 import { LocaleProvider } from "@/i18n/provider";
@@ -41,7 +41,12 @@ function NotFoundContent() {
         <Text>{t("notFound.description")}</Text>
         <Link
           href="/"
-          style={{ paddingTop: tokens.spacing.sm, alignSelf: "flex-start" }}
+          style={{
+            paddingTop: tokens.spacing.sm,
+            alignSelf: "flex-start",
+            minHeight: MIN_HIT_TARGET,
+            justifyContent: "center",
+          }}
         >
           <Text variant="label" style={{ color: tokens.colors.primary }}>
             {t("notFound.back")}

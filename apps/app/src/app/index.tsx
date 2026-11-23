@@ -3,7 +3,7 @@ import type { Metadata } from "expo-router/server";
 import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Heading, Text, useTheme } from "@guia-la/ui";
+import { Heading, MIN_HIT_TARGET, Text, useTheme } from "@guia-la/ui";
 
 import { Screen } from "@/components/screen";
 import { createT, LOCALES } from "@/i18n";
@@ -75,7 +75,11 @@ function Content() {
             <Link
               key={locale}
               href={`/${locale}/places`}
-              style={{ paddingVertical: tokens.spacing.xs }}
+              style={{
+                paddingVertical: tokens.spacing.xs,
+                minHeight: MIN_HIT_TARGET,
+                justifyContent: "center",
+              }}
             >
               <Text variant="body" style={{ color: tokens.colors.primary }}>
                 {t(`locales.${locale}`)}

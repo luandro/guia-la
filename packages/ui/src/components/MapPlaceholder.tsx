@@ -1,6 +1,7 @@
 import { View } from "react-native";
 
 import { useTheme } from "../theme/ThemeProvider";
+import { mapPlaceholderAccessibilityLabel } from "./mapPlaceholderAccessibility";
 import { Text } from "./Text";
 
 /**
@@ -12,7 +13,12 @@ import { Text } from "./Text";
 export type MapPlaceholderProps = {
   /** What the map will show (used as the accessibility label). */
   label: string;
-  /** Optional secondary line, e.g. why no map is drawn. */
+  /**
+   * Optional secondary line, e.g. why no map is drawn. Folded into the
+   * accessible name ("label. hint"): children of an img role are
+   * presentational, so a hint the label does not carry is never
+   * announced (PR #19 review round 4).
+   */
   hint?: string;
   testID?: string;
 };
@@ -22,7 +28,7 @@ export function MapPlaceholder({ label, hint, testID }: MapPlaceholderProps) {
   return (
     <View
       accessibilityRole="image"
-      accessibilityLabel={label}
+      accessibilityLabel={mapPlaceholderAccessibilityLabel(label, hint)}
       testID={testID}
       style={{
         alignItems: "center",

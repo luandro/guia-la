@@ -15,7 +15,8 @@
 // How it matches (round 3: TypeScript compiler API, not line regexes —
 // the regex forms missed color={"red"}, ternary branches, values on the
 // line after their key, and all-digit shorthands outside color keys, and
-// they false-positived on import module names):
+// they false-positived on import module names; round 4: template
+// expressions with substitutions):
 // - every file is parsed once; every StringLiteral and
 //   NoSubstitutionTemplateLiteral is visited wherever it sits — object
 //   values, JSX attributes, JSX expression containers, ternaries,
@@ -25,6 +26,12 @@
 //   whole-literal match is unambiguous, unlike "#145" inside prose),
 //   rgb()/rgba()/hsl()/hsla(), or a CSS named color from the complete
 //   CSS Color Module Level 4 keyword list;
+// - a TemplateExpression (round 4) is reported when its static head
+//   starts a color form: a functional rgb(/rgba(/hsl(/hsla( head, or a
+//   `#` head followed by a substitution — `rgba(${r}, ${g}, ${b}, 0.5)`
+//   and `#${hex}` are the realistic interpolated ways to hardcode a
+//   brand color while dodging a whole-literal match. Substitution
+//   expressions are still scanned for whole literals inside them;
 // - "transparent", "currentColor" and "inherit" are allowed (explicit
 //   non-colors, not brand leaks);
 // - never scanned: comments (not in the AST), import/export module
@@ -249,6 +256,25 @@ export function colorViolation(value) {
   return null;
 }
 
+/**
+ * The reportable form of a TemplateExpression whose static head starts a
+ * color (round 4), or null when it does not: a functional head reports
+ * its leading `name(` (matching colorViolation), a `#` head followed by a
+ * substitution reports `#` — the interpolation is where the color's
+ * digits would come from. Only the head counts: a color that appears
+ * after a substitution (`abc ${v} #fff`) is not a color *started* by the
+ * static text, and whole-literal matching inside prose stays out of
+ * scope on purpose.
+ */
+export function templateHeadViolation(headText) {
+  const trimmed = headText.trim();
+  if (trimmed === "") return null;
+  if (trimmed.startsWith("#")) return "#";
+  const functional = trimmed.match(FUNCTIONAL_VALUE);
+  if (functional) return `${functional[1]}(`;
+  return null;
+}
+
 function isExcluded(absolutePath, rootDir) {
   if (TEST_FILE.test(absolutePath)) return true;
   const normalized = absolutePath + sep;
@@ -308,6 +334,19 @@ export function scanFile(path) {
       const value = node.initializer ?? node.type;
       if (value) visit(value);
       return;
+    }
+    // A template with substitutions is one violation when its static head
+    // starts a color form (round 4); it does not return early, so the
+    // substitution expressions below still recurse and whole literals
+    // nested inside them keep being caught.
+    if (ts.isTemplateExpression(node)) {
+      const head = templateHeadViolation(node.head.text);
+      if (head) {
+        const { line } = sourceFile.getLineAndCharacterOfPosition(
+          node.getStart(sourceFile),
+        );
+        violations.push({ line: line + 1, literal: head });
+      }
     }
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
       const literal = colorViolation(node.text);

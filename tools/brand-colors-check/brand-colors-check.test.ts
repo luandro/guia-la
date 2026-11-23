@@ -10,15 +10,17 @@ import * as brandColors from "./brand-colors-check.mjs";
 import { collectFindings, scanFile } from "./brand-colors-check.mjs";
 
 /**
- * The brand-color gate's own contract (PR #19 review, rounds 1-3): a
+ * The brand-color gate's own contract (PR #19 review, rounds 1-4): a
  * matcher regression must not silently turn the gate permanently green.
  * Since round 3 the scanner parses each file with the TypeScript compiler
  * API and reports any string literal (or no-substitution template literal)
  * whose whole trimmed value is a color — wherever it sits: object values,
  * JSX attributes, JSX expression containers, ternaries, multi-line values,
- * function arguments. Pins the color forms caught (hex 3/4/6/8, rgb()/rgba
- * ()/hsl()/hsla(), the complete CSS Color 4 named set), the module-name and
- * non-color exemptions, and the CLI's exit code and output format.
+ * function arguments. Round 4 adds template expressions whose static head
+ * starts a color form (`rgba(${r}, ...)`, `#${hex}`). Pins the color forms
+ * caught (hex 3/4/6/8, rgb()/rgba()/hsl()/hsla(), the complete CSS Color
+ * 4 named set), the module-name and non-color exemptions, and the CLI's
+ * exit code and output format.
  */
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -180,6 +182,57 @@ describe("scanFile: functional color forms", () => {
             : "hsla(120, 50%, 50%, 0.5)";
     const violations = scanFile(writeFixture(`backgroundColor: "${call}";`));
     expect(violations).toEqual([{ line: 1, literal: `${form}(` }]);
+  });
+});
+
+describe("scanFile: template expressions (round 4)", () => {
+  // An interpolated color is as much a brand leak as a plain literal:
+  // `rgba(${r}, ${g}, ${b}, 0.5)` and `#${hex}` are the realistic ways to
+  // alpha-blend a brand color while dodging a whole-literal match. Round 3
+  // only visited StringLiteral and NoSubstitutionTemplateLiteral nodes, so
+  // a TemplateExpression's static head text was never checked.
+  it("catches an interpolated functional color via its head", () => {
+    expect(
+      scanFile(writeFixture("const a = `rgba(${r}, ${g}, ${b}, 0.5)`;")),
+    ).toEqual([{ line: 1, literal: "rgba(" }]);
+    expect(
+      scanFile(writeFixture("const a = `hsl(${h}, ${s}%, ${l}%)`;")),
+    ).toEqual([{ line: 1, literal: "hsl(" }]);
+  });
+
+  it("catches a # head followed by a substitution", () => {
+    expect(scanFile(writeFixture("const a = `#${hex}`;"))).toEqual([
+      { line: 1, literal: "#" },
+    ]);
+    expect(scanFile(writeFixture("const a = `#abc${x}`;"))).toEqual([
+      { line: 1, literal: "#" },
+    ]);
+  });
+
+  it("reports one violation per template (not one per substitution)", () => {
+    expect(scanFile(writeFixture("const a = `#${a}${b}`;"))).toEqual([
+      { line: 1, literal: "#" },
+    ]);
+  });
+
+  it("still scans string literals nested inside the substitutions", () => {
+    expect(scanFile(writeFixture('const a = `x${"red"}y`;'))).toEqual([
+      { line: 1, literal: "red" },
+    ]);
+  });
+
+  it("does not flag non-color heads", () => {
+    expect(scanFile(writeFixture("const a = `translate(${x}px)`;"))).toEqual(
+      [],
+    );
+    expect(scanFile(writeFixture("const a = `${locale}/places`;"))).toEqual([]);
+  });
+
+  it("does not flag a color that only appears after a substitution (head rule)", () => {
+    // The head is "abc " — the static text does not start the color form,
+    // so this is out of scope for the gate (whole values and color-start
+    // heads are the unambiguous forms).
+    expect(scanFile(writeFixture("const a = `abc ${v} #fff`;"))).toEqual([]);
   });
 });
 

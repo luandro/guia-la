@@ -10,6 +10,13 @@ export { Card, type CardProps } from "./components/Card";
 export { Chip, type ChipProps } from "./components/Chip";
 export { Heading, type HeadingProps } from "./components/Heading";
 export { ListRow, type ListRowProps } from "./components/ListRow";
+// Accessible-name composition for explicit-label containers (PR #19
+// review rounds 3-4): re-exported so app screens wrapping the primitives
+// in their own pressables/links build the same complete name.
+export {
+  listRowAccessibilityLabel,
+  type ListRowAccessibilityLabelInput,
+} from "./components/listRowAccessibility";
 export { Text, type TextProps } from "./components/Text";
 
 // Primitives (batch 2, task 6)
@@ -19,6 +26,7 @@ export {
   MapPlaceholder,
   type MapPlaceholderProps,
 } from "./components/MapPlaceholder";
+export { mapPlaceholderAccessibilityLabel } from "./components/mapPlaceholderAccessibility";
 export {
   OfflineBanner,
   type OfflineBannerProps,
