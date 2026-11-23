@@ -5,9 +5,10 @@ import type { ElevationLevel, ThemeTokens } from "../tokens/types";
 /**
  * Elevation mapping (phase 03, task 5). The token scale carries the
  * Android `elevation` number; the iOS shadow triple is derived from that
- * same number (radius × 1.5, offset height × 0.5, text-role shadow color)
- * so depth is one datum per level, not per-platform hand-tuning. This
- * resolves the spec's open question from PRs 03-3/03-4.
+ * same number (radius × 1.5, offset height × 0.5) so depth is one datum
+ * per level, not per-platform hand-tuning. This resolves the spec's open
+ * question from PRs 03-3/03-4. The shadow color is the mode-independent
+ * `shadow` role (PR #19 review), not the text role.
  */
 
 /** Shadow strength — a rendering constant, not a theme token. */
@@ -22,7 +23,7 @@ export function elevationStyle(
   if (elevation === 0) return { elevation: 0 };
   return {
     elevation,
-    shadowColor: tokens.colors.text,
+    shadowColor: tokens.colors.shadow,
     shadowOpacity: SHADOW_OPACITY,
     shadowRadius: elevation * 1.5,
     shadowOffset: { width: 0, height: elevation / 2 },

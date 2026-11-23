@@ -14,7 +14,12 @@
 //       (virtualized rendering drops rows in a static export);
 //   (5) a journey page without an og:image pointing at a shipped asset
 //       (PR #14 review round C: link previews need an image, and the meta
-//       must reference a file that actually exists in the export).
+//       must reference a file that actually exists in the export);
+//   (6) a page whose raw HTML does not carry exactly one <h1> (PR #19
+//       review: Heading's `level` reaches the web semantics via aria-level,
+//       so a page whose primary title is not level 1 exports with zero h1,
+//       and a stray extra Heading-1 exports several — both misrepresent the
+//       page to crawlers and screen-reader users).
 //
 // Usage: s1-cluster-check.mjs <dist-dir> <fixture-dir>
 // Expected pages come from <fixture-dir>/places.json + destination.json.
@@ -205,6 +210,19 @@ function checkLang(page, html, expectedLocale) {
   }
 }
 
+/** Opening <h1> tags in the raw HTML ("h1>" or "h1 attr..."). */
+function h1Count(html) {
+  return [...html.matchAll(/<h1(?=[\s>])/g)].length;
+}
+
+/** Exactly one h1 per exported page (PR #19 review). */
+function checkH1(page, html) {
+  const count = h1Count(html);
+  if (count !== 1) {
+    fail(`${page}: expected exactly one <h1>, found ${count}`);
+  }
+}
+
 /** Every hreflang target must list this page back (return-link rule). */
 function checkReciprocity(page, html) {
   for (const [lang, target] of Object.entries(alternatesOf(html))) {
@@ -246,6 +264,7 @@ if (!existsSync(join(distDir, "og/default.png"))) {
   checkOg(page, html, "en");
   checkOgImage(page, html);
   checkLang(page, html, "en");
+  checkH1(page, html);
   checkReciprocity(page, html);
 }
 
@@ -267,6 +286,7 @@ for (const locale of LOCALES) {
   checkOg(page, html, locale);
   checkOgImage(page, html);
   checkLang(page, html, locale);
+  checkH1(page, html);
   checkReciprocity(page, html);
   for (const slug of slugs) {
     if (!html.includes(`href="/${locale}/places/${slug}"`)) {
@@ -287,6 +307,7 @@ for (const locale of LOCALES) {
     checkOg(page, html, locale);
     checkOgImage(page, html);
     checkLang(page, html, locale);
+    checkH1(page, html);
     checkReciprocity(page, html);
   }
 }
@@ -299,5 +320,5 @@ if (problems.length > 0) {
 
 const pageCount = 1 + LOCALES.length + LOCALES.length * slugs.length;
 console.log(
-  `s1-cluster: OK — ${pageCount} journey pages (og form + og:image, hreflang cluster + reciprocity, per-locale <html lang>, full list links)`,
+  `s1-cluster: OK — ${pageCount} journey pages (og form + og:image, hreflang cluster + reciprocity, per-locale <html lang>, full list links, exactly one h1 per page)`,
 );

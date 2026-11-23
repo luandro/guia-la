@@ -6,9 +6,12 @@ import { Text } from "./Text";
 /**
  * OfflineBanner primitive (phase 03, task 6): the connection is down and
  * content is served from cache or unavailable. Renders nothing while
- * `visible` is false; the alert role announces (re)appearance. The
- * warning dot is decorative — the message text carries the meaning, so
- * nothing depends on color alone. Strings arrive translated (D-14).
+ * `visible` is false. (Re)appearance is announced politely (PR #19
+ * review): this is a routine status — cached content remains usable — so
+ * a status role with a polite live region, never an assertive alert,
+ * which would interrupt current speech. The warning dot is decorative —
+ * the message text carries the meaning, so nothing depends on color
+ * alone. Strings arrive translated (D-14).
  */
 export type OfflineBannerProps = {
   message: string;
@@ -25,7 +28,10 @@ export function OfflineBanner({
   if (!visible) return null;
   return (
     <View
-      accessibilityRole="alert"
+      // Polite status semantics: role="status" carries an implicit polite
+      // live region on web; accessibilityLiveRegion covers Android.
+      accessibilityLiveRegion="polite"
+      role="status"
       testID={testID}
       style={{
         alignItems: "center",

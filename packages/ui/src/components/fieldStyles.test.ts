@@ -6,8 +6,11 @@ import { WCAG_AA_TEXT, contrastRatio } from "../tokens/contrast";
 import { THEME_MODES } from "../tokens/types";
 import type { ColorSet } from "../tokens/types";
 import {
+  fieldA11yProps,
   fieldBorderColor,
+  fieldHasError,
   fieldHelperColor,
+  fieldHelperText,
   fieldInputColors,
 } from "./fieldStyles";
 
@@ -76,6 +79,63 @@ describe("fieldHelperColor", () => {
       ).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
     },
   );
+});
+
+describe("fieldHasError", () => {
+  it("treats undefined and the empty string as no error", () => {
+    expect(fieldHasError(undefined)).toBe(false);
+    expect(fieldHasError("")).toBe(false);
+  });
+
+  it("treats any nonempty message as an error", () => {
+    expect(fieldHasError("Required")).toBe(true);
+    expect(fieldHasError(" ")).toBe(true);
+  });
+});
+
+describe("fieldHelperText (PR #19 review: a cleared error restores the hint)", () => {
+  it("shows the hint when there is no error", () => {
+    expect(fieldHelperText(undefined, "Name, category or village")).toBe(
+      "Name, category or village",
+    );
+  });
+
+  it("shows the hint when the caller cleared the error with an empty string", () => {
+    // error ?? hint kept "" and rendered nothing; the predicate must match
+    // hasError's (a form that sets error="" on valid input loses its hint).
+    expect(fieldHelperText("", "Draft saved while offline")).toBe(
+      "Draft saved while offline",
+    );
+  });
+
+  it("a nonempty error replaces the hint", () => {
+    expect(fieldHelperText("Missing an @ sign", "We never share it")).toBe(
+      "Missing an @ sign",
+    );
+  });
+
+  it("returns undefined when neither is given", () => {
+    expect(fieldHelperText(undefined, undefined)).toBeUndefined();
+    expect(fieldHelperText("", undefined)).toBeUndefined();
+  });
+});
+
+describe("fieldA11yProps (PR #19 review: expose the validation state)", () => {
+  it("marks the input invalid from the same predicate as the helper", () => {
+    expect(fieldA11yProps(true, "field-helper-1")["aria-invalid"]).toBe(true);
+    expect(fieldA11yProps(false, "field-helper-1")["aria-invalid"]).toBe(false);
+  });
+
+  it("points aria-describedby at the helper text's element id", () => {
+    expect(fieldA11yProps(false, "field-helper-1")).toEqual({
+      "aria-invalid": false,
+      "aria-describedby": "field-helper-1",
+    });
+  });
+
+  it("omits aria-describedby when there is no helper text to point at", () => {
+    expect(fieldA11yProps(false, undefined)).toEqual({ "aria-invalid": false });
+  });
 });
 
 describe("fieldInputColors", () => {

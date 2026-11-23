@@ -26,8 +26,12 @@ export function LoadingView() {
   const { tokens } = useTheme();
   return (
     // One announcement for the whole group: the skeletons themselves stay
-    // out of the accessibility tree (see Skeleton's label prop).
+    // out of the accessibility tree (see Skeleton's label prop). The
+    // container is explicitly accessible — on iOS a plain View is not an
+    // accessibility element, so without it VoiceOver may skip the label
+    // and never announce the loading state (PR #19 review).
     <View
+      accessible
       accessibilityLabel={t("places.loading")}
       accessibilityRole="progressbar"
       style={{ gap: tokens.spacing.sm, padding: tokens.spacing.lg }}

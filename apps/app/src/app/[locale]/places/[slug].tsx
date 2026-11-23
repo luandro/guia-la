@@ -160,7 +160,7 @@ function DetailContent({ slug }: { slug: string }) {
           padding: tokens.spacing.xl,
         }}
       >
-        <Heading level={2}>{content.name}</Heading>
+        <Heading level={1}>{content.name}</Heading>
         {category ? (
           <Text variant="bodySmall" style={{ color: tokens.colors.textMuted }}>
             {category.label[locale]}

@@ -37,7 +37,7 @@ function NotFoundContent() {
         }}
       >
         <Text variant="display">404</Text>
-        <Heading level={3}>{t("notFound.title")}</Heading>
+        <Heading level={1}>{t("notFound.title")}</Heading>
         <Text>{t("notFound.description")}</Text>
         <Link
           href="/"

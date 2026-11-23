@@ -111,7 +111,7 @@ function ListContent() {
               padding: tokens.spacing.lg,
             }}
           >
-            <Heading level={2}>
+            <Heading level={1}>
               {t("places.listTitle", { destination: destination?.name })}
             </Heading>
             <Text variant="bodySmall">

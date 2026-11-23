@@ -63,7 +63,7 @@ function Content() {
           padding: tokens.spacing.xl,
         }}
       >
-        <Heading level={2}>{t("index.title")}</Heading>
+        <Heading level={1}>{t("index.title")}</Heading>
         <Text>{t("index.subtitle")}</Text>
         <View
           style={{

@@ -78,6 +78,13 @@ const functionalHues = {
   warning: "#8A5A00",
 } as const;
 
+/**
+ * Shadow color, shared by both modes of every preset (mode-independent by
+ * design, PR #19 review): depth is cast by a dark color in light and dark
+ * mode alike — following the text role gave dark cards a light halo.
+ */
+const shadowColor = "#000000";
+
 const functionalHuesDark = {
   danger: "#F2B8B5",
   success: "#8FD6A0",
@@ -103,6 +110,7 @@ export const cotijubaPreset: ThemePreset = {
       accent: "#4E7A1E",
       border: "#D8CFBC",
       focus: "#0E7490",
+      shadow: shadowColor,
       ...functionalHues,
     },
     dark: {
@@ -115,6 +123,7 @@ export const cotijubaPreset: ThemePreset = {
       accent: "#BFE84C",
       border: "#24463E",
       focus: "#5FD4D4",
+      shadow: shadowColor,
       ...functionalHuesDark,
     },
   },
@@ -142,6 +151,7 @@ export const serraPreset: ThemePreset = {
       accent: "#A05418",
       border: "#D7D2C6",
       focus: "#2E5FA3",
+      shadow: shadowColor,
       ...functionalHues,
     },
     dark: {
@@ -154,6 +164,7 @@ export const serraPreset: ThemePreset = {
       accent: "#E8B44F",
       border: "#2A313D",
       focus: "#8FB7F5",
+      shadow: shadowColor,
       ...functionalHuesDark,
     },
   },

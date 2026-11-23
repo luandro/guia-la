@@ -1,19 +1,21 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  AccessibilityInfo,
-  Animated,
-  Easing,
-  type DimensionValue,
-} from "react-native";
+import { useEffect, useRef } from "react";
+import { Animated, Easing, type DimensionValue } from "react-native";
 
 import { useTheme } from "../theme/ThemeProvider";
 import type { RadiusStep } from "../tokens/types";
+import { useReduceMotionPreference } from "./useReduceMotionPreference";
 
 /**
  * Skeleton primitive (phase 03, task 6): a placeholder block for loading
  * content. The pulse loop degrades to a static block when the OS asks
  * for reduced motion (phase-03.md state matrix). No layout shift by
  * design: size the skeleton like the content it stands in for.
+ *
+ * PR #19 review: the animated opacity is bound to the view (it previously
+ * animated a value nothing rendered), the pulse starts only after the
+ * shared reduce-motion query resolves to false (a reduce-motion user never
+ * sees the pulse begin), and all instances share one query + one
+ * reduceMotionChanged subscription (see useReduceMotionPreference.ts).
  */
 export type SkeletonProps = {
   width?: DimensionValue;
@@ -40,24 +42,14 @@ export function Skeleton({
   testID,
 }: SkeletonProps) {
   const { tokens } = useTheme();
-  const [reduceMotion, setReduceMotion] = useState(false);
+  // known=false holds the animation until the query resolves — motion is
+  // never the fallback for an unanswered question.
+  const { known, enabled } = useReduceMotionPreference();
+  const shouldPulse = known && !enabled;
   const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    let cancelled = false;
-    // Best-effort: if the query fails or is unavailable, animate.
-    AccessibilityInfo.isReduceMotionEnabled?.()
-      .then((enabled) => {
-        if (!cancelled) setReduceMotion(enabled);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (reduceMotion) {
+    if (!shouldPulse) {
       opacity.stopAnimation(() => opacity.setValue(1));
       return;
     }
@@ -81,7 +73,7 @@ export function Skeleton({
     return () => {
       pulse.stop();
     };
-  }, [reduceMotion, opacity]);
+  }, [shouldPulse, opacity]);
 
   return (
     <Animated.View
@@ -93,6 +85,7 @@ export function Skeleton({
         backgroundColor: tokens.colors.border,
         borderRadius: tokens.radius[radius],
         height: height ?? tokens.typography.bodySmall.lineHeight,
+        opacity,
         width,
       }}
     />

@@ -23,6 +23,7 @@ const baselineColors = {
   success: "#1E6B34",
   warning: "#8A5A00",
   focus: "#0E7490",
+  shadow: "#000000",
 } as const;
 
 function typographyToken(
@@ -136,7 +137,7 @@ describe("themePresetSchema", () => {
     expect(themePresetSchema.safeParse(preset).success).toBe(false);
   });
 
-  it("covers exactly the twelve semantic roles from types.ts", () => {
+  it("covers exactly the thirteen semantic roles from types.ts", () => {
     expect(Object.keys(baselineColors).sort()).toEqual([...COLOR_ROLES].sort());
   });
 });

@@ -60,6 +60,19 @@ describe("shipped presets", () => {
     },
   );
 
+  it.each(PRESETS.map((preset) => [preset.id, preset]))(
+    "%s shadow role is a real hex and mode-independent (PR #19 review)",
+    (_id, preset) => {
+      expect(preset.colors.light.shadow).toMatch(/^#[0-9a-fA-F]{6}$/);
+      expect(preset.colors.dark.shadow).toBe(preset.colors.light.shadow);
+      // Shadows are cast, not read: a dark color in both modes, so dark
+      // cards get depth instead of a light halo.
+      expect(contrastRatio(preset.colors.light.shadow, "#000000")).toBeLessThan(
+        contrastRatio(preset.colors.light.shadow, "#FFFFFF"),
+      );
+    },
+  );
+
   /**
    * WCAG AA floor, measured per preset and mode with the tested
    * contrastRatio(): text on its backgrounds and onPrimary on primary

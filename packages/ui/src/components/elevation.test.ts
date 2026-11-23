@@ -51,7 +51,9 @@ describe("elevationStyle", () => {
         const number = tokens.elevation[level];
         expect(elevationStyle(tokens, level)).toEqual({
           elevation: number,
-          shadowColor: tokens.colors.text,
+          // PR #19 review: a dedicated mode-independent shadow token, not
+          // the text role (dark mode's light text cast a pale halo).
+          shadowColor: tokens.colors.shadow,
           shadowOpacity: expect.any(Number),
           shadowRadius: number * 1.5,
           shadowOffset: { width: 0, height: number / 2 },
