@@ -29,7 +29,7 @@ export default defineConfig({
       {
         test: {
           name: "tools",
-          include: ["tools/i18n-check/*.{test,spec}.ts"],
+          include: ["tools/**/*.{test,spec}.ts"],
         },
       },
     ],

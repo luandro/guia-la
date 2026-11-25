@@ -8,6 +8,13 @@
 /** WCAG AA minimum for normal-size text. */
 export const WCAG_AA_TEXT = 4.5;
 
+/**
+ * WCAG 1.4.11 minimum for non-text contrast (UI component boundaries and
+ * graphical objects). The idle field border is held to this floor against
+ * both colors it touches (surface fill inside, background outside).
+ */
+export const WCAG_AA_NON_TEXT = 3;
+
 const HEX_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 /**

@@ -1,9 +1,10 @@
 import { Link, useLocalSearchParams } from "expo-router";
 import type { Metadata } from "expo-router/server";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { resolveContent, type Locale } from "@guia-la/core";
+import { Heading, Text, useTheme } from "@guia-la/ui";
 
 import {
   ErrorView,
@@ -14,11 +15,11 @@ import {
 } from "@/components/journey-ui";
 import { NotFoundView } from "@/components/not-found-view";
 import { Screen } from "@/components/screen";
-import { ThemedText } from "@/components/themed-text";
 import { getJourneyDataset } from "@/data/destination";
 import { useDestination } from "@/hooks/use-destination";
 import { createT, isLocale, LOCALES } from "@/i18n";
 import { LocaleProvider } from "@/i18n/provider";
+import { linkTargetStyle } from "@/lib/link-target-style";
 import {
   destinationOgImage,
   languageAlternates,
@@ -29,6 +30,8 @@ import {
 /**
  * Place detail (task 02-9): /<locale>/places/<slug> — one static page per
  * locale x place. Unknown slug or locale renders the branded not-found.
+ * Phase 03, task 5 cut-over: typography via @guia-la/ui variants, colors
+ * via useTheme tokens (no template theme, no brand hex).
  */
 
 type Params = Record<string, string | string[]>;
@@ -105,6 +108,7 @@ export default function PlaceDetail() {
 function DetailContent({ slug }: { slug: string }) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language as Locale;
+  const { tokens } = useTheme();
   const { state, retry } = useDestination();
 
   if (state.status === "loading") {
@@ -151,37 +155,42 @@ function DetailContent({ slug }: { slug: string }) {
           screens or with enlarged text the summary, verification date and
           back link can exceed the viewport; contentContainerStyle keeps the
           short-content layout unchanged. */}
-      <ScrollView contentContainerStyle={styles.detail}>
-        <ThemedText style={styles.title}>{content.name}</ThemedText>
+      <ScrollView
+        contentContainerStyle={{
+          gap: tokens.spacing.sm,
+          padding: tokens.spacing.xl,
+        }}
+      >
+        <Heading level={1}>{content.name}</Heading>
         {category ? (
-          <ThemedText style={styles.category}>
+          <Text variant="bodySmall" style={{ color: tokens.colors.textMuted }}>
             {category.label[locale]}
-          </ThemedText>
+          </Text>
         ) : null}
-        <ThemedText style={styles.summary}>{content.summary}</ThemedText>
-        <View style={styles.markers}>
+        <Text variant="body">{content.summary}</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            gap: tokens.spacing.md,
+            paddingTop: tokens.spacing.xs,
+          }}
+        >
           {content.isFallback && (
             <ShowingOriginalBadge locale={content.locale} />
           )}
           {content.machineTranslated && <MachineTranslatedBadge />}
         </View>
-        <ThemedText style={styles.verified}>
+        <Text variant="caption" style={{ color: tokens.colors.textMuted }}>
           {t("places.verifiedAt", { date: verified })}
-        </ThemedText>
-        <Link href={`/${locale}/places`} style={styles.back}>
-          {t("common.backToList")}
+        </Text>
+        <Link href={`/${locale}/places`} asChild>
+          <Pressable style={linkTargetStyle(tokens)}>
+            <Text variant="label" style={{ color: tokens.colors.primary }}>
+              {t("common.backToList")}
+            </Text>
+          </Pressable>
         </Link>
       </ScrollView>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  detail: { gap: 8, padding: 24 },
-  title: { fontSize: 26, fontWeight: "700" },
-  category: { fontSize: 14, opacity: 0.7 },
-  summary: { fontSize: 16 },
-  markers: { flexDirection: "row", gap: 12, paddingTop: 4 },
-  verified: { fontSize: 13, opacity: 0.7 },
-  back: { color: "#208AEF", fontWeight: "600", paddingTop: 8 },
-});

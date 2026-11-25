@@ -15,8 +15,10 @@ export type ThemeMode = (typeof THEME_MODES)[number];
 export type ModeSetting = "system" | ThemeMode;
 
 /**
- * Semantic color roles (exactly twelve). No component may name a color
+ * Semantic color roles (exactly thirteen). No component may name a color
  * outside this list; a preset must define every role in both modes.
+ * `shadow` is deliberately mode-independent in the shipped presets: a
+ * shadow is cast, not read, so it stays dark in dark mode (PR #19 review).
  */
 export const COLOR_ROLES = [
   "background",
@@ -31,6 +33,7 @@ export const COLOR_ROLES = [
   "success",
   "warning",
   "focus",
+  "shadow",
 ] as const;
 export type ColorRole = (typeof COLOR_ROLES)[number];
 

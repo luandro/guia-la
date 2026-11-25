@@ -78,10 +78,33 @@ const functionalHues = {
   warning: "#8A5A00",
 } as const;
 
+/**
+ * Shadow color, shared by both modes of every preset (mode-independent by
+ * design, PR #19 review): depth is cast by a dark color in light and dark
+ * mode alike — following the text role gave dark cards a light halo.
+ */
+const shadowColor = "#000000";
+
 const functionalHuesDark = {
   danger: "#F2B8B5",
   success: "#8FD6A0",
   warning: "#E8C268",
+} as const;
+
+/**
+ * Border role floor (PR #19 review round 2): the idle field boundary must
+ * reach WCAG 1.4.11 non-text contrast (≥ 3:1) against both adjacent colors —
+ * the surface fill inside and the page background outside — in every preset
+ * and mode. Both presets therefore carry deliberately darker light-mode
+ * borders and lighter dark-mode borders than a hairline would be; the
+ * contrast tests in fieldStyles.test.ts are the guardrail, and owner tuning
+ * must keep them green (same rule as the AA text floor).
+ */
+const borders = {
+  cotijubaLight: "#8F8471", // 3.68:1 surface / 3.32:1 background
+  cotijubaDark: "#588574", // 3.38:1 surface / 4.09:1 background
+  serraLight: "#85827B", // 3.84:1 surface / 3.43:1 background
+  serraDark: "#687385", // 3.29:1 surface / 3.71:1 background
 } as const;
 
 /**
@@ -101,8 +124,9 @@ export const cotijubaPreset: ThemePreset = {
       primary: "#0F5147",
       onPrimary: "#F7F3E8",
       accent: "#4E7A1E",
-      border: "#D8CFBC",
+      border: borders.cotijubaLight,
       focus: "#0E7490",
+      shadow: shadowColor,
       ...functionalHues,
     },
     dark: {
@@ -113,8 +137,9 @@ export const cotijubaPreset: ThemePreset = {
       primary: "#33B594",
       onPrimary: "#0C1F1B",
       accent: "#BFE84C",
-      border: "#24463E",
+      border: borders.cotijubaDark,
       focus: "#5FD4D4",
+      shadow: shadowColor,
       ...functionalHuesDark,
     },
   },
@@ -140,8 +165,9 @@ export const serraPreset: ThemePreset = {
       primary: "#2F3E68",
       onPrimary: "#F4F2ED",
       accent: "#A05418",
-      border: "#D7D2C6",
+      border: borders.serraLight,
       focus: "#2E5FA3",
+      shadow: shadowColor,
       ...functionalHues,
     },
     dark: {
@@ -152,8 +178,9 @@ export const serraPreset: ThemePreset = {
       primary: "#9DB2F0",
       onPrimary: "#14181F",
       accent: "#E8B44F",
-      border: "#2A313D",
+      border: borders.serraDark,
       focus: "#8FB7F5",
+      shadow: shadowColor,
       ...functionalHuesDark,
     },
   },

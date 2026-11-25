@@ -74,6 +74,21 @@ const appVariant = requireVar(
 );
 const destinationId = DESTINATION_BY_VARIANT[appVariant];
 
+// Splash background per destination, mirroring each preset's light and
+// dark `background` tokens in packages/ui/src/theme/presets.ts (kept in
+// sync by comment + app-config.test.ts; the config loader cannot import
+// the module — see header note). The dark entry exists because
+// userInterfaceStyle is "automatic" and the root layout follows the OS
+// scheme: without it a dark-mode user gets a light splash flashing before
+// the dark first screen (PR #19 review round 3).
+const SPLASH_BACKGROUND = {
+  cotijuba: { light: "#F7F3E8", dark: "#0C1F1B" },
+  serra: { light: "#F4F2ED", dark: "#14181F" },
+} as const;
+
+const splashBackground =
+  SPLASH_BACKGROUND[destinationId] ?? SPLASH_BACKGROUND.cotijuba;
+
 // D-01 candidate id (la.guia.app) — permanent after the first store release,
 // so only production uses it, and only after the owner confirms the domain.
 // Every other environment gets a suffixed id that can never collide.
@@ -112,7 +127,12 @@ const config: ExpoConfig = {
     [
       "expo-splash-screen",
       {
-        backgroundColor: "#208AEF",
+        // Mirrors each preset's light and dark `background` tokens in
+        // packages/ui/src/theme/presets.ts. Literals on purpose: the
+        // Expo config loader transpiles only this file, so it cannot
+        // import the token module (see the self-contained note above).
+        backgroundColor: splashBackground.light,
+        dark: { backgroundColor: splashBackground.dark },
         image: "./assets/images/splash-icon.png",
         imageWidth: 76,
       },

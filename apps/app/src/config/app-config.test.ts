@@ -9,6 +9,12 @@ import {
   appVariantSchema,
   destinationForVariant,
 } from "./env.js";
+// Deep import, not the @guia-la/ui barrel: this file is exercised by the
+// pure-logic app tests (node environment), and the barrel transitively
+// imports react-native, whose Flow sources vite cannot parse there (same
+// constraint as place-row-accessibility.ts). The presets module itself is
+// pure data, so the splash test can compare against the real tokens.
+import { cotijubaPreset, serraPreset } from "@guia-la/ui/src/theme/presets";
 
 /**
  * app.config.ts must stay equivalent to src/config/env.ts even though the
@@ -45,6 +51,44 @@ describe("app.config.ts", () => {
         expect(config.ios?.bundleIdentifier).toBe(expectedAppId);
         expect(config.android?.package).toBe(expectedAppId);
       }
+    }
+    delete process.env.APP_ENV;
+    delete process.env.APP_VARIANT;
+  });
+
+  it("mirrors each preset's light and dark background tokens in the splash plugin", async () => {
+    // The splash must follow the OS scheme in both directions (PR #19
+    // review round 3): light values mirror each preset's light `background`
+    // token, dark values its dark `background` token. The expected values
+    // come from the presets themselves (round 7): a hand-typed copy here
+    // would stay green when an owner retunes a preset, which is exactly
+    // the drift this test exists to catch.
+    const splashByDestination = {
+      cotijuba: {
+        light: cotijubaPreset.colors.light.background,
+        dark: cotijubaPreset.colors.dark.background,
+      },
+      serra: {
+        light: serraPreset.colors.light.background,
+        dark: serraPreset.colors.dark.background,
+      },
+    } as const;
+    for (const appVariant of appVariantSchema.options) {
+      process.env.APP_ENV = "development";
+      process.env.APP_VARIANT = appVariant;
+      const config = await loadConfig();
+      const destination = destinationForVariant(appVariant);
+      const splash = (config.plugins ?? []).find(
+        (plugin) => Array.isArray(plugin) && plugin[0] === "expo-splash-screen",
+      ) as
+        | [
+            string,
+            { backgroundColor?: string; dark?: { backgroundColor?: string } },
+          ]
+        | undefined;
+      const expected = splashByDestination[destination];
+      expect(splash?.[1]?.backgroundColor).toBe(expected.light);
+      expect(splash?.[1]?.dark?.backgroundColor).toBe(expected.dark);
     }
     delete process.env.APP_ENV;
     delete process.env.APP_VARIANT;
