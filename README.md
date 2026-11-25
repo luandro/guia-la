@@ -27,6 +27,18 @@ pnpm dev                    # Expo dev server (flagship variant)
 `pnpm check` (run by `./scripts/check.sh` when dependencies are installed)
 is format + lint + typecheck + i18n key completeness + unit tests.
 
+Accessibility gate (phase 03, task 8): `pnpm a11y` runs axe (wcag2a/2aa/
+21a/21aa) over the built Storybook in the installed Chromium and fails on
+any serious/critical violation or any story that fails to render. It is
+**not** part of `pnpm check` — it needs a browser and a built Storybook —
+so run it by hand after `pnpm storybook:build`, and before merging a PR
+that changes a primitive's accessibility:
+
+```bash
+pnpm storybook:build
+pnpm a11y
+```
+
 ## Local Android build
 
 With an emulator running (e.g. `Medium_Phone_API_35` via avdmanager) —

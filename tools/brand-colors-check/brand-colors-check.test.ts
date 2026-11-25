@@ -7,7 +7,11 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import * as brandColors from "./brand-colors-check.mjs";
-import { collectFindings, scanFile } from "./brand-colors-check.mjs";
+import {
+  collectFindings,
+  isTestFile,
+  scanFile,
+} from "./brand-colors-check.mjs";
 
 /**
  * The brand-color gate's own contract (PR #19 review, rounds 1-4): a
@@ -473,5 +477,37 @@ describe("collectFindings", () => {
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
+  });
+});
+
+describe("TEST_FILE extension class (PR #20 review)", () => {
+  // The character class was `[c|m]?`: the `|` is a literal inside a class,
+  // so the pattern also matched a bogus `.test.|ts` and accepted
+  // non-extensions such as `.test.mtsx` / `.test.cjsx`. The predicate under
+  // test is the gate's own `isTestFile` (same regex it excludes by), so a
+  // regression in the gate itself fails here — not a copy of the pattern.
+  it.each([
+    "a.test.ts",
+    "a.spec.tsx",
+    "a.test.js",
+    "a.test.jsx",
+    "a.test.cts",
+    "a.test.cjs",
+    "a.test.mts",
+    "a.test.mjs",
+  ])("treats %s as a test file", (name) => {
+    expect(isTestFile(name)).toBe(true);
+  });
+
+  it.each([
+    "a.tsx",
+    "a.ts",
+    "a.js",
+    "a.test.mtsx",
+    "a.test.cjsx",
+    "a.test.|ts",
+    "a.contest.ts",
+  ])("does not treat %s as a test file", (name) => {
+    expect(isTestFile(name)).toBe(false);
   });
 });

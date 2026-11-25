@@ -85,8 +85,19 @@ const SOURCE_EXTENSIONS = new Set([
   ".cjs",
 ]);
 
-/** Tests pin exact colors as assertions; they are not shipped UI. */
-const TEST_FILE = /\.(test|spec)\.[c|m]?[jt]sx?$/;
+/**
+ * Tests pin exact colors as assertions; they are not shipped UI.
+ *
+ * The extension is `.test|.spec` then an optional `c`/`m` then `js`/`ts`
+ * then an optional `x` — the forms the repo ships: `.test.ts`, `.test.tsx`,
+ * `.test.js`, `.test.jsx`, and the ESM/CommonJS module forms `.test.mts`,
+ * `.test.mjs`, `.test.cts`, `.test.cjs`. An earlier `[c|m]?` put the `|`
+ * inside the character class, where it is a literal, so the pattern also
+ * matched a bogus `.test.|ts` and, because the stem was `[jt]sx?` with no
+ * tie between the module prefix and the js/ts letter, accepted
+ * non-extensions such as `.test.mtsx` / `.test.cjsx` (PR #20 review).
+ */
+const TEST_FILE = /\.(test|spec)\.(?:[cm][jt]s|[jt]sx?)$/;
 
 /** Whole-value hex: 3, 4, 6 or 8 hex digits (5 and 7 are not colors). */
 const HEX_VALUE =
@@ -297,8 +308,12 @@ export function templateHeadViolation(headText) {
   return null;
 }
 
+export function isTestFile(absolutePath) {
+  return TEST_FILE.test(absolutePath);
+}
+
 function isExcluded(absolutePath, rootDir) {
-  if (TEST_FILE.test(absolutePath)) return true;
+  if (isTestFile(absolutePath)) return true;
   const normalized = absolutePath + sep;
   return EXCLUDED_SEGMENTS.some((segment) =>
     normalized.startsWith(join(rootDir, segment)),

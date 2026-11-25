@@ -12,6 +12,7 @@ import {
 } from "@guia-la/ui";
 
 import type { JourneyError } from "@/state/journey";
+import { stateHeadingLevel } from "@/lib/state-heading-level";
 
 /**
  * Shared journey UI pieces (task 02-9). Phase 03, task 6: these are thin
@@ -45,14 +46,15 @@ export function LoadingView() {
 
 export function EmptyView() {
   const { t } = useTranslation();
+  // The empty state is the page's only heading (list/detail error/empty
+  // branches render nothing else at level 1), so it carries level 1 to
+  // keep exactly one h1 per page (PR #19 deferred finding 03-78b). The
+  // level is semantics only — the title keeps its compact size (PR #20).
   return (
-    // The empty state is the page's only heading (list/detail error/empty
-    // branches render nothing else at level 1), so it carries level 1 to
-    // keep exactly one h1 per page (PR #19 deferred finding 03-78b).
     <EmptyState
       title={t("places.empty")}
       description={t("places.emptyDetail")}
-      headingLevel={1}
+      headingLevel={stateHeadingLevel("empty")}
     />
   );
 }
@@ -73,7 +75,7 @@ export function ErrorView({
       }
       retryLabel={t("common.retry")}
       onRetry={retry}
-      headingLevel={1}
+      headingLevel={stateHeadingLevel("error")}
     />
   );
 }

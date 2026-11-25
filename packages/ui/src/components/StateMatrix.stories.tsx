@@ -32,9 +32,26 @@ import { Text } from "./Text";
  * destination-shaped surface and renders it once per state. The theme
  * matrix is covered by the per-primitive Cotijuba and Serra stories
  * already colocated; here the states and the locale axis are the focus.
- * Each state below is "n/a" justified where it does not apply (a
- * presentational Text or Heading has no loading/empty/error of its own —
- * its state is the container's).
+ *
+ * State applicability (PR #20 review — the phase requires a cell marked
+ * "n/a" to be justified in the story file, and this file used to claim
+ * per-state n/a justifications it did not contain):
+ * - loaded — the ListRow/Card/Chip surface at rest; every primitive has a
+ *   resting form, so nothing is n/a here.
+ * - loading — the Skeleton group stands in for the list rows; a Skeleton is
+ *   the only loading affordance the design system ships, and Text/Heading/
+ *   Card/Chip have no loading state of their own (they are presentational
+ *   or already render while loading), so their "n/a" is the container's.
+ * - empty — the EmptyState surface (title + description + one action);
+ *   ListRow/Card/Chip/Skeleton have no empty form, their state is the
+ *   container's, so they are n/a here by design.
+ * - error — the ErrorState surface (names the failure + retry); the other
+ *   primitives are presentational and carry no error form of their own.
+ * - offline — the OfflineBanner plus the last-known (cached) content; the
+ *   banner is the offline affordance, the rest is the content it annotates.
+ *
+ * The phase matrix's reduced-motion row is covered by the dedicated
+ * reduce-motion stories (reduceMotionStore / Skeleton), not restated here.
  *
  * Fixture text is the shared story copy (stories/fixtures.ts) — review
  * surfaces, not shipped UI (D-14).
@@ -173,10 +190,10 @@ function Surface({ state, locale }: { state: StateName; locale: StoryLocale }) {
       <Card>
         <View style={{ gap: 12 }}>
           <Heading level={2}>{STATE_COPY[state][locale]}</Heading>
-          <OfflineBanner
-            message={copyFor(locale).offlineBanner.message}
-            visible={state === "offline"}
-          />
+          {/* The offline state owns its own OfflineBanner (OfflineStateView),
+              so the surface must not render a second one — two banners are
+              two status regions announcing the same message, a layout the
+              app never produces (PR #20 review). */}
           <StateView locale={locale} />
         </View>
       </Card>

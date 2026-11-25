@@ -169,12 +169,65 @@ unchanged; these add the review matrix and the axe gate on top of it.
   `aria-describedby` still only points at a non-empty helper.
 - **03-78b heading level**: `EmptyState` and `ErrorState` take a
   `headingLevel` prop (default 2); the app's list/detail empty+error
-  branches pass level 1 so each page keeps exactly one h1. Proven by
-  `pnpm s1` ("exactly one h1 per page").
+  branches pass level 1 so each page keeps exactly one h1. The *semantic*
+  level and the *visual* size are separate props (PR #20 review): a state
+  title is level 1 without changing typography, so the compact look the
+  primitives shipped with is preserved. The empty/error branches' level-1
+  choice is proven by a unit test of the app's state-to-level function
+  (`apps/app/src/lib/state-heading-level.test.ts`), **not** by `pnpm s1` —
+  the static export is seeded synchronously from the fixture loader, so it
+  only ever renders the loaded branch and cannot reach the empty/error
+  branches at all (the earlier "proven by pnpm s1" claim was wrong).
 - **03-78c brand-colors-check extensions**: `SOURCE_EXTENSIONS` now also
   scans `.mjs/.cjs/.mts/.cts` (and `TEST_FILE` covers them), so a color
   literal in an ESM/CommonJS module no longer slips past the gate. New
   `collectFindings` test plants a hex in each extension under a scan root.
+  The `TEST_FILE` pattern itself was `[c|m]?` — `|` is a literal inside a
+  character class — and accepted bogus `.test.mtsx`/`.test.cjsx`; it is now
+  `\.(?:[cm][jt]s|[jt]sx?)$` and `isTestFile` is exported so the gate's own
+  predicate (not a copy) is what the new test exercises (PR #20 review).
+
+### PR #20 review round 1 fixes (17 threads)
+
+- **State matrix double OfflineBanner** (`StateMatrix.stories.tsx`): the
+  `Surface` wrapper rendered an `OfflineBanner` and `OfflineStateView`
+  rendered another, so the offline cells showed two status regions
+  announcing the same message — a layout the app never produces. The
+  wrapper's banner is removed; the offline state owns the only one.
+- **Heading semantics/visual split** (`Heading.tsx`, `headingStyle.ts`,
+  `EmptyState.tsx`, `ErrorState.tsx`): `level` is now semantics only (the
+  exported h1/h2/h3) and a new `size` prop (1-3, default 3) is the visual
+  size. The state primitives' titles keep their compact look while being
+  able to be the page's h1 — the earlier "default 2" and the app's
+  `headingLevel={1}` silently enlarged them to `title`/`display` type, a
+  visual change without owner sign-off. `headingStyleFor` is pure and
+  unit-tested (`headingStyle.test.ts`).
+- **App state → heading level** (`apps/app/src/lib/state-heading-level.ts`):
+  the empty/error branches' level-1 choice is a pure function with a unit
+  test, replacing the incorrect "proven by pnpm s1" claim (s1 never
+  renders those branches).
+- **TextInput live region** (`textInputLiveRegion.test.ts`): the old test
+  asserted a constant; the new one renders `TextInput` with no hint/error
+  and asserts the polite region exists before any message, then that an
+  error lands inside it. react-native resolves to its Flow source under
+  vitest, so it renders against react-native-web (the DOM the gate sees).
+- **ListRow accessible-name branching** (`listRowLabel.ts`): the changed
+  logic is extracted as the pure `listRowPressableLabel` with tests for all
+  three branches (default → undefined so RNW composes the name, caller
+  label wins, icon-only trailing label).
+- **a11y gate render detection** (`story-render.mjs`,
+  `static-server-path.mjs`): the gate now fails a story that crashes (page
+  error, Storybook's `sb-show-errordisplay` on **body**) or renders nothing
+  (`#storybook-root` with zero children), instead of counting it as a clean
+  scan. The static server's containment uses `path.relative`, so a sibling
+  `<root>-other/x` cannot escape. Both helpers are pure and unit-tested;
+  red/green demonstrated with two planted stories (a throw and a null
+  render), then reverted.
+- **Docs**: README gains the `pnpm a11y` note (manual, needs a browser);
+  plan.md's CI section states plainly that the gate is manual and the CI
+  wiring needs owner approval (governance); the state-matrix story header
+  now justifies each state instead of claiming n/a coverage it did not
+  have.
 
 ### Task 7 — state-matrix stories
 
@@ -201,6 +254,27 @@ unchanged; these add the review matrix and the axe gate on top of it.
   download — uses `~/.cache/ms-playwright`), runs axe (wcag2a/2aa/21a/21aa)
   over every story, fails on any serious/critical. `--grep` isolates a
   story; `--storybook <dir>` points at a build.
+- **A story that fails to render is a failure, not a clean scan (PR #20
+  review)**: the gate no longer waits for the `iframe.html` shell element
+  and counts any story as "scanned clean". It captures `pageerror`
+  (an uncaught exception in the story), detects Storybook's
+  `sb-show-errordisplay` on **body** (verified: Storybook 10 puts it on
+  `<body>`, not `<html>`), and fails `#storybook-root` when it has zero
+  children (a story that renders nothing, including `render: () => null`,
+  leaves the root empty; every real story leaves the decorator wrapper plus
+  the story's view). The predicates are pure and unit-tested in
+  `story-render.test.ts`; red/green ran against two planted stories (a
+  render throw → "Storybook error display is shown"; a `null` render →
+  "story rendered nothing"), then the stories were removed. The static
+  server's path check compares against the root boundary via
+  `path.relative`, so a sibling `<root>-other/x` cannot be served
+  (`static-server-path.test.ts`).
+- **axe concurrency with the a11y addon**: `@storybook/addon-a11y` runs
+  axe on each render in the same frame; once the fixed 350 ms sleep was
+  replaced by the render wait, the gate's `analyze()` hit "Axe is already
+  running" (exit 2 on the first `pnpm a11y` re-run). `analyze()` now goes
+  through `withAxeBusyRetry` (`axe-busy-retry.mjs`), which retries only
+  that error, bounded, and rethrows anything else (`axe-busy-retry.test.ts`).
 - Two real violations surfaced and fixed: the Button loading spinner
   (RNW `role="progressbar"` with no name — now `accessibilityHidden`,
   hidden because the button already announces busy) and the pressable
@@ -212,9 +286,18 @@ unchanged; these add the review matrix and the axe gate on top of it.
 - `FocusOrder.stories.tsx`: TextInput + Button focus-order stories (web
   react-native-web real DOM) for the phase QA journey 3.
 
-### Proposed CI step (not wired here — .github/ is out of scope for agents)
+### CI step (NOT wired — .github/ is governance and out of scope for agents)
 
-After the existing `pnpm storybook:build` job, add a step:
+**This gate is manual today, and that is deliberate.** `pnpm a11y` is a
+standalone script: it is not in `pnpm check` (it needs a browser and a
+built Storybook, so it cannot run in the docs-only check or on every
+commit), and wiring it into `.github/workflows/ci.yml` is a governance
+change that needs a recorded owner yes. Until that approval lands, the
+gate catches regressions only when someone runs `pnpm a11y` by hand — the
+PR says so plainly rather than presenting the gate as landed.
+
+The proposed CI step (owner approval required), after the existing
+`pnpm storybook:build` job:
 
     pnpm a11y   # fails on any serious/critical axe violation over the build
 
@@ -226,4 +309,8 @@ once (or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`) before the step.
 
 `pnpm check`, `./scripts/check.sh` (ends `check: OK`), `pnpm s1`,
 `pnpm storybook:build`, `pnpm a11y` — all exit 0; red/green runs quoted in
-the orchestrator `p03-78-tdd.txt`.
+the orchestrator `p03-78-tdd.txt`. Round 20 (PR #20 review) re-ran all five
+after the fixes: `pnpm check` (37 files, 409 tests), `./scripts/check.sh`
+(ends `check: OK`), `pnpm s1` (49 journey pages, exactly one h1 per page),
+`pnpm storybook:build`, `pnpm a11y` (0 violations, 0 render failures across
+90 stories) — runs quoted in the PR #20 evidence comment.

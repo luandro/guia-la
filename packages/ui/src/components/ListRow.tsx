@@ -4,6 +4,7 @@ import { Pressable, View } from "react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { MIN_HIT_TARGET } from "./hitSlop";
 import { listRowAccessibilityLabel } from "./listRowAccessibility";
+import { listRowPressableLabel } from "./listRowLabel";
 import { Text } from "./Text";
 
 /**
@@ -93,17 +94,20 @@ export function ListRow({
   // (axe's label-content-name-mismatch, task 8 a11y pass). A caller who
   // passes an explicit accessibilityLabel owns that name. The legacy
   // trailingAccessibilityLabel path builds an explicit label only for an
-  // icon-only trailing (no visible text of its own to mismatch).
-  const explicitLabel =
-    accessibilityLabel ??
-    (trailingAccessibilityLabel !== undefined
-      ? listRowAccessibilityLabel({
-          title,
-          description,
-          trailingAccessibilityLabel,
-          accessibilityLabel,
-        })
-      : undefined);
+  // icon-only trailing (no visible text of its own to mismatch). The
+  // branching itself is the pure, unit-tested listRowPressableLabel.
+  const explicitLabel = listRowPressableLabel({
+    accessibilityLabel,
+    trailingAccessibilityLabel:
+      trailingAccessibilityLabel !== undefined
+        ? listRowAccessibilityLabel({
+            title,
+            description,
+            trailingAccessibilityLabel,
+            accessibilityLabel,
+          })
+        : undefined,
+  });
 
   return (
     <Pressable

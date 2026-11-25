@@ -38,6 +38,10 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import AxeBuilder from "@axe-core/playwright";
 
+import { withAxeBusyRetry } from "./axe-busy-retry.mjs";
+import { escapesRoot } from "./static-server-path.mjs";
+import { storyRenderFailure } from "./story-render.mjs";
+
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, "..", "..");
 
@@ -75,7 +79,10 @@ function startServer(root) {
   const server = createServer((req, res) => {
     const urlPath = decodeURIComponent((req.url ?? "/").split("?")[0]);
     let filePath = join(root, urlPath === "/" ? "index.html" : urlPath);
-    if (!filePath.startsWith(root)) {
+    // Containment against a real path boundary, not a string prefix: a
+    // sibling such as <root>-other/x starts with the same characters as
+    // <root> and used to be served (PR #20 review).
+    if (escapesRoot(root, filePath)) {
       res.writeHead(403).end("forbidden");
       return;
     }
@@ -162,15 +169,68 @@ async function run() {
     const page = await context.newPage();
     for (const id of ids) {
       const url = `${origin}/iframe.html?id=${encodeURIComponent(id)}&viewMode=story`;
+      // A page error is an uncaught exception in the story itself — the
+      // story failed to render, so it must fail the gate rather than be
+      // scanned as an empty, violation-free canvas (PR #20 review).
+      const pageErrors = [];
+      const onError = (error) => pageErrors.push(String(error));
+      page.on("pageerror", onError);
       await page.goto(url, { waitUntil: "networkidle" });
-      // Give react-native-web + storybook a moment to paint the canvas.
+      // Wait for the *story content*, not the iframe.html shell element:
+      // #storybook-root exists in the shell before anything renders, so the
+      // old wait proved nothing. Poll until the decorator wrapper inside the
+      // root has a child (the story's own root view) or the timeout elapses;
+      // a story that never renders leaves the wrapper empty and fails below.
       await page
-        .waitForSelector("#storybook-root", { timeout: 15000 })
+        .waitForFunction(
+          () => {
+            const root = document.getElementById("storybook-root");
+            const wrapper = root?.firstElementChild;
+            return (
+              wrapper !== null &&
+              wrapper !== undefined &&
+              wrapper.childElementCount > 0
+            );
+          },
+          { timeout: 15000 },
+        )
         .catch(() => {});
-      await page.waitForTimeout(350);
-      const results = await new AxeBuilder({ page })
-        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-        .analyze();
+      const state = await page.evaluate(() => {
+        const root = document.getElementById("storybook-root");
+        return {
+          documentClasses: document.documentElement.className,
+          bodyClasses: document.body.className,
+          root: root
+            ? {
+                firstChildElementCount:
+                  root.firstElementChild?.childElementCount ?? 0,
+              }
+            : null,
+        };
+      });
+      page.off("pageerror", onError);
+      // storyRenderFailure covers every failure shape: a page error, Storybook's
+      // error display, and an empty root (a story that never rendered, or one
+      // that rendered nothing within the wait above — either way the root is
+      // empty when this runs).
+      const failure = storyRenderFailure({
+        pageErrors,
+        documentClasses: state.documentClasses,
+        bodyClasses: state.bodyClasses,
+        root: state.root,
+      });
+      if (failure) {
+        // A story that failed to render is a failure, not a clean scan.
+        findings.push({ id, renderFailure: failure, violation: null });
+        continue;
+      }
+      // The a11y addon may still be running its own axe pass on this render;
+      // retry only on axe's "already running" error (axe-busy-retry.mjs).
+      const results = await withAxeBusyRetry(() =>
+        new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+          .analyze(),
+      );
       scanned += 1;
       for (const violation of results.violations) {
         if (!SERIOUS_IMPACT.has(violation.impact)) continue;
@@ -182,11 +242,19 @@ async function run() {
     await new Promise((r) => server.close(r));
   }
 
+  const renderFailures = findings.filter(
+    (finding) => finding.violation === null,
+  );
+  const violations = findings.filter((finding) => finding.violation !== null);
   if (findings.length > 0) {
     console.error(
-      `a11y: FAIL — ${findings.length} serious/critical violation(s) across ${scanned} stor${scanned === 1 ? "y" : "ies"}:`,
+      `a11y: FAIL — ${findings.length} problem(s) across ${ids.length} stor${ids.length === 1 ? "y" : "ies"} (${renderFailures.length} render failure(s), ${violations.length} serious/critical violation(s)):`,
     );
-    for (const { id, violation } of findings) {
+    for (const { id, renderFailure, violation } of findings) {
+      if (renderFailure) {
+        console.error(`  ${id}: [render] ${renderFailure}`);
+        continue;
+      }
       console.error(
         `  ${id}: [${violation.impact}] ${violation.id} (${violation.nodes.length} node(s)) — ${violation.help}`,
       );
@@ -198,7 +266,7 @@ async function run() {
   }
 
   console.log(
-    `a11y: OK — 0 serious/critical violations across ${scanned} stor${scanned === 1 ? "y" : "ies"} (axe wcag2a/2aa/21a/21aa)`,
+    `a11y: OK — 0 serious/critical violations and 0 render failures across ${scanned} stor${scanned === 1 ? "y" : "ies"} (axe wcag2a/2aa/21a/21aa)`,
   );
 }
 
