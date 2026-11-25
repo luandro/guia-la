@@ -10,9 +10,11 @@ import { Text } from "./Text";
  * PR #20 review: the semantic `level` and the visual `size` are separate
  * props. `level` decides the document semantics — react-native-web renders
  * `accessibilityRole="header"` as `<h{level}>` from the aria-level — and
- * never the typography; `size` decides the visual size (1 = display,
- * 2 = title, 3 = heading), and never the semantics. Both default to 3, so
- * a bare `<Heading>` keeps the compact level-3 look it always had.
+ * never the typography once `size` is given; `size` decides the visual
+ * size (1 = display, 2 = title, 3 = heading), and never the semantics.
+ * `level` defaults to 3 and `size` defaults to the level, so every caller
+ * that passes no size (page titles, a bare `<Heading>`) keeps the look it
+ * always had.
  *
  * The split exists because the two axes were coupled until #20: fixing the
  * one-h1 rule (a page's only heading carries level 1) silently enlarged
@@ -23,9 +25,9 @@ import { Text } from "./Text";
  * (exempt from excess-property checking) which RNW reads.
  */
 export type HeadingProps = ComponentProps<typeof Text> & {
-  /** Semantic heading level: 1 = h1 … 3 (default) = h3. No visual effect. */
+  /** Semantic heading level: 1 = h1 … 3 (default) = h3. Sets the look only when `size` is omitted. */
   level?: HeadingLevel;
-  /** Visual size: 1 = display, 2 = title, 3 (default) = heading. No semantics. */
+  /** Visual size: 1 = display, 2 = title, 3 = heading; default: the level. No semantics. */
   size?: HeadingLevel;
 };
 

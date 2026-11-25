@@ -13,7 +13,9 @@
  * The two axes are therefore separate now:
  * - `level` carries *semantics only* (the aria-level, hence the exported
  *   h1/h2/h3), never typography;
- * - `size` carries the visual size (1-3), independent of the level.
+ * - `size` carries the visual size (1-3), independent of the level when
+ *   given; omitted, it follows the level, so callers that never opted in
+ *   (page titles) keep the pre-#20 look.
  *
  * `headingStyleFor(level, size)` is the one place the pair is resolved —
  * a pure function, so the invariant "the level never changes typography
@@ -35,8 +37,8 @@ export type HeadingStyle = {
 /**
  * Resolve a heading's semantics and its typography independently.
  *
- * `level` (default 3) is semantics only: it decides the exported h1/h2/h3
- * and nothing visual. `size` (default 3) is the visual size: 1 = display,
+ * `level` (default 3) decides the exported h1/h2/h3. `size` (default: the
+ * level, so existing callers keep their look) is the visual size: 1 = display,
  * 2 = title, 3 (and anything unparsable) = the smallest heading, matching
  * the historical `headingVariantForLevel` scale. Omitting both keeps the
  * pre-#20 look — a compact level-3 heading.
@@ -46,7 +48,9 @@ export function headingStyleFor(
   size: HeadingLevel | undefined,
 ): HeadingStyle {
   const resolvedLevel = level ?? 3;
-  const resolvedSize = size ?? 3;
+  // No size: the level keeps its historical look (codex review on #20 —
+  // a size default of 3 shrank every existing page h1 to `heading`).
+  const resolvedSize = size ?? resolvedLevel;
   return {
     variant:
       resolvedSize === 1 ? "display" : resolvedSize === 2 ? "title" : "heading",

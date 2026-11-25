@@ -192,6 +192,10 @@ async function run() {
               wrapper.childElementCount > 0
             );
           },
+          // waitForFunction(fn, arg, options): the options go third, or
+          // the timeout is taken as the page-function argument and ignored
+          // (codex review on #20).
+          undefined,
           { timeout: 15000 },
         )
         .catch(() => {});

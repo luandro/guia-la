@@ -275,6 +275,13 @@ unchanged; these add the review matrix and the axe gate on top of it.
   running" (exit 2 on the first `pnpm a11y` re-run). `analyze()` now goes
   through `withAxeBusyRetry` (`axe-busy-retry.mjs`), which retries only
   that error, bounded, and rethrows anything else (`axe-busy-retry.test.ts`).
+- **codex review on #20** (2 × P2): (1) `size` defaulted to 3, which
+  shrank every existing page h1 (home, not-found, places list, place
+  detail) from `display` to `heading`; `size` now defaults to the level,
+  so only callers that pass a size (the state primitives, `size={3}`)
+  opt out of the level's look (`headingStyle.test.ts`, red then green).
+  (2) `waitForFunction` got its options in the argument slot, so the
+  15 s render timeout was ignored; the options now go third.
 - Two real violations surfaced and fixed: the Button loading spinner
   (RNW `role="progressbar"` with no name — now `accessibilityHidden`,
   hidden because the button already announces busy) and the pressable

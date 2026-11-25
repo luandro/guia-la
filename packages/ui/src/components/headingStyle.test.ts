@@ -30,6 +30,24 @@ describe("headingStyleFor", () => {
     expect(headingStyleFor(1, 2)).toEqual({ variant: "title", level: 1 });
   });
 
+  it("without a size, the level keeps its pre-#20 typography (page titles stay display)", () => {
+    // codex review on #20: defaulting size to 3 shrank every existing page
+    // h1 (home, not-found, places list, place detail) from display to
+    // heading. Only callers that pass a size opt out of the level's look.
+    expect(headingStyleFor(1, undefined)).toEqual({
+      variant: "display",
+      level: 1,
+    });
+    expect(headingStyleFor(2, undefined)).toEqual({
+      variant: "title",
+      level: 2,
+    });
+    expect(headingStyleFor(3, undefined)).toEqual({
+      variant: "heading",
+      level: 3,
+    });
+  });
+
   it("maps each size onto its typography role", () => {
     expect(headingStyleFor(3, 1).variant).toBe("display");
     expect(headingStyleFor(3, 2).variant).toBe("title");
