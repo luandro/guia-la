@@ -3,10 +3,10 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import {
   BUTTON_DISABLED_OPACITY,
+  buttonHitTarget,
   buttonVariantColors,
   type ButtonVariant,
 } from "./buttonStyles";
-import { MIN_HIT_TARGET } from "./hitSlop";
 import { Text } from "./Text";
 
 /**
@@ -60,7 +60,7 @@ export function Button({
         styles.base,
         {
           alignSelf,
-          minHeight: MIN_HIT_TARGET,
+          ...buttonHitTarget(),
           backgroundColor: colors.background,
           borderColor: tokens.colors.border,
           borderWidth: colors.borderWidth,

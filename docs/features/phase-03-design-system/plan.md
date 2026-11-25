@@ -152,3 +152,16 @@ when the full primitive surface it scans exists.
 
 The agent reports measured contrast ratios per preset and mode; aesthetics
 remain with the owner per phase-03.md.
+
+### codex review on #19 (2026-11-25)
+
+`codex review --base main` (gpt-6.2-sol, low) reported no critical/high
+findings, so the OhMyBug hunt is not triggered. Both findings fixed test-first:
+
+- **P2 badges crowd the place name**: the places list passed its
+  translation badges as ListRow's non-wrapping `trailing` sibling, which
+  could take the row's width from the title on narrow screens. ListRow has
+  a `below` slot inside the title column; the list passes the badges there
+  in a wrapping row (`listRowBelow.test.ts`, rendered on react-native-web).
+- **P3 Button narrower than 44 pt**: only `minHeight` was enforced;
+  `buttonHitTarget()` sets both axes (`buttonHitTarget.test.ts`).
