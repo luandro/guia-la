@@ -191,11 +191,15 @@ function PlaceRow({
         title={content.name}
         description={label}
         separator
-        trailing={
+        // Badges sit under the name, in the title column, and wrap: as a
+        // trailing sibling they could take the row's width from the place
+        // name on narrow screens or at large text (codex review on #19).
+        below={
           showOriginal || showMachine ? (
             <View
               style={{
                 flexDirection: "row",
+                flexWrap: "wrap",
                 gap: tokens.spacing.sm,
                 alignItems: "center",
               }}

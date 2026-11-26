@@ -153,6 +153,19 @@ when the full primitive surface it scans exists.
 The agent reports measured contrast ratios per preset and mode; aesthetics
 remain with the owner per phase-03.md.
 
+### codex review on #19 (2026-11-25)
+
+`codex review --base main` (gpt-6.2-sol, low) reported no critical/high
+findings, so the OhMyBug hunt is not triggered. Both findings fixed test-first:
+
+- **P2 badges crowd the place name**: the places list passed its
+  translation badges as ListRow's non-wrapping `trailing` sibling, which
+  could take the row's width from the title on narrow screens. ListRow has
+  a `below` slot inside the title column; the list passes the badges there
+  in a wrapping row (`listRowBelow.test.ts`, rendered on react-native-web).
+- **P3 Button narrower than 44 pt**: only `minHeight` was enforced;
+  `buttonHitTarget()` sets both axes (`buttonHitTarget.test.ts`).
+
 ## Tasks 7–8: state-matrix stories + accessibility pass (PR 03-7 / 03-8)
 
 Spec: [spec.md](spec.md). Runs in worktree `phase-03-states`, stacked on
@@ -316,7 +329,7 @@ once (or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`) before the step.
 
 `pnpm check`, `./scripts/check.sh` (ends `check: OK`), `pnpm s1`,
 `pnpm storybook:build`, `pnpm a11y` — all exit 0; red/green runs quoted in
-the orchestrator `p03-78-tdd.txt`. Round 20 (PR #20 review) re-ran all five
+the orchestrator `p03-78-tdd.txt`. PR #20 review round 1 re-ran all five
 after the fixes: `pnpm check` (37 files, 409 tests), `./scripts/check.sh`
 (ends `check: OK`), `pnpm s1` (49 journey pages, exactly one h1 per page),
 `pnpm storybook:build`, `pnpm a11y` (0 violations, 0 render failures across

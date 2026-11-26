@@ -20,6 +20,13 @@ export type ListRowProps = {
   /** Right-side slot (chip, chevron, counter). */
   trailing?: ReactNode;
   /**
+   * Content under the description, inside the title column (badges,
+   * markers). It shares the title's width instead of competing with it,
+   * so it cannot crowd out the title on a narrow screen (codex review on
+   * #19). Wrap it in a wrapping row if it holds several items.
+   */
+  below?: ReactNode;
+  /**
    * Accessibility text for an *icon-only* trailing element (no visible text
    * of its own) on a pressable row. When the trailing has visible text (a
    * Chip), omit it — react-native-web composes the row's name from its
@@ -41,6 +48,7 @@ export function ListRow({
   title,
   description,
   trailing,
+  below,
   trailingAccessibilityLabel,
   onPress,
   separator = false,
@@ -75,6 +83,7 @@ export function ListRow({
             {description}
           </Text>
         ) : null}
+        {below}
       </View>
       {trailing}
     </>

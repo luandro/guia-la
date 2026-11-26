@@ -1,4 +1,5 @@
 import type { ColorSet } from "../tokens/types";
+import { MIN_HIT_TARGET } from "./hitSlop";
 
 /**
  * Button variant mapping (phase 03, task 5) as a pure function: the
@@ -49,4 +50,12 @@ export function buttonVariantColors(
         borderWidth: 0,
       };
   }
+}
+
+/**
+ * Minimum touch target on both axes (codex review on #19): minHeight alone
+ * let a short label such as "×" size the button under 44 pt wide.
+ */
+export function buttonHitTarget(): { minHeight: number; minWidth: number } {
+  return { minHeight: MIN_HIT_TARGET, minWidth: MIN_HIT_TARGET };
 }
