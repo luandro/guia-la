@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { Button } from "./Button";
 import { Heading } from "./Heading";
+import type { HeadingLevel } from "./textStyles";
 import { Text } from "./Text";
 
 /**
@@ -11,12 +12,21 @@ import { Text } from "./Text";
  * renders when onRetry is provided, so a no-op can never look live).
  * Alert role announces the state change. Strings arrive translated from
  * the caller (D-14).
+ *
+ * headingLevel (PR #19 deferred finding 03-78b; semantics/visual split in
+ * PR #20): the title's *semantic* heading level, default 2. A page whose
+ * only heading is this state passes level 1 so the document keeps exactly
+ * one h1; a state under a page's own h1 stays at 2. The level is
+ * semantics only — the title keeps its compact look (headingStyleFor), so
+ * the danger-colored error title never grows to display size.
  */
 export type ErrorStateProps = {
   title: string;
   description?: string;
   retryLabel?: string;
   onRetry?: () => void;
+  /** Semantic heading level (1 = h1). Visual size stays compact. */
+  headingLevel?: HeadingLevel;
 };
 
 export function ErrorState({
@@ -24,6 +34,7 @@ export function ErrorState({
   description,
   retryLabel,
   onRetry,
+  headingLevel = 2,
 }: ErrorStateProps) {
   const { tokens } = useTheme();
   return (
@@ -36,7 +47,8 @@ export function ErrorState({
       }}
     >
       <Heading
-        level={3}
+        level={headingLevel}
+        size={3}
         style={{ color: tokens.colors.danger, textAlign: "center" }}
       >
         {title}

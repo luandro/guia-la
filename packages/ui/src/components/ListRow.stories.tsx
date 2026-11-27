@@ -4,31 +4,37 @@ import { View } from "react-native";
 import { cotijubaPreset, serraPreset } from "../theme/presets";
 import { Chip } from "./Chip";
 import { ListRow } from "./ListRow";
-import { StoryCanvas, ThemeStoryFrame } from "./story-frame";
+import {
+  copyFor,
+  LocaleMatrix,
+  StoryCanvas,
+  ThemeStoryFrame,
+  type StoryLocale,
+} from "./story-frame";
 
 /**
  * ListRow: plain, descriptive, trailing and pressable, with and without
  * separators. Fixture text only — review surfaces, not shipped UI (D-14).
  */
 
-function Copy() {
+function Copy({ locale = "en" }: { locale?: StoryLocale }) {
+  const c = copyFor(locale);
   return (
     <View>
-      <ListRow title="Praia do Farol" separator />
+      <ListRow title={c.listRow.title} separator />
       <ListRow
-        title="Praia do Farol"
-        description="Lighthouse beach on the island's north shore"
+        title={c.listRow.title}
+        description={c.listRow.description}
         separator
       />
       <ListRow
-        title="Trilha do Farol"
-        description="Trail to the lighthouse viewpoint"
-        trailing={<Chip label="verified" tone="success" />}
-        trailingAccessibilityLabel="verified"
+        title={c.listRow.trailingTitle}
+        description={c.listRow.description}
+        trailing={<Chip label={c.chip.success} tone="success" />}
         separator
         onPress={() => {}}
       />
-      <ListRow title="Last row without separator" onPress={() => {}} />
+      <ListRow title={c.button.ghost} onPress={() => {}} />
     </View>
   );
 }
@@ -47,6 +53,15 @@ export const Basic: Story = {
     <StoryCanvas>
       <Copy />
     </StoryCanvas>
+  ),
+};
+
+/** en, pt-BR and de side by side — de is the long-text overflow locale. */
+export const Locales: Story = {
+  render: () => (
+    <ThemeStoryFrame presetId={cotijubaPreset.id} mode="light">
+      <LocaleMatrix render={(locale) => <Copy locale={locale} />} />
+    </ThemeStoryFrame>
   ),
 };
 

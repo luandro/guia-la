@@ -17,6 +17,7 @@ export {
   listRowAccessibilityLabel,
   type ListRowAccessibilityLabelInput,
 } from "./components/listRowAccessibility";
+export { listRowPressableLabel } from "./components/listRowLabel";
 export { Text, type TextProps } from "./components/Text";
 
 // Primitives (batch 2, task 6)
@@ -54,6 +55,7 @@ export {
   type ChipTone,
 } from "./components/chipStyles";
 export { SHADOW_OPACITY, elevationStyle } from "./components/elevation";
+export { headingStyleFor, type HeadingStyle } from "./components/headingStyle";
 export { MIN_HIT_TARGET, hitSlop, type HitSlop } from "./components/hitSlop";
 export {
   HEADING_LEVELS,

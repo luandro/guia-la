@@ -55,6 +55,21 @@ function columnOf(html: string, marker: string): string {
   return html.slice(open);
 }
 
+/** Count direct div children, ignoring any nested markup inside them. */
+function directChildCount(html: string): number {
+  let depth = 0;
+  let count = 0;
+  for (const match of html.matchAll(/<\/?div\b[^>]*>/g)) {
+    if (match[0].startsWith("</")) {
+      depth -= 1;
+    } else {
+      if (depth === 1) count += 1;
+      depth += 1;
+    }
+  }
+  return count;
+}
+
 describe("ListRow below slot", () => {
   it("renders below-content inside the title column, not beside it", () => {
     const html = render({
@@ -71,7 +86,16 @@ describe("ListRow below slot", () => {
   });
 
   it("renders nothing extra when below is omitted", () => {
-    const html = render({ title: "TITLE-MARK" });
-    expect(html).not.toContain("BELOW-MARK");
+    const titleOnly = columnOf(render({ title: "TITLE-MARK" }), "TITLE-MARK");
+    const withBelow = columnOf(
+      render({
+        title: "TITLE-MARK",
+        below: React.createElement(Text, null, "BELOW-MARK"),
+      }),
+      "TITLE-MARK",
+    );
+    expect(titleOnly).toContain("TITLE-MARK");
+    expect(directChildCount(titleOnly)).toBe(1);
+    expect(directChildCount(withBelow)).toBe(2);
   });
 });

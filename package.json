@@ -21,13 +21,16 @@
     "export:web": "APP_ENV=development APP_VARIANT=cotijuba-web pnpm --dir apps/app exec expo export -p web",
     "export:web:serra": "APP_ENV=development APP_VARIANT=serra-web pnpm --dir apps/app exec expo export -p web",
     "storybook:build": "pnpm --filter @guia-la/storybook storybook:build",
+    "a11y": "node tools/a11y-check/a11y-check.mjs",
     "s1": "pnpm export:web && ./scripts/s1-assert.sh cotijuba",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm i18n:check && pnpm brand-colors:check && pnpm test"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "eslint": "^9.39.5",
     "eslint-config-expo": "^58.0.4",
     "eslint-import-resolver-typescript": "^4.4.5",
+    "playwright": "1.65.1",
     "prettier": "^3.10.1",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.73.0",

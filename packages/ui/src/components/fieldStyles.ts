@@ -57,6 +57,21 @@ export function fieldHelperId(
 }
 
 /**
+ * The helper region stays mounted even when there is no helper text (PR #19
+ * deferred finding 03-78a): a live region must exist *before* the message
+ * is inserted or the insertion is not announced (W3C ARIA22, same rule
+ * OfflineBanner follows). A field with no hint and no error therefore
+ * renders an empty helper Text carrying accessibilityLiveRegion="polite",
+ * so the first validation error is announced on Android — previously the
+ * region mounted together with its error and TalkBack read nothing.
+ */
+export function fieldHelperLiveRegion(): {
+  accessibilityLiveRegion: "polite";
+} {
+  return { accessibilityLiveRegion: "polite" };
+}
+
+/**
  * Web a11y wiring for the input (PR #19 review): the invalid state and the
  * helper text must reach assistive tech, not just draw in color. RN's types
  * carry no aria-invalid/aria-describedby yet (0.88); RNW 0.21 forwards both,

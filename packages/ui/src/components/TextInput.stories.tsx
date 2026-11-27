@@ -2,34 +2,43 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { View } from "react-native";
 
 import { cotijubaPreset, serraPreset } from "../theme/presets";
+import {
+  copyFor,
+  LocaleMatrix,
+  ThemeStoryFrame,
+  type StoryLocale,
+} from "./story-frame";
 import { TextInput } from "./TextInput";
-import { ThemeStoryFrame } from "./story-frame";
 
 /**
  * TextInput with its field scaffolding: label + hint, focus and error
  * states. Fixture text only — review surfaces, not shipped UI (D-14).
  */
 
-function Copy() {
+function Copy({ locale = "en" }: { locale?: StoryLocale }) {
+  const c = copyFor(locale);
   return (
     <View style={{ gap: 16 }}>
-      <TextInput label="Search places" hint="Name, category or village" />
+      <TextInput label={c.textInput.label} hint={c.textInput.hint} />
       <TextInput
-        label="Email"
-        hint="We never share it"
-        defaultValue="reader@example.org"
+        label={c.textInput.emailLabel}
+        hint={c.textInput.emailHint}
+        defaultValue={c.textInput.emailValue}
       />
       <TextInput
-        label="Email"
-        error="This address is missing an @ sign"
-        defaultValue="reader-at-example"
+        label={c.textInput.emailLabel}
+        error={c.textInput.emailError}
+        defaultValue={c.textInput.emailValue}
       />
-      <TextInput label="Notes" placeholder="Anything the guide should know" />
       <TextInput
-        label="Village"
-        hint="Draft saved while offline"
+        label={c.textInput.label}
+        placeholder={c.textInput.placeholder}
+      />
+      <TextInput
+        label={c.textInput.readOnlyLabel}
+        hint={c.textInput.readOnlyHint}
         editable={false}
-        value="Vila do Farol"
+        value={c.textInput.readOnlyValue}
       />
     </View>
   );
@@ -50,6 +59,15 @@ export const Basic: Story = {
 
 export const Error: Story = {
   args: { label: "Email", error: "This address is missing an @ sign" },
+};
+
+/** en, pt-BR and de side by side — de is the long-text overflow locale. */
+export const Locales: Story = {
+  render: () => (
+    <ThemeStoryFrame presetId={cotijubaPreset.id} mode="light">
+      <LocaleMatrix render={(locale) => <Copy locale={locale} />} />
+    </ThemeStoryFrame>
+  ),
 };
 
 export const CotijubaLight: Story = {
