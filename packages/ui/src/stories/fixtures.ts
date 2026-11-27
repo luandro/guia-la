@@ -145,13 +145,13 @@ export const STORY_COPY: Record<StoryLocale, StoryCopy> = {
   },
   "pt-BR": {
     heading: {
-      level1: "Atenção: jôzes gáuchos",
-      level2: "Travaillez-vous ce soir?",
+      level1: "Esfinge de quartzo negro",
+      level2: "Você trabalha esta noite?",
       level3: "Como rápida e velozmente os zangões saltam",
     },
     text: {
-      display: "Atenção: jôzes gáuchos, julguem meu voto",
-      title: "Travaillez-vous ce soir?",
+      display: "Esfinge de quartzo negro, julgue meu juramento",
+      title: "Você trabalha esta noite?",
       heading: "Como rápida e velozmente os zangões saltam",
       body: "A rápida raposa marrom salta sobre o cão preguiçoso — 0123456789 — as jornadas terminam rápido com um ritmo de viagem feroz e constante.",
       bodySmall: "Pchnąć w tę łódź jeża lub ośm skrzyń fig",
@@ -217,13 +217,14 @@ export const STORY_COPY: Record<StoryLocale, StoryCopy> = {
   },
   de: {
     heading: {
-      level1: "Achtung: jôzes gáuchos",
-      level2: "Travaillez-vous ce soir?",
+      level1: "Schwarzquarzsphinx und Gelübdebeurteilungsverfahren",
+      level2: "Arbeiten Sie heute Abend?",
       level3: "Wie verblüffend schnell die frechen Zebras springen",
     },
     text: {
-      display: "Achtung: jôzes gáuchos, urteilt über mein Versprechen",
-      title: "Travaillez-vous ce soir?",
+      display:
+        "Schwarzquarzsphinx, beurteile mein Treuegelübde vor dem Gemeinschaftsunterkunftsverwaltungsausschuss",
+      title: "Arbeiten Sie heute Abend?",
       heading: "Wie verblüffend schnell die frechen Zebras springen",
       body: "Der schnelle braune Fuchs springt über den faulen Hund — 0123456789 — Reisen enden schnell mit einem unermüdlichen, zügigen Reisestil und reibungslosem Ablauf.",
       bodySmall: "Pchnąć w tę łódź jeża lub ośm skrzyń fig",

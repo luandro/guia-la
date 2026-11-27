@@ -47,4 +47,34 @@ describe("listRowPressableLabel", () => {
       }),
     ).toBe("Open");
   });
+
+  it("composes an icon-only trailing name from the text as rendered", () => {
+    // WCAG 2.5.3 Label in Name: the explicit name must contain the visible
+    // text in render order — title then description joined by a single
+    // space — before the icon-only trailing label. A ", "-joined string
+    // does not contain "Praia do Farol Lighthouse beach" as rendered.
+    expect(
+      listRowPressableLabel({
+        title: "Praia do Farol",
+        description: "Lighthouse beach",
+        trailingAccessibilityLabel: "verified",
+      }),
+    ).toBe("Praia do Farol Lighthouse beach, verified");
+  });
+
+  it("appends the below slot's label to the explicit name", () => {
+    // The below slot sits under the description: when the name is built
+    // explicitly for an icon-only trailing, its text must be spoken too.
+    expect(
+      listRowPressableLabel({
+        title: "Praia do Farol",
+        description: "Lighthouse beach",
+        trailingAccessibilityLabel: "verified",
+        belowAccessibilityLabel:
+          "Showing original (Português), Machine translated",
+      }),
+    ).toBe(
+      "Praia do Farol Lighthouse beach, verified, Showing original (Português), Machine translated",
+    );
+  });
 });

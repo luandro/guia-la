@@ -3,7 +3,6 @@ import { Pressable, View } from "react-native";
 
 import { useTheme } from "../theme/ThemeProvider";
 import { MIN_HIT_TARGET } from "./hitSlop";
-import { listRowAccessibilityLabel } from "./listRowAccessibility";
 import { listRowPressableLabel } from "./listRowLabel";
 import { Text } from "./Text";
 
@@ -36,6 +35,16 @@ export type ListRowProps = {
    * accessibilityLabel is set (caller wins).
    */
   trailingAccessibilityLabel?: string;
+  /**
+   * Accessibility text for the `below` slot (content under the description,
+   * e.g. trust-marker badges) on a pressable row. It is appended to the
+   * explicit name when that name is built — for an icon-only trailing
+   * (`trailingAccessibilityLabel`) or for `below` itself — so content that
+   * sits under the description is still spoken. The default path (no
+   * explicit label) is unchanged: RNW composes the name from the children.
+   * Ignored when `accessibilityLabel` is set (caller wins).
+   */
+  belowAccessibilityLabel?: string;
   onPress?: () => void;
   /** Draw the bottom hairline separator; default false. */
   separator?: boolean;
@@ -50,6 +59,7 @@ export function ListRow({
   trailing,
   below,
   trailingAccessibilityLabel,
+  belowAccessibilityLabel,
   onPress,
   separator = false,
   accessibilityLabel,
@@ -101,21 +111,18 @@ export function ListRow({
   // row's children (title, description, and the trailing element's own text)
   // — which matches the rendered text, so WCAG 2.5.3 Label-in-Name holds
   // (axe's label-content-name-mismatch, task 8 a11y pass). A caller who
-  // passes an explicit accessibilityLabel owns that name. The legacy
+  // passes an explicit accessibilityLabel owns that name. The
   // trailingAccessibilityLabel path builds an explicit label only for an
-  // icon-only trailing (no visible text of its own to mismatch). The
-  // branching itself is the pure, unit-tested listRowPressableLabel.
+  // icon-only trailing (no visible text of its own to mismatch); that label
+  // starts with the title/description as rendered and appends the below
+  // slot's label when one is given. The pure, unit-tested
+  // listRowPressableLabel owns the branching and composition.
   const explicitLabel = listRowPressableLabel({
+    title,
+    description,
+    trailingAccessibilityLabel,
+    belowAccessibilityLabel,
     accessibilityLabel,
-    trailingAccessibilityLabel:
-      trailingAccessibilityLabel !== undefined
-        ? listRowAccessibilityLabel({
-            title,
-            description,
-            trailingAccessibilityLabel,
-            accessibilityLabel,
-          })
-        : undefined,
   });
 
   return (

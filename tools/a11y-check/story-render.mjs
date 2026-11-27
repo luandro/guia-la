@@ -63,7 +63,10 @@ export function hasStorybookErrorDisplay(...classSources) {
  */
 export function isStoryRootEmpty(root) {
   if (!root) return true;
-  return root.firstChildElementCount === 0;
+  return (
+    !Number.isInteger(root.firstChildElementCount) ||
+    root.firstChildElementCount <= 0
+  );
 }
 
 /**

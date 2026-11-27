@@ -171,6 +171,10 @@ function DetailContent({ slug }: { slug: string }) {
         <View
           style={{
             flexDirection: "row",
+            // Both badges are visible at once on fallback+translated
+            // content; without wrapping the second is clipped on narrow
+            // screens or at large text. The places list already wraps.
+            flexWrap: "wrap",
             gap: tokens.spacing.md,
             paddingTop: tokens.spacing.xs,
           }}

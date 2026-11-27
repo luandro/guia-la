@@ -43,9 +43,10 @@ describe("hasStorybookErrorDisplay", () => {
 });
 
 describe("isStoryRootEmpty", () => {
-  it("is true when the root is absent or its decorator wrapper has no children", () => {
+  it("is true when the root is absent, empty, or missing its child count", () => {
     expect(isStoryRootEmpty(null)).toBe(true);
     expect(isStoryRootEmpty({ firstChildElementCount: 0 })).toBe(true);
+    expect(isStoryRootEmpty({})).toBe(true);
   });
 
   it("is false when the decorator wrapper holds the story's root view", () => {
@@ -61,7 +62,7 @@ describe("storyRenderFailure", () => {
     pageErrors: [],
     documentClasses: "",
     bodyClasses: "sb-main-padded sb-show-main",
-    root: { childElementCount: 1, textContent: "Continue" },
+    root: { firstChildElementCount: 1 },
   };
 
   it("passes a story that rendered real content", () => {
@@ -82,21 +83,12 @@ describe("storyRenderFailure", () => {
       storyRenderFailure({
         ...rendered,
         bodyClasses: "sb-main-padded sb-show-errordisplay",
-        root: { childElementCount: 0, textContent: "" },
+        root: { firstChildElementCount: 0 },
       }),
     ).toContain("error display");
   });
 
   it("fails a story that renders nothing (empty root)", () => {
-    expect(
-      storyRenderFailure({
-        ...rendered,
-        root: { firstChildElementCount: 0 },
-      }),
-    ).toContain("rendered nothing");
-  });
-
-  it("fails a story whose root is empty (renders nothing)", () => {
     expect(
       storyRenderFailure({
         ...rendered,
